@@ -1,4 +1,6 @@
 {
+    "name": "thesphynx/galerium",
+    "description": "Galerium - A Symfony Gallery Application",
     "type": "project",
     "license": "proprietary",
     "minimum-stability": "stable",

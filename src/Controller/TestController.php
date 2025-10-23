@@ -15,4 +15,12 @@ final class TestController extends AbstractController
             'controller_name' => 'TestController',
         ]);
     }
+
+    #[Route('/test/backoffice', name: 'app_test_backoffice')]
+    public function TestBackoffice(): Response
+    {
+        return $this->render('test/backoffice.html.twig', [
+            'controller_name' => 'TestController',
+        ]);
+    }
 }
