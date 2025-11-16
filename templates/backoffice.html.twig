@@ -65,6 +65,11 @@
             <svg class="nav-icon">
               <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-speedometer"></use>
             </svg> Dashboard<span class="badge badge-sm bg-info ms-auto">NEW</span></a></li>
+        <li class="nav-title">Galerium</li>
+        <li class="nav-item"><a class="nav-link" href="{{ path('app_concours_test') }}">
+            <svg class="nav-icon">
+              <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-trophy"></use>
+            </svg> Concours</a></li>
         <li class="nav-title">Theme</li>
         <li class="nav-item"><a class="nav-link" href="colors.html">
             <svg class="nav-icon">
@@ -331,10 +336,12 @@
         <div class="container-fluid px-4">
           <nav aria-label="breadcrumb">
             <ol class="breadcrumb my-0">
+              {% block breadcrumb %}
               <li class="breadcrumb-item"><a href="#">Home</a>
               </li>
               <li class="breadcrumb-item active"><span>Dashboard</span>
               </li>
+              {% endblock %}
             </ol>
           </nav>
         </div>

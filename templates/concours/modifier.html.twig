@@ -1,0 +1,86 @@
+{% extends 'backoffice.html.twig' %}
+
+{% block title %}Modifier {{ concours.titre }} - Galerium{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="#">Home</a></li>
+<li class="breadcrumb-item"><a href="{{ path('app_concours_test') }}">Concours</a></li>
+<li class="breadcrumb-item"><a href="{{ path('app_concours_voir', {id: concours.id}) }}">{{ concours.titre }}</a></li>
+<li class="breadcrumb-item active"><span>Modifier</span></li>
+{% endblock %}
+
+{% block body %}
+<div class="body flex-grow-1">
+    <div class="container-lg px-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="mb-0">Modifier le concours</h1>
+            <a href="{{ path('app_concours_voir', {id: concours.id}) }}" class="btn btn-secondary">
+                <svg class="icon me-2">
+                    <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-arrow-left"></use>
+                </svg>
+                Retour
+            </a>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <strong>Modifier les informations du concours</strong>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ path('app_concours_modifier', {id: concours.id}) }}">
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label for="titre" class="form-label">Titre</label>
+                            <input type="text" class="form-control" id="titre" name="titre" value="{{ concours.titre }}" placeholder="Entrez le titre du concours">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="4" placeholder="Description détaillée du concours">{{ concours.description }}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="dateDebut" class="form-label">Date de début</label>
+                            <input type="datetime-local" class="form-control" id="dateDebut" name="dateDebut" 
+                                   value="{{ concours.dateDebut ? concours.dateDebut|date('Y-m-d\\TH:i') : '' }}">
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="dateFin" class="form-label">Date de fin</label>
+                            <input type="datetime-local" class="form-control" id="dateFin" name="dateFin"
+                                   value="{{ concours.dateFin ? concours.dateFin|date('Y-m-d\\TH:i') : '' }}">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label for="regles" class="form-label">Règles du concours</label>
+                            <textarea class="form-control" id="regles" name="regles" rows="5" placeholder="Règles et conditions du concours">{{ concours.regles }}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{{ path('app_concours_voir', {id: concours.id}) }}" class="btn btn-secondary">
+                            <svg class="icon me-2">
+                                <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-x"></use>
+                            </svg>
+                            Annuler
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <svg class="icon me-2">
+                                <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-check"></use>
+                            </svg>
+                            Enregistrer les modifications
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
