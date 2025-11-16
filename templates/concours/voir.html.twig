@@ -30,14 +30,8 @@
             </div>
         {% endfor %}
         
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="mb-4">
             <h1 class="mb-0">{{ concours.titre }}</h1>
-            <a href="{{ path('app_concours_test') }}" class="btn btn-secondary">
-                <svg class="icon me-2">
-                    <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-arrow-left"></use>
-                </svg>
-                Retour à la liste
-            </a>
         </div>
 
         <div class="row">
@@ -47,7 +41,7 @@
                         <strong>Informations du concours</strong>
                         {% if concours.statut == 'actif' %}
                             <span class="badge bg-success">{{ concours.statut }}</span>
-                        {% elseif concours.statut == 'clôturé' %}
+                        {% elseif concours.statut == 'cloture' or concours.statut == 'clôturé' %}
                             <span class="badge bg-danger">{{ concours.statut }}</span>
                         {% else %}
                             <span class="badge bg-secondary">{{ concours.statut }}</span>
@@ -62,10 +56,10 @@
                             <div class="col-md-8">
                                 <div class="text-body-secondary small">Vote public</div>
                                 <div>
-                                    {% if concours.votePublic %}
-                                        <span class="badge bg-success">Activé</span>
+                                    {% if concours.isVotePublic() %}
+                                        <span class="badge bg-success">Oui</span>
                                     {% else %}
-                                        <span class="badge bg-secondary">Désactivé</span>
+                                        <span class="badge bg-secondary">Non</span>
                                     {% endif %}
                                 </div>
                             </div>
@@ -99,7 +93,7 @@
                             </div>
                         </div>
 
-                        {% if concours.votePublic %}
+                        {% if concours.isVotePublic() %}
                             <hr>
                             <div class="row mb-3">
                                 <div class="col-md-6">
@@ -128,45 +122,6 @@
                         <div class="mb-3">
                             <div class="text-body-secondary small mb-2">Règles du concours</div>
                             <div>{{ concours.regles ?: '<em class="text-body-secondary">Aucune règle spécifiée</em>'|raw }}</div>
-                        </div>
-                    </div>
-                    <div class="card-footer">
-                        <div class="btn-group">
-                            <a href="{{ path('app_concours_modifier', {id: concours.id}) }}" class="btn btn-warning">
-                                <svg class="icon me-2">
-                                    <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-pencil"></use>
-                                </svg>
-                                Modifier
-                            </a>
-                            
-                            {% if concours.statut != 'clôturé' %}
-                                <form method="POST" action="{{ path('app_concours_cloturer', {id: concours.id}) }}" style="display: inline;">
-                                    <button type="submit" class="btn btn-info" onclick="return confirm('Êtes-vous sûr de vouloir clôturer ce concours ?')">
-                                        <svg class="icon me-2">
-                                            <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-x-circle"></use>
-                                        </svg>
-                                        Clôturer
-                                    </button>
-                                </form>
-                            {% endif %}
-                            
-                            {% if not concours.votePublic %}
-                                <button type="button" class="btn btn-success" data-coreui-toggle="modal" data-coreui-target="#voteModal">
-                                    <svg class="icon me-2">
-                                        <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-check-circle"></use>
-                                    </svg>
-                                    Activer le vote public
-                                </button>
-                            {% endif %}
-                            
-                            <form method="POST" action="{{ path('app_concours_supprimer', {id: concours.id}) }}" style="display: inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer le concours « {{ concours.titre }} » ? Cette action est irréversible.');">
-                                <button type="submit" class="btn btn-danger">
-                                    <svg class="icon me-2">
-                                        <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-trash"></use>
-                                    </svg>
-                                    Supprimer
-                                </button>
-                            </form>
                         </div>
                     </div>
                 </div>
@@ -203,34 +158,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal pour activer le vote public -->
-<div class="modal fade" id="voteModal" tabindex="-1" role="dialog" aria-labelledby="voteModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <form method="POST" action="{{ path('app_concours_activer_vote', {id: concours.id}) }}">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="voteModalLabel">Activer le vote public</h5>
-                    <button type="button" class="btn-close" data-coreui-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="dateDebutVote" class="form-label">Date de début du vote</label>
-                        <input type="datetime-local" class="form-control" id="dateDebutVote" name="dateDebutVote">
-                    </div>
-                    <div class="mb-3">
-                        <label for="dateFinVote" class="form-label">Date de fin du vote</label>
-                        <input type="datetime-local" class="form-control" id="dateFinVote" name="dateFinVote">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-coreui-dismiss="modal">Annuler</button>
-                    <button type="submit" class="btn btn-success">Activer le vote</button>
-                </div>
-            </form>
         </div>
     </div>
 </div>

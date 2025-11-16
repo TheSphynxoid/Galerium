@@ -30,8 +30,8 @@
                 <form method="POST" action="{{ path('app_concours_modifier', {id: concours.id}) }}">
                     <div class="row">
                         <div class="col-md-12 mb-3">
-                            <label for="titre" class="form-label">Titre</label>
-                            <input type="text" class="form-control" id="titre" name="titre" value="{{ concours.titre }}" placeholder="Entrez le titre du concours">
+                            <label for="titre" class="form-label">Titre <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="titre" name="titre" value="{{ concours.titre }}" placeholder="Entrez le titre du concours" required>
                         </div>
                     </div>
 
@@ -44,15 +44,39 @@
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="dateDebut" class="form-label">Date de début</label>
+                            <label for="dateDebut" class="form-label">Date de début <span class="text-danger">*</span></label>
                             <input type="datetime-local" class="form-control" id="dateDebut" name="dateDebut" 
-                                   value="{{ concours.dateDebut ? concours.dateDebut|date('Y-m-d\\TH:i') : '' }}">
+                                   value="{{ concours.dateDebut ? concours.dateDebut|date('Y-m-d\\TH:i') : '' }}" min="" max="2026-12-31T23:59" required>
                         </div>
 
                         <div class="col-md-6 mb-3">
-                            <label for="dateFin" class="form-label">Date de fin</label>
+                            <label for="dateFin" class="form-label">Date de fin <span class="text-danger">*</span></label>
                             <input type="datetime-local" class="form-control" id="dateFin" name="dateFin"
-                                   value="{{ concours.dateFin ? concours.dateFin|date('Y-m-d\\TH:i') : '' }}">
+                                   value="{{ concours.dateFin ? concours.dateFin|date('Y-m-d\\TH:i') : '' }}" max="2026-12-31T23:59" required>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="statut" class="form-label">Statut <span class="text-danger">*</span></label>
+                            <select class="form-select" id="statut" name="statut" required>
+                                <option value="">Sélectionnez un statut</option>
+                                <option value="actif" {{ concours.statut == 'actif' ? 'selected' : '' }}>Actif</option>
+                                <option value="cloture" {{ (concours.statut == 'cloture' or concours.statut == 'clôturé') ? 'selected' : '' }}>Clôturé</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="votePublic" class="form-label">Vote public <span class="text-danger">*</span></label>
+                            <select class="form-select" id="votePublic" name="votePublic" required>
+                                {% if concours.isVotePublic() %}
+                                    <option value="oui" selected>Oui</option>
+                                    <option value="non">Non</option>
+                                {% else %}
+                                    <option value="oui">Oui</option>
+                                    <option value="non" selected>Non</option>
+                                {% endif %}
+                            </select>
                         </div>
                     </div>
 
@@ -82,5 +106,47 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const dateDebutInput = document.getElementById('dateDebut');
+    const dateFinInput = document.getElementById('dateFin');
+    
+    // Obtenir la date d'aujourd'hui au format datetime-local
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const hours = String(today.getHours()).padStart(2, '0');
+    const minutes = String(today.getMinutes()).padStart(2, '0');
+    const todayString = `${year}-${month}-${day}T${hours}:${minutes}`;
+    
+    // Définir la date d'aujourd'hui comme min pour dateDebut
+    dateDebutInput.setAttribute('min', todayString);
+    
+    // Mettre à jour le min de dateFin quand dateDebut change
+    dateDebutInput.addEventListener('change', function() {
+        const dateDebutValue = dateDebutInput.value;
+        if (dateDebutValue) {
+            dateFinInput.setAttribute('min', dateDebutValue);
+            // Si dateFin est antérieure à dateDebut, la mettre à jour
+            if (dateFinInput.value && dateFinInput.value < dateDebutValue) {
+                dateFinInput.value = dateDebutValue;
+            }
+        }
+    });
+    
+    // Définir le max pour dateFin (décembre 2026)
+    dateFinInput.setAttribute('max', '2026-12-31T23:59');
+    
+    // Initialiser le min de dateFin avec la valeur de dateDebut
+    if (dateDebutInput.value) {
+        dateFinInput.setAttribute('min', dateDebutInput.value);
+    } else {
+        // Si pas de date de début, utiliser aujourd'hui comme min
+        dateFinInput.setAttribute('min', todayString);
+    }
+});
+</script>
 {% endblock %}
 

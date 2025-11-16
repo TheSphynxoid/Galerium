@@ -36,6 +36,20 @@ class ConcoursController extends AbstractController
                 regles: $request->request->get('regles')
             );
             
+            // Traiter le statut
+            $statut = $request->request->get('statut');
+            if ($statut) {
+                // Normaliser le statut "cloture" en "clôturé"
+                if ($statut === 'cloture') {
+                    $statut = 'clôturé';
+                }
+                $concours->setStatut($statut);
+            }
+            
+            // Traiter le vote public
+            $votePublic = $request->request->get('votePublic');
+            $concours->setVotePublic($votePublic === 'oui');
+            
             $em->persist($concours);
             $em->flush();
             
@@ -76,6 +90,22 @@ class ConcoursController extends AbstractController
                 dateFin: $request->request->get('dateFin') ? new \DateTime($request->request->get('dateFin')) : null,
                 regles: $request->request->get('regles') ?: null
             );
+            
+            // Traiter le statut
+            $statut = $request->request->get('statut');
+            if ($statut) {
+                // Normaliser le statut "cloture" en "clôturé"
+                if ($statut === 'cloture') {
+                    $statut = 'clôturé';
+                }
+                $concours->setStatut($statut);
+            }
+            
+            // Traiter le vote public
+            $votePublic = $request->request->get('votePublic');
+            if ($votePublic !== null) {
+                $concours->setVotePublic($votePublic === 'oui');
+            }
             
             $em->flush();
             
