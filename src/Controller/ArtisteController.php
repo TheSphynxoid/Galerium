@@ -100,6 +100,12 @@ class ArtisteController extends AbstractController
         throw new \LogicException('This method can be blank - it will be intercepted by the logout key on your firewall.');
     }
 
+    #[Route('/artiste/profile', name: 'app_artiste_profile_alias')]
+    public function profileAlias(): Response
+    {
+        return $this->redirectToRoute('app_artiste_profile');
+    }
+
     #[Route('/artiste/profil', name: 'app_artiste_profile')]
     public function profile(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
     {
