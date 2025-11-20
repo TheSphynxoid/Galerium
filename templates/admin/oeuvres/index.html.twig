@@ -1,0 +1,90 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block page_title %}Modération des Œuvres{% endblock %}
+
+{% block body %}
+<div class="d-flex justify-content-between mb-4">
+    <h2>Liste des Œuvres</h2>
+</div>
+
+<form method="GET" class="mb-4">
+    <div class="input-group">
+        <select name="statut" class="form-select">
+            <option value="">Tous les statuts</option>
+            <option value="en_attente" {% if statut == 'en_attente' %}selected{% endif %}>En attente</option>
+            <option value="publiee" {% if statut == 'publiee' %}selected{% endif %}>Publiée</option>
+            <option value="refusee" {% if statut == 'refusee' %}selected{% endif %}>Refusée</option>
+            <option value="masquee" {% if statut == 'masquee' %}selected{% endif %}>Masquée</option>
+        </select>
+        <button class="btn btn-outline-secondary" type="submit">
+            <i class="bi bi-filter"></i> Filtrer
+        </button>
+    </div>
+</form>
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Titre</th>
+                <th>Artiste</th>
+                <th>Catégorie</th>
+                <th>Statut</th>
+                <th>Votes</th>
+                <th>Commentaires</th>
+                <th>Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for oeuvre in oeuvres %}
+            <tr>
+                <td>{{ oeuvre.id }}</td>
+                <td>{{ oeuvre.titre }}</td>
+                <td><a href="{{ path('admin_artistes_show', {id: oeuvre.artiste.id}) }}">{{ oeuvre.artiste.getFullName }}</a></td>
+                <td>{{ oeuvre.categorie ?? '-' }}</td>
+                <td>
+                    <span class="badge bg-{{ oeuvre.statut == 'publiee' ? 'success' : (oeuvre.statut == 'refusee' ? 'danger' : (oeuvre.statut == 'masquee' ? 'secondary' : 'warning')) }}">
+                        {{ oeuvre.statut }}
+                    </span>
+                </td>
+                <td>{{ oeuvre.nbVotes }}</td>
+                <td>{{ oeuvre.nbCommentaires }}</td>
+                <td>{{ oeuvre.createdAt|date('d/m/Y') }}</td>
+                <td>
+                    <div class="btn-group" role="group">
+                        <a href="{{ path('admin_oeuvres_show', {id: oeuvre.id}) }}" class="btn btn-sm btn-info">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        {% if oeuvre.statut != 'publiee' %}
+                            <form method="POST" action="{{ path('admin_oeuvres_validate', {id: oeuvre.id}) }}" class="d-inline">
+                                <input type="hidden" name="_token" value="{{ csrf_token('validate_oeuvre' ~ oeuvre.id) }}">
+                                <button type="submit" class="btn btn-sm btn-success">
+                                    <i class="bi bi-check-circle"></i>
+                                </button>
+                            </form>
+                        {% endif %}
+                        {% if oeuvre.statut != 'refusee' %}
+                            <form method="POST" action="{{ path('admin_oeuvres_reject', {id: oeuvre.id}) }}" class="d-inline">
+                                <input type="hidden" name="_token" value="{{ csrf_token('reject_oeuvre' ~ oeuvre.id) }}">
+                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir refuser cette œuvre ?')">
+                                    <i class="bi bi-x-circle"></i>
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="9" class="text-center">Aucune œuvre trouvée</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+
+

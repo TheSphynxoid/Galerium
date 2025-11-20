@@ -1,0 +1,28 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Soumettre une œuvre{% endblock %}
+
+{% block body %}
+<div class="container py-4">
+	<h1 class="mb-4">Soumettre une œuvre au concours: {{ concours.titre }}</h1>
+
+	<div class="card">
+		<div class="card-body">
+			{{ form_start(form) }}
+				<div class="mb-3">
+					{{ form_label(form.oeuvre) }}
+					{{ form_widget(form.oeuvre) }}
+					{{ form_errors(form.oeuvre) }}
+				</div>
+				<button type="submit" class="btn btn-primary">Soumettre</button>
+				<a href="{{ path('app_concours_actifs') }}" class="btn btn-secondary">Annuler</a>
+			{{ form_end(form) }}
+		</div>
+	</div>
+</div>
+{% endblock %}
+
+
+
+
+

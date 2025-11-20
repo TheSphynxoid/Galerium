@@ -1,0 +1,141 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block page_title %}Tableau de bord{% endblock %}
+
+{% block body %}
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <h5 class="card-title">Total Artistes</h5>
+                <h2>{{ totalArtistes }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h5 class="card-title">Total Œuvres</h5>
+                <h2>{{ totalOeuvres }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <h5 class="card-title">Total Participations</h5>
+                <h2>{{ totalParticipations }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>Artistes récents</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Nom</th>
+                                <th>Email</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for artiste in recentArtistes %}
+                            <tr>
+                                <td><a href="{{ path('admin_artistes_show', {id: artiste.id}) }}">{{ artiste.getFullName }}</a></td>
+                                <td>{{ artiste.email }}</td>
+                                <td>{{ artiste.createdAt|date('d/m/Y') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>Œuvres récentes</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Titre</th>
+                                <th>Artiste</th>
+                                <th>Statut</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for oeuvre in recentOeuvres %}
+                            <tr>
+                                <td><a href="{{ path('admin_oeuvres_show', {id: oeuvre.id}) }}">{{ oeuvre.titre }}</a></td>
+                                <td>{{ oeuvre.artiste.getFullName }}</td>
+                                <td><span class="badge bg-{{ oeuvre.statut == 'publiee' ? 'success' : 'warning' }}">{{ oeuvre.statut }}</span></td>
+                                <td>{{ oeuvre.createdAt|date('d/m/Y') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>Top 10 Artistes par votes</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Rang</th>
+                                <th>Artiste</th>
+                                <th>Œuvres</th>
+                                <th>Votes totaux</th>
+                                <th>Participations</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for stat in artistesStats|slice(0, 10) %}
+                            <tr>
+                                <td><strong>#{{ loop.index }}</strong></td>
+                                <td><a href="{{ path('admin_artistes_show', {id: stat.artiste.id}) }}">{{ stat.artiste.getFullName }}</a></td>
+                                <td>{{ stat.nbOeuvres }}</td>
+                                <td>{{ stat.nbVotes }}</td>
+                                <td>{{ stat.nbParticipations }}</td>
+                                <td>
+                                    <a href="{{ path('admin_artistes_show', {id: stat.artiste.id}) }}" class="btn btn-sm btn-info">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+

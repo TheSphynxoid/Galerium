@@ -1,0 +1,141 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block page_title %}Détails de l'Œuvre: {{ oeuvre.titre }}{% endblock %}
+
+{% block body %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <a href="{{ path('admin_oeuvres_index') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Retour à la liste
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Image de l'œuvre</h5>
+            </div>
+            <div class="card-body text-center">
+                {% if oeuvre.image %}
+                    <img src="{{ asset(oeuvre.image) }}" alt="{{ oeuvre.titre }}" class="img-fluid">
+                {% else %}
+                    <p class="text-muted">Aucune image</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5>Informations</h5>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <tr>
+                        <th>Titre:</th>
+                        <td>{{ oeuvre.titre }}</td>
+                    </tr>
+                    <tr>
+                        <th>Artiste:</th>
+                        <td><a href="{{ path('admin_artistes_show', {id: oeuvre.artiste.id}) }}">{{ oeuvre.artiste.getFullName }}</a></td>
+                    </tr>
+                    <tr>
+                        <th>Description:</th>
+                        <td>{{ oeuvre.description ?? '-' }}</td>
+                    </tr>
+                    <tr>
+                        <th>Catégorie:</th>
+                        <td>{{ oeuvre.categorie ?? '-' }}</td>
+                    </tr>
+                    <tr>
+                        <th>Statut:</th>
+                        <td>
+                            <span class="badge bg-{{ oeuvre.statut == 'publiee' ? 'success' : (oeuvre.statut == 'refusee' ? 'danger' : (oeuvre.statut == 'masquee' ? 'secondary' : 'warning')) }}">
+                                {{ oeuvre.statut }}
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Votes:</th>
+                        <td>{{ oeuvre.nbVotes }}</td>
+                    </tr>
+                    <tr>
+                        <th>Commentaires:</th>
+                        <td>{{ oeuvre.nbCommentaires }}</td>
+                    </tr>
+                    <tr>
+                        <th>Date de création:</th>
+                        <td>{{ oeuvre.dateCreation ? oeuvre.dateCreation|date('d/m/Y') : '-' }}</td>
+                    </tr>
+                    <tr>
+                        <th>Date d'ajout:</th>
+                        <td>{{ oeuvre.createdAt|date('d/m/Y H:i') }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5>Actions de modération</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ path('admin_oeuvres_change_status', {id: oeuvre.id}) }}" class="mb-3">
+                    <input type="hidden" name="_token" value="{{ csrf_token('change_status' ~ oeuvre.id) }}">
+                    <div class="mb-2">
+                        <label class="form-label">Changer le statut:</label>
+                        <select name="statut" class="form-select" onchange="this.form.submit()">
+                            <option value="en_attente" {% if oeuvre.statut == 'en_attente' %}selected{% endif %}>En attente</option>
+                            <option value="publiee" {% if oeuvre.statut == 'publiee' %}selected{% endif %}>Publiée</option>
+                            <option value="refusee" {% if oeuvre.statut == 'refusee' %}selected{% endif %}>Refusée</option>
+                            <option value="masquee" {% if oeuvre.statut == 'masquee' %}selected{% endif %}>Masquée</option>
+                        </select>
+                    </div>
+                </form>
+
+                <form method="POST" action="{{ path('admin_oeuvres_change_category', {id: oeuvre.id}) }}" class="mb-3">
+                    <input type="hidden" name="_token" value="{{ csrf_token('change_category' ~ oeuvre.id) }}">
+                    <div class="mb-2">
+                        <label class="form-label">Changer la catégorie:</label>
+                        <div class="input-group">
+                            <input type="text" name="categorie" class="form-control" value="{{ oeuvre.categorie ?? '' }}" placeholder="Nouvelle catégorie">
+                            <button type="submit" class="btn btn-primary">Modifier</button>
+                        </div>
+                    </div>
+                </form>
+
+                {% if oeuvre.statut != 'publiee' %}
+                    <form method="POST" action="{{ path('admin_oeuvres_validate', {id: oeuvre.id}) }}" class="mb-2">
+                        <input type="hidden" name="_token" value="{{ csrf_token('validate_oeuvre' ~ oeuvre.id) }}">
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="bi bi-check-circle"></i> Valider et publier
+                        </button>
+                    </form>
+                {% endif %}
+
+                {% if oeuvre.statut != 'masquee' %}
+                    <form method="POST" action="{{ path('admin_oeuvres_hide', {id: oeuvre.id}) }}" class="mb-2">
+                        <input type="hidden" name="_token" value="{{ csrf_token('hide_oeuvre' ~ oeuvre.id) }}">
+                        <button type="submit" class="btn btn-warning w-100">
+                            <i class="bi bi-eye-slash"></i> Masquer
+                        </button>
+                    </form>
+                {% endif %}
+
+                <form method="POST" action="{{ path('admin_oeuvres_delete', {id: oeuvre.id}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete_oeuvre' ~ oeuvre.id) }}">
+                    <button type="submit" class="btn btn-danger w-100" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette œuvre ?')">
+                        <i class="bi bi-trash"></i> Supprimer définitivement
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+
