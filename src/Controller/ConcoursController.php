@@ -109,7 +109,7 @@ class ConcoursController extends AbstractController
             
             $em->flush();
             
-            return $this->redirectToRoute('app_concours_voir', ['id' => $id]);
+            return $this->redirectToRoute('app_concours_test');
         }
         
         return $this->render('concours/modifier.html.twig', [
