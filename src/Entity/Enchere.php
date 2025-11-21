@@ -6,6 +6,7 @@ use App\Enum\EnchereStatut;
 use App\Repository\EnchereRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Symfony\Component\Validator\Constraints as Assert;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: EnchereRepository::class)]
@@ -16,7 +17,9 @@ class Enchere
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column]
+    #[ORM\Column(nullable: false)]
+    #[Assert\NotBlank(message: "Le montant de base ne peut pas être vide.")]
+    #[Assert\Positive(message: "Le montant doit être supérieur à zéro.")]
     private ?float $prixDeBase = null;
 
     #[ORM\Column]

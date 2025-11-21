@@ -3,10 +3,13 @@
 namespace App\Controller;
 
 use App\Entity\Enchere;
+use App\Enum\EnchereStatut;
 use App\Form\EnchereType;
 use App\Repository\EnchereRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormInterface;
+use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -29,16 +32,22 @@ final class EnchereController extends AbstractController
         $form = $this->createForm(EnchereType::class, $enchere);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
+        if ($form->isSubmitted()) {
             $entityManager->persist($enchere);
-            $entityManager->flush();
+            $this->ValidateEnchere($form, $enchere);
+            if($form->isValid()){
+                $enchere->setDateDebut(new \DateTime());
+                $enchere->setPrixActuel($enchere->getPrixDeBase());
+                $enchere->setStatut(EnchereStatut::ACTIVE);
+                $entityManager->flush();
+                return $this->redirectToRoute('app_enchere_index', [], Response::HTTP_SEE_OTHER);
+            }
 
-            return $this->redirectToRoute('app_enchere_index', [], Response::HTTP_SEE_OTHER);
         }
 
         return $this->render('enchere/new.html.twig', [
             'enchere' => $enchere,
-            'form' => $form,
+            'form' => $form->createView(),
         ]);
     }
 
@@ -56,15 +65,18 @@ final class EnchereController extends AbstractController
         $form = $this->createForm(EnchereType::class, $enchere);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->flush();
-
-            return $this->redirectToRoute('app_enchere_index', [], Response::HTTP_SEE_OTHER);
+        if ($form->isSubmitted()) {
+            $this->ValidateEnchere($form, $enchere);
+            if($form->isValid()){
+                $entityManager->flush();
+    
+                return $this->redirectToRoute('app_enchere_index', [], Response::HTTP_SEE_OTHER);
+            }
         }
 
         return $this->render('enchere/edit.html.twig', [
             'enchere' => $enchere,
-            'form' => $form,
+            'form' => $form->createView(),
         ]);
     }
 
@@ -77,5 +89,14 @@ final class EnchereController extends AbstractController
         }
 
         return $this->redirectToRoute('app_enchere_index', [], Response::HTTP_SEE_OTHER);
+    }
+
+    private function ValidateEnchere(FormInterface $form, Enchere $enchere)
+    {
+        if($enchere->getDateFin() <= new \DateTime()) {
+            $form->get('dateFin')->addError(new FormError('La date de fin doit être postérieure à la date de début.'));
+            return false;
+        }
+        return true;
     }
 }

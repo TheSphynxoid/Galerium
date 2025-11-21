@@ -7,6 +7,8 @@ use App\Form\OffreType;
 use App\Repository\OffreRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormInterface;
+use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -29,16 +31,18 @@ final class OffreController extends AbstractController
         $form = $this->createForm(OffreType::class, $offre);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
+        if ($form->isSubmitted()) {
             $entityManager->persist($offre);
-            $entityManager->flush();
-
-            return $this->redirectToRoute('app_offre_index', [], Response::HTTP_SEE_OTHER);
+            $this->ValidateOffer($form, $offre);
+            if($form->isValid()){
+                $entityManager->flush();
+                return $this->redirectToRoute('app_offre_index', [], Response::HTTP_SEE_OTHER);
+            }
         }
 
         return $this->render('offre/new.html.twig', [
             'offre' => $offre,
-            'form' => $form,
+            'form' => $form->createView(),
         ]);
     }
 
@@ -57,14 +61,16 @@ final class OffreController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->flush();
-
-            return $this->redirectToRoute('app_offre_index', [], Response::HTTP_SEE_OTHER);
+            $this->ValidateOffer($form, $offre);
+            if($form->isValid()){
+                $entityManager->flush();
+                return $this->redirectToRoute('app_offre_index', [], Response::HTTP_SEE_OTHER);
+            }
         }
 
         return $this->render('offre/edit.html.twig', [
             'offre' => $offre,
-            'form' => $form,
+            'form' => $form->createView(),
         ]);
     }
 
@@ -77,5 +83,26 @@ final class OffreController extends AbstractController
         }
 
         return $this->redirectToRoute('app_offre_index', [], Response::HTTP_SEE_OTHER);
+    }
+
+    private function ValidateOffer(FormInterface $form, Offre $offre)
+    {
+        if($offre->getMontant() <= 0){
+            $form->addError(new FormError('Le montant de l\'offre doit être supérieur à zéro.'));
+            return false;
+        }
+        if($offre->getMontant() <= $offre->getEchere()->getPrixActuel()){
+            $form->get('montant')->addError(new FormError('Le montant de l\'offre doit être supérieur au prix actuel de l\'enchère.'));
+            return false;
+        }
+        if($offre->getEchere()->getStatut() !== \App\Enum\EnchereStatut::ACTIVE){
+            $form->addError(new FormError('Vous ne pouvez pas faire une offre sur une enchère qui n\'est pas en cours.'));
+            return false;
+        }
+        if($offre->getEchere()->getDateFin() < new \DateTime()){
+            $form->addError(new FormError('Vous ne pouvez pas faire une offre sur une enchère terminée.'));
+            return false;
+        }
+        return true;
     }
 }
