@@ -1,0 +1,48 @@
+{% extends 'backoffice.html.twig' %}
+
+{% block title %}Enchere index{% endblock %}
+
+{% block body %}
+{{ include('_search_section.html.twig') }}
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h3 class="mb-0">Enchères</h3>
+            <a class="btn btn-sm btn-primary" href="{{ path('app_enchere_new') }}">Create new</a>
+        </div>
+        <div class="card-body p-0">
+            <table class="table mb-0">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>PrixDeBase</th>
+                <th>PrixActuel</th>
+                <th>DateDebut</th>
+                <th>DateFin</th>
+                <th>Statut</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for enchere in encheres %}
+            <tr>
+                <td>{{ enchere.id }}</td>
+                <td>{{ enchere.prixDeBase }}</td>
+                <td>{{ enchere.prixActuel }}</td>
+                <td>{{ enchere.dateDebut ? enchere.dateDebut|date('Y-m-d H:i:s') : '' }}</td>
+                <td>{{ enchere.dateFin ? enchere.dateFin|date('Y-m-d H:i:s') : '' }}</td>
+                <td>{{ enchere.Statut.value }}</td>
+                <td>
+                    <a class="btn btn-sm btn-outline-secondary" href="{{ path('app_enchere_show', {'id': enchere.id}) }}">Show</a>
+                    <a class="btn btn-sm btn-outline-primary" href="{{ path('app_enchere_edit', {'id': enchere.id}) }}">Edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="7">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+        </div>
+    </div>
+{% endblock %}

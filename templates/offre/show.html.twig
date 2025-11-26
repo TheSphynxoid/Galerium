@@ -1,0 +1,30 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Offre{% endblock %}
+
+{% block body %}
+    <article class="mx-auto my-4" style="max-width:700px;">
+        <div class="bg-white rounded shadow-sm p-4">
+            <header class="mb-3 text-center">
+                <h2 style="font-family: Georgia, 'Times New Roman', serif;">Offre #{{ offre.id }}</h2>
+                <p class="text-muted small mb-0">Détails de l'offre</p>
+            </header>
+
+            <dl class="row mt-3">
+                <dt class="col-sm-4 text-muted">Montant</dt>
+                <dd class="col-sm-8">{{ offre.montant }}</dd>
+
+                <dt class="col-sm-4 text-muted">Date</dt>
+                <dd class="col-sm-8">{{ offre.dateOffre ? offre.dateOffre|date('Y-m-d H:i:s') : '' }}</dd>
+            </dl>
+
+            <div class="mt-4 d-flex justify-content-between">
+                <a class="btn btn-outline-dark btn-sm" href="{{ path('app_offre_index') }}">Back to list</a>
+                <div>
+                    <a class="btn btn-sm btn-primary" href="{{ path('app_offre_edit', {'id': offre.id}) }}">Edit</a>
+                    <span class="ml-2">{{ include('offre/_delete_form.html.twig') }}</span>
+                </div>
+            </div>
+        </div>
+    </article>
+{% endblock %}
