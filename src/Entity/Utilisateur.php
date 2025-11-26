@@ -1,0 +1,111 @@
+<?php
+
+namespace App\Entity;
+
+use Doctrine\ORM\Mapping as ORM;
+
+#[ORM\Entity]
+#[ORM\Table(name: 'utilisateur')] // Make sure table name matches your DB
+class Utilisateur
+{
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(name: 'id', type: 'integer')]
+    private ?int $id = null;
+
+    #[ORM\Column(name: 'email', length: 100, unique: true)]
+    private ?string $email = null;
+
+    #[ORM\Column(name: 'password', length: 30)]
+    private ?string $password = null;
+
+    #[ORM\Column(name: 'nom', length: 30)]
+    private ?string $nom = null;
+
+    #[ORM\Column(name: 'prenom', length: 30)]
+    private ?string $prenom = null;
+
+    #[ORM\Column(name: 'role', length: 30)]
+    private ?string $role = 'VISITEUR';
+
+    #[ORM\Column(name: 'date_inscription', type: 'datetime')]
+    private ?\DateTimeInterface $dateInscription = null;
+
+    // Getters and Setters
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function getEmail(): ?string
+    {
+        return $this->email;
+    }
+
+    public function setEmail(string $email): self
+    {
+        $this->email = $email;
+        return $this;
+    }
+
+    public function getPassword(): ?string
+    {
+        return $this->password;
+    }
+
+    public function setPassword(string $password): self
+    {
+        $this->password = $password;
+        return $this;
+    }
+
+    public function getNom(): ?string
+    {
+        return $this->nom;
+    }
+
+    public function setNom(string $nom): self
+    {
+        $this->nom = $nom;
+        return $this;
+    }
+
+    public function getPrenom(): ?string
+    {
+        return $this->prenom;
+    }
+
+    public function setPrenom(string $prenom): self
+    {
+        $this->prenom = $prenom;
+        return $this;
+    }
+
+    public function getRole(): ?string
+    {
+        return $this->role;
+    }
+
+    public function setRole(string $role): self
+    {
+        $this->role = $role;
+        return $this;
+    }
+
+    public function getDateInscription(): ?\DateTimeInterface
+    {
+        return $this->dateInscription;
+    }
+
+    public function setDateInscription(\DateTimeInterface $dateInscription): self
+    {
+        $this->dateInscription = $dateInscription;
+        return $this;
+    }
+
+    // Helper method to get full name
+    public function getFullName(): string
+    {
+        return $this->prenom . ' ' . $this->nom;
+    }
+}

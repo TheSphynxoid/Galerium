@@ -1,0 +1,20 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Offre{% endblock %}
+
+{% block body %}
+    <article class="mx-auto my-4" style="max-width:640px;">
+        <div class="bg-white rounded shadow-sm p-4">
+            <header class="mb-3 text-center">
+                <h2 style="font-family: Georgia, 'Times New Roman', serif;">Edit Offre #{{ offre.id }}</h2>
+            </header>
+
+            {{ include('offre/_form.html.twig', {'button_label': 'Update'}) }}
+
+            <div class="mt-3 d-flex justify-content-between">
+                <a class="btn btn-link" href="{{ path('app_offre_index') }}">Back to list</a>
+                <div>{{ include('offre/_delete_form.html.twig') }}</div>
+            </div>
+        </div>
+    </article>
+{% endblock %}

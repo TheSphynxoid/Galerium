@@ -1,0 +1,38 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Login{% endblock %}
+
+{% block body %}
+<div style="max-width: 400px; margin: 50px auto; padding: 2rem; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+    <h2 style="text-align: center; margin-bottom: 1.5rem; color: #2c3e50;">Login</h2>
+
+    {% if error %}
+        <div style="background: #fee; color: #c33; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem; text-align: center;">
+            {{ error }}
+        </div>
+    {% endif %}
+
+    <form method="post">
+        <div style="margin-bottom: 1rem;">
+            <input type="email" name="email" placeholder="Email" value="{{ email }}" 
+                   style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;"
+                   required>
+        </div>
+        
+        <div style="margin-bottom: 1.5rem;">
+            <input type="password" name="password" placeholder="Password" 
+                   style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;"
+                   required>
+        </div>
+
+        <button type="submit" 
+                style="width: 100%; padding: 0.75rem; background: #3498db; color: white; border: none; border-radius: 4px; font-size: 1rem; cursor: pointer;">
+            Login
+        </button>
+    </form>
+
+    <div style="text-align: center; margin-top: 1rem;">
+        <a href="{{ path('app_registre') }}" style="color: #3498db; text-decoration: none;">Create an account</a>
+    </div>
+</div>
+{% endblock %}
