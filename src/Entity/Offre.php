@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\OffreRepository;
+use Symfony\Component\Validator\Constraints as Assert;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: OffreRepository::class)]
@@ -14,13 +15,17 @@ class Offre
     private ?int $id = null;
 
     #[ORM\Column]
+    #[Assert\NotBlank(message: "Le montant de l'offre ne peut pas être vide.")]
+    #[Assert\Positive(message: "Le montant de l'offre doit être supérieur à zéro.")]
     private ?float $montant = null;
 
     #[ORM\Column]
+    #[Assert\NotBlank(message: "La date de l'offre ne peut pas être vide.")]
     private ?\DateTime $dateOffre = null;
 
     #[ORM\ManyToOne(inversedBy: 'offre')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Assert\NotNull(message: "L'enchère associée ne peut pas être nulle.")]
     private ?Enchere $echere = null;
 
     public function getId(): ?int

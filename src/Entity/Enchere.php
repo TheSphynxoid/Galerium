@@ -26,9 +26,12 @@ class Enchere
     private ?float $prixActuel = null;
 
     #[ORM\Column]
+    #[Assert\NotBlank(message: "La date de début ne peut pas être vide.")]
     private ?\DateTime $dateDebut = null;
 
     #[ORM\Column(nullable: true)]
+    #[Assert\NotBlank(message: "La date de fin ne peut pas être vide.")]
+    #[Assert\GreaterThan(propertyPath: "dateDebut", message: "La date de fin doit être postérieure à la date de début.")]
     private ?\DateTime $dateFin = null;
 
     #[ORM\Column(enumType: EnchereStatut::class)]
@@ -38,6 +41,7 @@ class Enchere
      * @var Collection<int, Offre>
      */
     #[ORM\OneToMany(targetEntity: Offre::class, mappedBy: 'echere', orphanRemoval: true)]
+    #[Assert\NotNull(message: "L'enchère doit contenir au moins une offre.")]
     private Collection $offre;
 
     public function __construct()

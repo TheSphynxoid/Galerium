@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Offre;
 use App\Form\OffreType;
 use App\Repository\OffreRepository;
+use App\Service\RedisService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormInterface;
@@ -24,6 +25,24 @@ final class OffreController extends AbstractController
         ]);
     }
 
+
+    #[Route('/testoffer', name: 'app_offre_test', methods: ['GET'])]
+    public function testoffer(RedisService $redisService)
+    {
+        $client = $redisService->GetClient();
+        $client->set('test_offer', 'This is a test offer value', 'EX', 60); // Expires in 1 min
+        
+        return new Response($client->get('test_offer'));
+    }
+
+
+    #[Route('/push', name: 'app_offre_push', methods: ['POST'])]
+    private function PushOffer(Offre $offre)
+    {
+        $enchere = $offre->getEchere();
+
+    }
+
     #[Route('/new', name: 'app_offre_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
@@ -34,7 +53,7 @@ final class OffreController extends AbstractController
         if ($form->isSubmitted()) {
             $entityManager->persist($offre);
             $this->ValidateOffer($form, $offre);
-            if($form->isValid()){
+            if ($form->isValid()) {
                 $entityManager->flush();
                 return $this->redirectToRoute('app_offre_index', [], Response::HTTP_SEE_OTHER);
             }
@@ -46,7 +65,7 @@ final class OffreController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'app_offre_show', methods: ['GET'])]
+    #[Route('/{id<\d+>}', name: 'app_offre_show', methods: ['GET'])]
     public function show(Offre $offre): Response
     {
         return $this->render('offre/show.html.twig', [
@@ -54,7 +73,7 @@ final class OffreController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/edit', name: 'app_offre_edit', methods: ['GET', 'POST'])]
+    #[Route('/{id<\d+>}/edit', name: 'app_offre_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Offre $offre, EntityManagerInterface $entityManager): Response
     {
         $form = $this->createForm(OffreType::class, $offre);
@@ -62,7 +81,7 @@ final class OffreController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $this->ValidateOffer($form, $offre);
-            if($form->isValid()){
+            if ($form->isValid()) {
                 $entityManager->flush();
                 return $this->redirectToRoute('app_offre_index', [], Response::HTTP_SEE_OTHER);
             }
@@ -74,10 +93,10 @@ final class OffreController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'app_offre_delete', methods: ['POST'])]
+    #[Route('/{id<\d+>}', name: 'app_offre_delete', methods: ['POST'])]
     public function delete(Request $request, Offre $offre, EntityManagerInterface $entityManager): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$offre->getId(), $request->getPayload()->getString('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $offre->getId(), $request->getPayload()->getString('_token'))) {
             $entityManager->remove($offre);
             $entityManager->flush();
         }
@@ -87,19 +106,19 @@ final class OffreController extends AbstractController
 
     private function ValidateOffer(FormInterface $form, Offre $offre)
     {
-        if($offre->getMontant() <= 0){
+        if ($offre->getMontant() <= 0) {
             $form->addError(new FormError('Le montant de l\'offre doit être supérieur à zéro.'));
             return false;
         }
-        if($offre->getMontant() <= $offre->getEchere()->getPrixActuel()){
+        if ($offre->getMontant() <= $offre->getEchere()->getPrixActuel()) {
             $form->get('montant')->addError(new FormError('Le montant de l\'offre doit être supérieur au prix actuel de l\'enchère.'));
             return false;
         }
-        if($offre->getEchere()->getStatut() !== \App\Enum\EnchereStatut::ACTIVE){
+        if ($offre->getEchere()->getStatut() !== \App\Enum\EnchereStatut::ACTIVE) {
             $form->addError(new FormError('Vous ne pouvez pas faire une offre sur une enchère qui n\'est pas en cours.'));
             return false;
         }
-        if($offre->getEchere()->getDateFin() < new \DateTime()){
+        if ($offre->getEchere()->getDateFin() < new \DateTime()) {
             $form->addError(new FormError('Vous ne pouvez pas faire une offre sur une enchère terminée.'));
             return false;
         }
