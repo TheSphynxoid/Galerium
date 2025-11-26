@@ -11,7 +11,6 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ArtisteRepository::class)]
-#[ORM\Table(name: '`artiste`')]
 class Artiste implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
