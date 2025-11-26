@@ -1,0 +1,165 @@
+{% extends 'backoffice.html.twig' %}
+
+{% block title %}{{ concours.titre }} - Galerium{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="#">Home</a></li>
+<li class="breadcrumb-item"><a href="{{ path('app_concours_test') }}">Concours</a></li>
+<li class="breadcrumb-item active"><span>{{ concours.titre }}</span></li>
+{% endblock %}
+
+{% block body %}
+<div class="body flex-grow-1">
+    <div class="container-lg px-4">
+        {% for message in app.flashes('success') %}
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <svg class="icon me-2">
+                    <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-check-circle"></use>
+                </svg>
+                {{ message }}
+                <button type="button" class="btn-close" data-coreui-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+        {% for message in app.flashes('error') %}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <svg class="icon me-2">
+                    <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-warning"></use>
+                </svg>
+                {{ message }}
+                <button type="button" class="btn-close" data-coreui-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+        
+        <div class="mb-4">
+            <h1 class="mb-0">{{ concours.titre }}</h1>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <strong>Informations du concours</strong>
+                        {% if concours.statut == 'actif' %}
+                            <span class="badge bg-success">{{ concours.statut }}</span>
+                        {% elseif concours.statut == 'cloture' or concours.statut == 'clôturé' %}
+                            <span class="badge bg-danger">{{ concours.statut }}</span>
+                        {% else %}
+                            <span class="badge bg-secondary">{{ concours.statut }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <div class="text-body-secondary small">ID</div>
+                                <div class="fw-semibold">#{{ concours.id }}</div>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="text-body-secondary small">Vote public</div>
+                                <div>
+                                    {% if concours.isVotePublic() %}
+                                        <span class="badge bg-success">Oui</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Non</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <div class="mb-3">
+                            <div class="text-body-secondary small mb-2">Description</div>
+                            <div>{{ concours.description ?: '<em class="text-body-secondary">Aucune description</em>'|raw }}</div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="text-body-secondary small mb-2">Date de début</div>
+                                <div class="fw-semibold">
+                                    <svg class="icon me-1">
+                                        <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-calendar"></use>
+                                    </svg>
+                                    {{ concours.dateDebut ? concours.dateDebut|date('d/m/Y H:i') : '-' }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="text-body-secondary small mb-2">Date de fin</div>
+                                <div class="fw-semibold">
+                                    <svg class="icon me-1">
+                                        <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-calendar"></use>
+                                    </svg>
+                                    {{ concours.dateFin ? concours.dateFin|date('d/m/Y H:i') : '-' }}
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if concours.isVotePublic() %}
+                            <hr>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <div class="text-body-secondary small mb-2">Date début vote</div>
+                                    <div class="fw-semibold">
+                                        <svg class="icon me-1">
+                                            <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-calendar-check"></use>
+                                        </svg>
+                                        {{ concours.dateDebutVote ? concours.dateDebutVote|date('d/m/Y H:i') : '-' }}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="text-body-secondary small mb-2">Date fin vote</div>
+                                    <div class="fw-semibold">
+                                        <svg class="icon me-1">
+                                            <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-calendar-check"></use>
+                                        </svg>
+                                        {{ concours.dateFinVote ? concours.dateFinVote|date('d/m/Y H:i') : '-' }}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <hr>
+
+                        <div class="mb-3">
+                            <div class="text-body-secondary small mb-2">Règles du concours</div>
+                            <div>{{ concours.regles ?: '<em class="text-body-secondary">Aucune règle spécifiée</em>'|raw }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <strong>Actions rapides</strong>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a href="{{ path('app_concours_modifier', {id: concours.id}) }}" class="btn btn-outline-warning">
+                                <svg class="icon me-2">
+                                    <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-pencil"></use>
+                                </svg>
+                                Modifier
+                            </a>
+                            <form method="POST" action="{{ path('app_concours_supprimer', {id: concours.id}) }}" style="display: inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce concours ? Cette action est irréversible.');">
+                                <button type="submit" class="btn btn-outline-danger w-100">
+                                    <svg class="icon me-2">
+                                        <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-trash"></use>
+                                    </svg>
+                                    Supprimer
+                                </button>
+                            </form>
+                            <a href="{{ path('app_concours_test') }}" class="btn btn-outline-secondary">
+                                <svg class="icon me-2">
+                                    <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-list"></use>
+                                </svg>
+                                Liste des concours
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
