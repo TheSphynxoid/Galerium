@@ -1,0 +1,48 @@
+{% extends 'artiste/base.html.twig' %}
+
+{% block title %}Ajouter une œuvre - Galerium{% endblock %}
+
+{% block body %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="mb-0">Ajouter une nouvelle œuvre</h2>
+            </div>
+            <div class="card-body">
+                {{ form_start(form, {'attr': {'enctype': 'multipart/form-data'}}) }}
+                    <div class="mb-3">
+                        {{ form_row(form.titre) }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form_row(form.description) }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form_row(form.categorie) }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form_row(form.dateCreation) }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form_row(form.statut) }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form_row(form.imageFile) }}
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ path('app_oeuvre_index') }}" class="btn btn-secondary">Annuler</a>
+                        <button type="submit" class="btn btn-primary">Ajouter l'œuvre</button>
+                    </div>
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+
+
+
+
+

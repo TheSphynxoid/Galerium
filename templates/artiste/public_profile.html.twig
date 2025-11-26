@@ -1,0 +1,64 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Profil de {{ artiste.prenom }} {{ artiste.nom }}{% endblock %}
+
+{% block body %}
+<div class="container py-4">
+	<div class="row g-4">
+		<div class="col-md-4">
+			<div class="card h-100">
+				<div class="card-body text-center">
+					<img src="{{ asset(artiste.photoProfil ?? 'assets/images/default.png') }}" alt="Photo de profil" class="img-fluid rounded mb-3" />
+					<h3 class="mb-0">{{ artiste.prenom }} {{ artiste.nom }}</h3>
+					<p class="text-muted">{{ artiste.specialite }}</p>
+					{% if artiste.siteWeb %}
+						<p class="mb-0"><a href="{{ artiste.siteWeb }}" target="_blank" rel="noopener">Site web</a></p>
+					{% endif %}
+					{% if artiste.reseauxSociaux %}
+						<p class="mb-0">Réseaux: {{ artiste.reseauxSociaux }}</p>
+					{% endif %}
+				</div>
+			</div>
+		</div>
+		<div class="col-md-8">
+			<div class="card h-100">
+				<div class="card-body">
+					<h4>Biographie</h4>
+					<p>{{ artiste.biographie ?: 'Biographie non renseignée.' }}</p>
+					<hr />
+					<h4>Œuvres</h4>
+					<div class="row g-3">
+						{% for oeuvre in artiste.oeuvres %}
+							<div class="col-md-6">
+								<div class="card h-100">
+									{% if oeuvre.image %}
+										<img src="{{ asset(oeuvre.image) }}" class="card-img-top" alt="{{ oeuvre.titre }}">
+									{% endif %}
+									<div class="card-body">
+										<h5 class="card-title">{{ oeuvre.titre }}</h5>
+										<p class="card-text text-muted">{{ oeuvre.categorie }}</p>
+										<p class="card-text">{{ oeuvre.description|u.truncate(120, '…') }}</p>
+										<div class="d-flex gap-3 text-muted small">
+											<span>Votes: {{ oeuvre.nbVotes }}</span>
+											<span>Commentaires: {{ oeuvre.nbCommentaires }}</span>
+										</div>
+									</div>
+								</div>
+							</div>
+						{% else %}
+							<div class="col-12">
+								<div class="alert alert-info">Aucune œuvre publiée pour le moment.</div>
+							</div>
+						{% endfor %}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}
+
+
+
+
+

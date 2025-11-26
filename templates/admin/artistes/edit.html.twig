@@ -1,0 +1,44 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block page_title %}Modifier l'Artiste: {{ artiste.getFullName }}{% endblock %}
+
+{% block body %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3>Modifier l'artiste</h3>
+            </div>
+            <div class="card-body">
+                {{ form_start(form) }}
+                    {{ form_row(form.nom) }}
+                    {{ form_row(form.prenom) }}
+                    {{ form_row(form.email) }}
+                    {{ form_row(form.plainPassword) }}
+                    {{ form_row(form.specialite) }}
+                    {{ form_row(form.biographie) }}
+                    {{ form_row(form.siteWeb) }}
+                    {{ form_row(form.reseauxSociaux) }}
+                    {{ form_row(form.photoProfilFile) }}
+                    {% if form.roles is defined %}
+                        {{ form_row(form.roles) }}
+                    {% endif %}
+                    {{ form_row(form.isActive) }}
+
+                    <div class="mt-3">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Enregistrer les modifications
+                        </button>
+                        <a href="{{ path('admin_artistes_show', {id: artiste.id}) }}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Annuler
+                        </a>
+                    </div>
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+

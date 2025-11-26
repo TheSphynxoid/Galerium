@@ -1,0 +1,86 @@
+{% extends 'artiste/base.html.twig' %}
+
+{% block title %}Statistiques - Galerium{% endblock %}
+
+{% block body %}
+<h1 class="mb-4">Mes Statistiques</h1>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-primary">{{ statistics.totalOeuvres ?? 0 }}</h3>
+                <p class="card-text">Total d'œuvres</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-success">{{ statistics.totalVotes ?? 0 }}</h3>
+                <p class="card-text">Total de votes</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-info">{{ statistics.totalCommentaires ?? 0 }}</h3>
+                <p class="card-text">Total de commentaires</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-warning">{{ (statistics.moyenneVotes ?? 0)|number_format(2) }}</h3>
+                <p class="card-text">Moyenne de votes</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2 class="mb-3">Détails par œuvre</h2>
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Titre</th>
+                <th>Catégorie</th>
+                <th>Statut</th>
+                <th>Votes</th>
+                <th>Commentaires</th>
+                <th>Date de création</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for oeuvre in oeuvres %}
+                <tr>
+                    <td><a href="{{ path('app_oeuvre_show', {'id': oeuvre.id}) }}">{{ oeuvre.titre }}</a></td>
+                    <td>{{ oeuvre.categorie ?? 'Non spécifiée' }}</td>
+                    <td>
+                        {% if oeuvre.statut == 'publiee' %}
+                            <span class="badge bg-success">Publiée</span>
+                        {% else %}
+                            <span class="badge bg-warning">En attente</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ oeuvre.nbVotes }}</td>
+                    <td>{{ oeuvre.nbCommentaires }}</td>
+                    <td>{{ oeuvre.dateCreation ? oeuvre.dateCreation|date('d/m/Y') : 'Non spécifiée' }}</td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="6" class="text-center">Aucune œuvre</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+
+
+
+
+

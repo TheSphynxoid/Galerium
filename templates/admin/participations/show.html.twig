@@ -1,0 +1,82 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block page_title %}Détails de la Participation{% endblock %}
+
+{% block body %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <a href="{{ path('admin_participations_index') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Retour à la liste
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5>Informations de la participation</h5>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <tr>
+                        <th>Artiste:</th>
+                        <td><a href="{{ path('admin_artistes_show', {id: participation.artiste.id}) }}">{{ participation.artiste.getFullName }}</a></td>
+                    </tr>
+                    <tr>
+                        <th>Concours:</th>
+                        <td>{{ participation.concours.titre }}</td>
+                    </tr>
+                    <tr>
+                        <th>Œuvre:</th>
+                        <td>{{ participation.oeuvre ? participation.oeuvre.titre : '-' }}</td>
+                    </tr>
+                    <tr>
+                        <th>Votes publics:</th>
+                        <td>{{ participation.votesPublic }}</td>
+                    </tr>
+                    <tr>
+                        <th>Note jury:</th>
+                        <td>{{ participation.noteJury ?? '-' }}</td>
+                    </tr>
+                    <tr>
+                        <th>Date de participation:</th>
+                        <td>{{ participation.createdAt|date('d/m/Y H:i') }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5>Actions</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ path('admin_participations_accept', {id: participation.id}) }}" class="mb-2">
+                    <input type="hidden" name="_token" value="{{ csrf_token('accept_participation' ~ participation.id) }}">
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="bi bi-check-circle"></i> Accepter la participation
+                    </button>
+                </form>
+
+                <form method="POST" action="{{ path('admin_participations_reject', {id: participation.id}) }}" class="mb-2">
+                    <input type="hidden" name="_token" value="{{ csrf_token('reject_participation' ~ participation.id) }}">
+                    <button type="submit" class="btn btn-danger w-100" onclick="return confirm('Êtes-vous sûr de vouloir refuser cette participation ?')">
+                        <i class="bi bi-x-circle"></i> Refuser la participation
+                    </button>
+                </form>
+
+                <form method="POST" action="{{ path('admin_participations_block', {id: participation.id}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('block_participation' ~ participation.id) }}">
+                    <button type="submit" class="btn btn-warning w-100" onclick="return confirm('Êtes-vous sûr de vouloir bloquer cet artiste de ce concours ?')">
+                        <i class="bi bi-ban"></i> Bloquer l'artiste de ce concours
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+

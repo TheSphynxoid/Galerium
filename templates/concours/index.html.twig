@@ -1,0 +1,48 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Concours disponibles{% endblock %}
+
+{% block body %}
+<div class="container py-4">
+	<h1 class="mb-4">Concours disponibles</h1>
+
+	{% if concours is empty %}
+		<div class="alert alert-info">Aucun concours actif pour le moment.</div>
+	{% else %}
+		<div class="row g-3">
+			{% for c in concours %}
+				<div class="col-md-6">
+					<div class="card h-100">
+						<div class="card-body">
+							<h5 class="card-title">{{ c.titre }}</h5>
+							<p class="card-text text-muted">{{ c.description }}</p>
+							<p class="mb-2">
+								<strong>Période:</strong>
+								{{ c.dateDebut|date('d/m/Y') }} - {{ c.dateFin|date('d/m/Y') }}
+							</p>
+							{% set part = participations[c.id] ?? null %}
+							{% if part %}
+								<div class="d-flex gap-2">
+									<a class="btn btn-outline-secondary btn-sm disabled">Déjà inscrit</a>
+									<a href="{{ path('app_soumettre_oeuvre_concours', { id: c.id }) }}" class="btn btn-primary btn-sm">
+										Soumettre une œuvre
+									</a>
+								</div>
+							{% else %}
+								<a href="{{ path('app_participer_concours', { id: c.id }) }}" class="btn btn-success btn-sm">
+									Participer
+								</a>
+							{% endif %}
+						</div>
+					</div>
+				</div>
+			{% endfor %}
+		</div>
+	{% endif %}
+</div>
+{% endblock %}
+
+
+
+
+
