@@ -44,6 +44,10 @@ class Enchere
     #[Assert\NotNull(message: "L'enchère doit contenir au moins une offre.")]
     private Collection $offre;
 
+    #[ORM\OneToOne(inversedBy: 'enchere', cascade: ['persist', 'remove'])]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Oeuvre $oeuvre = null;
+
     public function __construct()
     {
         $this->offre = new ArrayCollection();
@@ -140,6 +144,18 @@ class Enchere
                 $offre->setEchere(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getOeuvre(): ?Oeuvre
+    {
+        return $this->oeuvre;
+    }
+
+    public function setOeuvre(Oeuvre $oeuvre): static
+    {
+        $this->oeuvre = $oeuvre;
 
         return $this;
     }

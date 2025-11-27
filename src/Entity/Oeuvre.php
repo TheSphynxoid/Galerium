@@ -62,6 +62,9 @@ class Oeuvre
     #[ORM\OneToMany(targetEntity: Favori::class, mappedBy: 'oeuvre')]
     private Collection $favoris;
 
+    #[ORM\OneToOne(mappedBy: 'oeuvre', cascade: ['persist', 'remove'])]
+    private ?Enchere $enchere = null;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
@@ -260,6 +263,23 @@ class Oeuvre
                 $favori->setOeuvre(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getEnchere(): ?Enchere
+    {
+        return $this->enchere;
+    }
+
+    public function setEnchere(Enchere $enchere): static
+    {
+        // set the owning side of the relation if necessary
+        if ($enchere->getOeuvre() !== $this) {
+            $enchere->setOeuvre($this);
+        }
+
+        $this->enchere = $enchere;
 
         return $this;
     }
