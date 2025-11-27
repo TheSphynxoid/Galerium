@@ -16,33 +16,65 @@ class Concours
     private ?int $id = null;
 
     #[ORM\Column(type: Types::STRING, length: 255)]
+    #[Assert\NotBlank(message: "Le titre est obligatoire.")]
+    #[Assert\Length(
+        max: 255,
+        maxMessage: "Le titre ne peut pas dépasser {{ limit }} caractères."
+    )]
     private ?string $titre = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Assert\Length(
+        max: 1000,
+        maxMessage: "La description ne peut pas dépasser {{ limit }} caractères."
+    )]
     private ?string $description = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[Assert\NotBlank(message: "La date de début est obligatoire.")]
+    #[Assert\Type(\DateTime::class, message: "La date de début doit être une date valide.")]
     private ?\DateTime $dateDebut = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[Assert\NotBlank(message: "La date de fin est obligatoire.")]
+    #[Assert\Type(\DateTime::class, message: "La date de fin doit être une date valide.")]
+    #[Assert\GreaterThan(
+        propertyPath: "dateDebut",
+        message: "La date de fin doit être après la date de début."
+    )]
     private ?\DateTime $dateFin = null;
 
     #[ORM\Column(type: Types::STRING, length: 50)]
+    #[Assert\NotBlank(message: "Le statut est obligatoire.")]
+    #[Assert\Choice(
+        choices: ['en_cours', 'termine', 'annule'],
+        message: "Le statut doit être 'en_cours', 'termine' ou 'annule'."
+    )]
     private ?string $statut = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Assert\Length(
+        max: 2000,
+        maxMessage: "Les règles ne peuvent pas dépasser {{ limit }} caractères."
+    )]
     private ?string $regles = null;
 
     #[ORM\Column(type: Types::BOOLEAN)]
     private bool $votePublic = false;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    #[Assert\Type(\DateTime::class, message: "La date de début de vote doit être une date valide.")]
     private ?\DateTime $dateDebutVote = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    #[Assert\Type(\DateTime::class, message: "La date de fin de vote doit être une date valide.")]
+    #[Assert\Expression(
+        "this.getDateDebutVote() === null or this.getDateFinVote() === null or this.getDateFinVote() > this.getDateDebutVote()",
+        message: "La date de fin de vote doit être après la date de début de vote."
+    )]
     private ?\DateTime $dateFinVote = null;
 
-    // Getters
+    // ======= Getters =======
     public function getId(): ?int
     {
         return $this->id;
@@ -93,7 +125,7 @@ class Concours
         return $this->dateFinVote;
     }
 
-    // Setters
+    // ======= Setters =======
     public function setTitre(?string $titre): self
     {
         $this->titre = $titre;
@@ -148,4 +180,3 @@ class Concours
         return $this;
     }
 }
-

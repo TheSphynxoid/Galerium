@@ -1,0 +1,86 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Concours{% endblock %}
+
+{% block body %}
+<section class="py-5 my-5">
+    <div class="container">
+
+        <h1 class="h3 text-danger mb-4 text-center">Les concours disponibles</h1>
+
+        {% if concours is not empty %}
+            <div class="row g-4">
+
+                {% for concoursItem in concours %}
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <div class="concours-card shadow-sm">
+
+                            <h4 class="fw-bold text-center mb-3" style="color: #0428B5;">
+                                {{ concoursItem.titre }}
+                            </h4>
+
+                            <p class="mb-1">
+                                <strong>Statut :</strong>
+                                {% set badgeClass =
+                                    concoursItem.statut == 'actif' ? 'bg-success' :
+                                    (concoursItem.statut == 'cloture' ? 'bg-danger' : 'bg-secondary')
+                                %}
+                                <span class="badge {{ badgeClass }} text-uppercase">
+                                    {{ concoursItem.statut }}
+                                </span>
+                            </p>
+
+                            <p class="mb-1">
+                                <strong>Description :</strong> {{ concoursItem.description }}
+                            </p>
+
+                            <p class="mb-1">
+                                <strong>Début :</strong>
+                                {{ concoursItem.dateDebut ? concoursItem.dateDebut|date('d/m/Y H:i') : '—' }}
+                            </p>
+
+                            <p class="mb-1">
+                                <strong>Fin :</strong>
+                                {{ concoursItem.dateFin ? concoursItem.dateFin|date('d/m/Y H:i') : '—' }}
+                            </p>
+
+                            <p class="mb-1">
+                                <strong>Règles :</strong> {{ concoursItem.regles ?: '—' }}
+                            </p>
+
+                            <p class="mb-0">
+                                <strong>Vote public :</strong>
+                                <span class="badge {{ concoursItem.votePublic ? 'bg-success' : 'bg-danger' }}">
+                                    {{ concoursItem.votePublic ? 'Oui' : 'Non' }}
+                                </span>
+                            </p>
+
+                           
+
+                        </div>
+                    </div>
+                {% endfor %}
+
+            </div>
+        {% else %}
+            <p class="text-muted text-center">Aucun concours n'est disponible.</p>
+        {% endif %}
+
+    </div>
+</section>
+
+<style>
+    .concours-card {
+        border: 3px solid hsla(268, 46%, 33%, 0.75);
+        background: white;
+        color: black;
+        min-height: 300px;
+        padding: 20px;
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+</style>
+
+{% endblock %}

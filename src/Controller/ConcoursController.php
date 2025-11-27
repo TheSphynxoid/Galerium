@@ -42,7 +42,7 @@ final class ConcoursController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'app_concours_show', methods: ['GET'])]
+    #[Route('/{id<\d+>}', name: 'app_concours_show', methods: ['GET'])]
     public function show(Concours $concour): Response
     {
         return $this->render('concours/show.html.twig', [
@@ -50,7 +50,7 @@ final class ConcoursController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/edit', name: 'app_concours_edit', methods: ['GET', 'POST'])]
+    #[Route('/{id<\d+>}/edit', name: 'app_concours_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Concours $concour, EntityManagerInterface $entityManager): Response
     {
         $form = $this->createForm(ConcoursType::class, $concour);
@@ -68,7 +68,7 @@ final class ConcoursController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'app_concours_delete', methods: ['POST'])]
+    #[Route('/{id<\d+>}', name: 'app_concours_delete', methods: ['POST'])]
     public function delete(Request $request, Concours $concour, EntityManagerInterface $entityManager): Response
     {
         if ($this->isCsrfTokenValid('delete'.$concour->getId(), $request->getPayload()->getString('_token'))) {
@@ -78,4 +78,24 @@ final class ConcoursController extends AbstractController
 
         return $this->redirectToRoute('app_concours_index', [], Response::HTTP_SEE_OTHER);
     }
+
+#[Route('/user', name: 'app_concours_user_index', methods: ['GET'])]
+public function userIndex(ConcoursRepository $concoursRepository): Response
+{
+    // Ici tu peux filtrer les concours si nécessaire, par exemple uniquement ceux qui sont actifs
+    $concours = $concoursRepository->findAll(); 
+
+    return $this->render('concours/user_index.html.twig', [
+        'concours' => $concours,
+    ]);
+}
+
+
+
+
+
+
+
+
+
 }
