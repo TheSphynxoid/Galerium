@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\ConcoursRepository;
 use Doctrine\DBAL\Types\Types;
+use Symfony\Component\Validator\Constraints as Assert;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ConcoursRepository::class)]

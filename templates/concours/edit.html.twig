@@ -1,13 +1,64 @@
-{% extends 'base.html.twig' %}
+{% extends 'backoffice.html.twig' %}
 
-{% block title %}Edit Concours{% endblock %}
+{% block title %}
+    Modifier le concours
+{% endblock %}
+
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="#">Home</a></li>
+    <li class="breadcrumb-item"><a href="{{ path('app_concours_index') }}">Concours</a></li>
+    <li class="breadcrumb-item active"><span>Modifier</span></li>
+{% endblock %}
 
 {% block body %}
-    <h1>Edit Concours</h1>
+<div class="body flex-grow-1">
+    <div class="container-lg px-4">
 
-    {{ include('concours/_form.html.twig', {'button_label': 'Update'}) }}
+        <!-- Title + Back Button -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="mb-0">Modifier le concours</h1>
 
-    <a href="{{ path('app_concours_index') }}">back to list</a>
+            <a href="{{ path('app_concours_index') }}" class="btn btn-secondary">
+                <svg class="icon me-2">
+                    <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-arrow-left"></use>
+                </svg>
+                Retour
+            </a>
+        </div>
 
-    {{ include('concours/_delete_form.html.twig') }}
+        <div class="card">
+            <div class="card-header">
+                <strong>Modifier les informations du concours</strong>
+            </div>
+
+            <div class="card-body">
+
+                {# Ton formulaire existant #}
+                {{ include('concours/_form.html.twig', { button_label: 'Update' }) }}
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{{ path('app_concours_index') }}" class="btn btn-secondary">
+                        <svg class="icon me-2">
+                            <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-x"></use>
+                        </svg>
+                        Annuler
+                    </a>
+
+                    <button type="submit" form="concours_form" class="btn btn-primary">
+                        <svg class="icon me-2">
+                            <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-check"></use>
+                        </svg>
+                        Enregistrer
+                    </button>
+                </div>
+
+                <hr class="my-4">
+
+                {{ include('concours/_delete_form.html.twig') }}
+
+            </div>
+        </div>
+
+    </div>
+</div>
 {% endblock %}

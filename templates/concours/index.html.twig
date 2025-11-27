@@ -1,51 +1,155 @@
-{% extends 'base.html.twig' %}
+{% extends 'backoffice.html.twig' %}
 
-{% block title %}Concours index{% endblock %}
+{% block title %}Gestion des Concours{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="#">Home</a></li>
+<li class="breadcrumb-item active">Concours</li>
+{% endblock %}
 
 {% block body %}
-    <h1>Concours index</h1>
+<div class="body flex-grow-1">
+    <div class="container-lg px-4">
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Titre</th>
-                <th>Description</th>
-                <th>DateDebut</th>
-                <th>DateFin</th>
-                <th>Statut</th>
-                <th>Regles</th>
-                <th>VotePublic</th>
-                <th>DateDebutVote</th>
-                <th>DateFinVote</th>
-                <th>actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for concour in concours %}
-            <tr>
-                <td>{{ concour.id }}</td>
-                <td>{{ concour.titre }}</td>
-                <td>{{ concour.description }}</td>
-                <td>{{ concour.dateDebut ? concour.dateDebut|date('Y-m-d H:i:s') : '' }}</td>
-                <td>{{ concour.dateFin ? concour.dateFin|date('Y-m-d H:i:s') : '' }}</td>
-                <td>{{ concour.statut }}</td>
-                <td>{{ concour.regles }}</td>
-                <td>{{ concour.votePublic ? 'Yes' : 'No' }}</td>
-                <td>{{ concour.dateDebutVote ? concour.dateDebutVote|date('Y-m-d H:i:s') : '' }}</td>
-                <td>{{ concour.dateFinVote ? concour.dateFinVote|date('Y-m-d H:i:s') : '' }}</td>
-                <td>
-                    <a href="{{ path('app_concours_show', {'id': concour.id}) }}">show</a>
-                    <a href="{{ path('app_concours_edit', {'id': concour.id}) }}">edit</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="11">no records found</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="mb-0">Gestion des Concours</h1>
+            <a href="{{ path('app_concours_new') }}" class="btn btn-primary">
+                <svg class="icon me-2">
+                    <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-plus"></use>
+                </svg>
+                Créer un concours
+            </a>
+        </div>
 
-    <a href="{{ path('app_concours_new') }}">Create new</a>
+        <div class="card mb-4">
+            <div class="card-header">
+                <strong>Liste des concours ({{ concours|length }})</strong>
+            </div>
+            <div class="card-body">
+                {% if concours|length > 0 %}
+                <div class="table-responsive">
+                    <table class="table border mb-0">
+                        <thead class="fw-semibold text-nowrap">
+                            <tr>
+                                <th class="bg-body-secondary">ID</th>
+                                <th class="bg-body-secondary">Titre</th>
+                                <th class="bg-body-secondary">Description</th>
+                                <th class="bg-body-secondary">Date Début</th>
+                                <th class="bg-body-secondary">Date Fin</th>
+                                <th class="bg-body-secondary text-center">Statut</th>
+                                <th class="bg-body-secondary">Règles</th>
+                                <th class="bg-body-secondary text-center">Vote Public</th>
+                                <th class="bg-body-secondary">Début Vote</th>
+                                <th class="bg-body-secondary">Fin Vote</th>
+                                <th class="bg-body-secondary text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for c in concours %}
+                            <tr class="align-middle">
+                                
+                                <!-- ID -->
+                                <td>{{ c.id }}</td>
+
+                                <!-- Titre -->
+                                <td class="fw-semibold">{{ c.titre }}</td>
+
+                                <!-- Description -->
+                                <td>
+                                    {% if c.description %}
+                                        <div class="small text-body-secondary text-truncate" style="max-width: 250px;" title="{{ c.description }}">
+                                            {{ c.description }}
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+
+                                <!-- Dates -->
+                                <td>{{ c.dateDebut ? c.dateDebut|date('d/m/Y H:i') : '-' }}</td>
+                                <td>{{ c.dateFin ? c.dateFin|date('d/m/Y H:i') : '-' }}</td>
+
+                                <!-- Statut -->
+                                <td class="text-center">
+                                    {% if c.statut == 'actif' %}
+                                        <span class="badge bg-success">Actif</span>
+                                    {% elseif c.statut starts with 'cloture' %}
+                                        <span class="badge bg-danger">Clôturé</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ c.statut }}</span>
+                                    {% endif %}
+                                </td>
+
+                                <!-- Règles -->
+                                <td>
+                                    {% if c.regles %}
+                                        <div class="small text-body-secondary text-truncate" style="max-width: 250px;" title="{{ c.regles }}">
+                                            {{ c.regles }}
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+
+                                <!-- Vote Public -->
+                                <td class="text-center">
+                                    {% if c.votePublic %}
+                                        <span class="badge bg-success">Oui</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Non</span>
+                                    {% endif %}
+                                </td>
+
+                                <!-- Début et Fin Vote -->
+                                <td>{{ c.dateDebutVote ? c.dateDebutVote|date('d/m/Y H:i') : '-' }}</td>
+                                <td>{{ c.dateFinVote ? c.dateFinVote|date('d/m/Y H:i') : '-' }}</td>
+
+                                <!-- Actions -->
+                                <td class="text-center">
+                                    <div class="btn-group">
+
+                                        <a href="{{ path('app_concours_show', {id: c.id}) }}" class="btn btn-sm btn-info" title="Voir">
+                                            <svg class="icon">
+                                                <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-magnifying-glass"></use>
+                                            </svg>
+                                        </a>
+
+                                        <a href="{{ path('app_concours_edit', {id: c.id}) }}" class="btn btn-sm btn-warning" title="Modifier">
+                                            <svg class="icon">
+                                                <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-pencil"></use>
+                                            </svg>
+                                        </a>
+
+                                        <form method="post"
+                                              action="#"
+                                              onsubmit="return confirm('Confirmer la suppression ?');"
+                                              style="display:inline;">
+                                            <button class="btn btn-sm btn-danger" title="Supprimer">
+                                                <svg class="icon">
+                                                    <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-trash"></use>
+                                                </svg>
+                                            </button>
+                                        </form>
+
+                                    </div>
+                                </td>
+
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <svg class="icon me-2">
+                        <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-info"></use>
+                    </svg>
+                    Aucun concours trouvé.
+                    <a href="{{ path('app_concours_new') }}" class="alert-link">Créer un concours</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
