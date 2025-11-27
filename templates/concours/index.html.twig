@@ -1,48 +1,51 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Concours disponibles{% endblock %}
+{% block title %}Concours index{% endblock %}
 
 {% block body %}
-<div class="container py-4">
-	<h1 class="mb-4">Concours disponibles</h1>
+    <h1>Concours index</h1>
 
-	{% if concours is empty %}
-		<div class="alert alert-info">Aucun concours actif pour le moment.</div>
-	{% else %}
-		<div class="row g-3">
-			{% for c in concours %}
-				<div class="col-md-6">
-					<div class="card h-100">
-						<div class="card-body">
-							<h5 class="card-title">{{ c.titre }}</h5>
-							<p class="card-text text-muted">{{ c.description }}</p>
-							<p class="mb-2">
-								<strong>Période:</strong>
-								{{ c.dateDebut|date('d/m/Y') }} - {{ c.dateFin|date('d/m/Y') }}
-							</p>
-							{% set part = participations[c.id] ?? null %}
-							{% if part %}
-								<div class="d-flex gap-2">
-									<a class="btn btn-outline-secondary btn-sm disabled">Déjà inscrit</a>
-									<a href="{{ path('app_soumettre_oeuvre_concours', { id: c.id }) }}" class="btn btn-primary btn-sm">
-										Soumettre une œuvre
-									</a>
-								</div>
-							{% else %}
-								<a href="{{ path('app_participer_concours', { id: c.id }) }}" class="btn btn-success btn-sm">
-									Participer
-								</a>
-							{% endif %}
-						</div>
-					</div>
-				</div>
-			{% endfor %}
-		</div>
-	{% endif %}
-</div>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Titre</th>
+                <th>Description</th>
+                <th>DateDebut</th>
+                <th>DateFin</th>
+                <th>Statut</th>
+                <th>Regles</th>
+                <th>VotePublic</th>
+                <th>DateDebutVote</th>
+                <th>DateFinVote</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for concour in concours %}
+            <tr>
+                <td>{{ concour.id }}</td>
+                <td>{{ concour.titre }}</td>
+                <td>{{ concour.description }}</td>
+                <td>{{ concour.dateDebut ? concour.dateDebut|date('Y-m-d H:i:s') : '' }}</td>
+                <td>{{ concour.dateFin ? concour.dateFin|date('Y-m-d H:i:s') : '' }}</td>
+                <td>{{ concour.statut }}</td>
+                <td>{{ concour.regles }}</td>
+                <td>{{ concour.votePublic ? 'Yes' : 'No' }}</td>
+                <td>{{ concour.dateDebutVote ? concour.dateDebutVote|date('Y-m-d H:i:s') : '' }}</td>
+                <td>{{ concour.dateFinVote ? concour.dateFinVote|date('Y-m-d H:i:s') : '' }}</td>
+                <td>
+                    <a href="{{ path('app_concours_show', {'id': concour.id}) }}">show</a>
+                    <a href="{{ path('app_concours_edit', {'id': concour.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="11">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_concours_new') }}">Create new</a>
 {% endblock %}
-
-
-
-
-

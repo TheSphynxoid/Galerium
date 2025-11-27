@@ -1,0 +1,58 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Concours{% endblock %}
+
+{% block body %}
+    <h1>Concours</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ concour.id }}</td>
+            </tr>
+            <tr>
+                <th>Titre</th>
+                <td>{{ concour.titre }}</td>
+            </tr>
+            <tr>
+                <th>Description</th>
+                <td>{{ concour.description }}</td>
+            </tr>
+            <tr>
+                <th>DateDebut</th>
+                <td>{{ concour.dateDebut ? concour.dateDebut|date('Y-m-d H:i:s') : '' }}</td>
+            </tr>
+            <tr>
+                <th>DateFin</th>
+                <td>{{ concour.dateFin ? concour.dateFin|date('Y-m-d H:i:s') : '' }}</td>
+            </tr>
+            <tr>
+                <th>Statut</th>
+                <td>{{ concour.statut }}</td>
+            </tr>
+            <tr>
+                <th>Regles</th>
+                <td>{{ concour.regles }}</td>
+            </tr>
+            <tr>
+                <th>VotePublic</th>
+                <td>{{ concour.votePublic ? 'Yes' : 'No' }}</td>
+            </tr>
+            <tr>
+                <th>DateDebutVote</th>
+                <td>{{ concour.dateDebutVote ? concour.dateDebutVote|date('Y-m-d H:i:s') : '' }}</td>
+            </tr>
+            <tr>
+                <th>DateFinVote</th>
+                <td>{{ concour.dateFinVote ? concour.dateFinVote|date('Y-m-d H:i:s') : '' }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_concours_index') }}">back to list</a>
+
+    <a href="{{ path('app_concours_edit', {'id': concour.id}) }}">edit</a>
+
+    {{ include('concours/_delete_form.html.twig') }}
+{% endblock %}

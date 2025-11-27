@@ -7,7 +7,6 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ConcoursRepository::class)]
-#[ORM\Table(name: 'concours')]
 class Concours
 {
     #[ORM\Id]
@@ -145,107 +144,6 @@ class Concours
     public function setDateFinVote(?\DateTime $dateFinVote): self
     {
         $this->dateFinVote = $dateFinVote;
-        return $this;
-    }
-
-    // Méthodes métier
-
-    /**
-     * Permet à l'admin de créer un nouveau concours
-     * 
-     * @param string $titre
-     * @param string|null $description
-     * @param \DateTime $dateDebut
-     * @param \DateTime $dateFin
-     * @param string|null $regles
-     * @return self
-     */
-    public function creerConcours(
-        string $titre,
-        ?string $description,
-        \DateTime $dateDebut,
-        \DateTime $dateFin,
-        ?string $regles = null
-    ): self {
-        $this->titre = $titre;
-        $this->description = $description;
-        $this->dateDebut = $dateDebut;
-        $this->dateFin = $dateFin;
-        $this->regles = $regles;
-        $this->statut = 'actif';
-        $this->votePublic = false;
-        
-        return $this;
-    }
-
-    /**
-     * Permet de modifier les infos du concours
-     * 
-     * @param string|null $titre
-     * @param string|null $description
-     * @param \DateTime|null $dateDebut
-     * @param \DateTime|null $dateFin
-     * @param string|null $regles
-     * @return self
-     */
-    public function modifierConcours(
-        ?string $titre = null,
-        ?string $description = null,
-        ?\DateTime $dateDebut = null,
-        ?\DateTime $dateFin = null,
-        ?string $regles = null
-    ): self {
-        if ($titre !== null) {
-            $this->titre = $titre;
-        }
-        if ($description !== null) {
-            $this->description = $description;
-        }
-        if ($dateDebut !== null) {
-            $this->dateDebut = $dateDebut;
-        }
-        if ($dateFin !== null) {
-            $this->dateFin = $dateFin;
-        }
-        if ($regles !== null) {
-            $this->regles = $regles;
-        }
-        
-        return $this;
-    }
-
-    /**
-     * Change le statut du concours en "clôturé"
-     * 
-     * @return self
-     */
-    public function cloturerConcours(): self
-    {
-        $this->statut = 'clôturé';
-        return $this;
-    }
-
-    /**
-     * Active le vote du public
-     * 
-     * @param \DateTime|null $dateDebutVote
-     * @param \DateTime|null $dateFinVote
-     * @return self
-     */
-    public function activeVotePublic(
-        ?\DateTime $dateDebutVote = null,
-        ?\DateTime $dateFinVote = null
-    ): self {
-        $this->votePublic = true;
-        
-        if ($dateDebutVote !== null) {
-            $this->dateDebutVote = $dateDebutVote;
-        }
-        
-        if ($dateFinVote !== null) {
-            $this->dateFinVote = $dateFinVote;
-        }
-        
         return $this;
     }
 }
