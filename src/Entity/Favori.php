@@ -16,6 +16,9 @@ class Favori
     #[ORM\Column]
     private ?\DateTime $dateAjout = null;
 
+    #[ORM\ManyToOne(inversedBy: 'favoris')]
+    private ?oeuvre $oeuvre = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -29,6 +32,18 @@ class Favori
     public function setDateAjout(\DateTime $dateAjout): static
     {
         $this->dateAjout = $dateAjout;
+
+        return $this;
+    }
+
+    public function getOeuvre(): ?oeuvre
+    {
+        return $this->oeuvre;
+    }
+
+    public function setOeuvre(?oeuvre $oeuvre): static
+    {
+        $this->oeuvre = $oeuvre;
 
         return $this;
     }

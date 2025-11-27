@@ -30,6 +30,13 @@ class Commentaire
     #[ORM\JoinColumn(nullable: false)]
     private ?Discussion $discussion = null;
 
+    #[ORM\ManyToOne(inversedBy: 'commentaires')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Utilisateur $owner = null;
+
+    #[ORM\ManyToOne(inversedBy: 'commentaires')]
+    private ?Oeuvre $oeuvre = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -91,6 +98,30 @@ class Commentaire
     public function setDiscussion(?Discussion $discussion): static
     {
         $this->discussion = $discussion;
+
+        return $this;
+    }
+
+    public function getOwner(): ?Utilisateur
+    {
+        return $this->owner;
+    }
+
+    public function setOwner(?Utilisateur $owner): static
+    {
+        $this->owner = $owner;
+
+        return $this;
+    }
+
+    public function getOeuvre(): ?Oeuvre
+    {
+        return $this->oeuvre;
+    }
+
+    public function setOeuvre(?Oeuvre $oeuvre): static
+    {
+        $this->oeuvre = $oeuvre;
 
         return $this;
     }

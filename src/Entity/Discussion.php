@@ -37,6 +37,10 @@ class Discussion
     #[ORM\OneToMany(targetEntity: Commentaire::class, mappedBy: 'discussion', orphanRemoval: true)]
     private Collection $commentaires;
 
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Utilisateur $owner = null;
+
     public function __construct()
     {
         $this->commentaires = new ArrayCollection();
@@ -133,6 +137,18 @@ class Discussion
                 $commentaire->setDiscussion(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getOwner(): ?Utilisateur
+    {
+        return $this->owner;
+    }
+
+    public function setOwner(?Utilisateur $owner): static
+    {
+        $this->owner = $owner;
 
         return $this;
     }
