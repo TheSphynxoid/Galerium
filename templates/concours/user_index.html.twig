@@ -23,7 +23,7 @@
                                 <strong>Statut :</strong>
                                 {% set badgeClass =
                                     concoursItem.statut == 'actif' ? 'bg-success' :
-                                    (concoursItem.statut == 'cloture' ? 'bg-danger' : 'bg-secondary')
+                                    (concoursItem.statut == 'cloture' ? 'bg-danger' : 'bg-danger')
                                 %}
                                 <span class="badge {{ badgeClass }} text-uppercase">
                                     {{ concoursItem.statut }}
@@ -35,13 +35,13 @@
                             </p>
 
                             <p class="mb-1">
-                                <strong>Début :</strong>
-                                {{ concoursItem.dateDebut ? concoursItem.dateDebut|date('d/m/Y H:i') : '—' }}
+                                <strong>Date Début :</strong>
+                                {{ concoursItem.dateDebut ? concoursItem.dateDebut|date('d/m/Y') : '—' }}
                             </p>
 
                             <p class="mb-1">
-                                <strong>Fin :</strong>
-                                {{ concoursItem.dateFin ? concoursItem.dateFin|date('d/m/Y H:i') : '—' }}
+                                <strong>Date Fin :</strong>
+                                {{ concoursItem.dateFin ? concoursItem.dateFin|date('d/m/Y') : '—' }}
                             </p>
 
                             <p class="mb-1">
@@ -54,6 +54,16 @@
                                     {{ concoursItem.votePublic ? 'Oui' : 'Non' }}
                                 </span>
                             </p>
+
+                            <p class="mb-1">
+                                <strong>Date Debut Vote :</strong>
+                                {{ concoursItem.dateDebutVote ? concoursItem.dateDebutVote|date('d/m/Y') : '—' }}
+                            </p> 
+
+                            <p class="mb-1">
+                                <strong>Date Fin Vote :</strong>
+                                {{ concoursItem.dateFinVote ? concoursItem.dateFinVote|date('d/m/Y') : '—' }}
+                            </p> 
 
                            
 

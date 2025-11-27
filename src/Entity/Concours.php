@@ -26,7 +26,10 @@ class Concours
     private ?string $titre = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Assert\NotBlank(message: "La description est obligatoire.")]
     #[Assert\Length(
+        min: 10,
+        minMessage: "La description doit contenir au moins  10 caractères.",
         max: 1000,
         maxMessage: "La description ne peut pas dépasser {{ limit }} caractères."
     )]
@@ -49,15 +52,18 @@ class Concours
     #[ORM\Column(type: Types::STRING, length: 50)]
     #[Assert\NotBlank(message: "Le statut est obligatoire.")]
     #[Assert\Choice(
-        choices: ['en_cours', 'termine', 'annule'],
-        message: "Le statut doit être 'en_cours', 'termine' ou 'annule'."
+        choices: ['Actif', 'cloturé'],
+        message: "Le statut doit être Actif ou cloturé "
     )]
     private ?string $statut = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+     #[Assert\NotBlank(message: "La date de fin est obligatoire.")]
     #[Assert\Length(
+        min: 3,
+        minMessage: "Regle doit contenir au moins  3 caractères.",
         max: 2000,
-        maxMessage: "Les règles ne peuvent pas dépasser {{ limit }} caractères."
+        maxMessage: "Les règles ne peuvent pas dépasser 200 caractères."
     )]
     private ?string $regles = null;
 
@@ -94,7 +100,7 @@ class Concours
         $this->participation = new ArrayCollection();
     }
 
-    // ======= Getters =======
+    
     public function getId(): ?int
     {
         return $this->id;
@@ -145,7 +151,7 @@ class Concours
         return $this->dateFinVote;
     }
 
-    // ======= Setters =======
+    
     public function setTitre(?string $titre): self
     {
         $this->titre = $titre;

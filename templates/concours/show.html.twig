@@ -21,11 +21,11 @@
             </tr>
             <tr>
                 <th>DateDebut</th>
-                <td>{{ concour.dateDebut ? concour.dateDebut|date('Y-m-d H:i:s') : '' }}</td>
+                <td>{{ concour.dateDebut ? concour.dateDebut|date('Y-m-d') : '' }}</td>
             </tr>
             <tr>
                 <th>DateFin</th>
-                <td>{{ concour.dateFin ? concour.dateFin|date('Y-m-d H:i:s') : '' }}</td>
+                <td>{{ concour.dateFin ? concour.dateFin|date('Y-m-d') : '' }}</td>
             </tr>
             <tr>
                 <th>Statut</th>
@@ -41,18 +41,36 @@
             </tr>
             <tr>
                 <th>DateDebutVote</th>
-                <td>{{ concour.dateDebutVote ? concour.dateDebutVote|date('Y-m-d H:i:s') : '' }}</td>
+                <td>{{ concour.dateDebutVote ? concour.dateDebutVote|date('Y-m-d') : '' }}</td>
             </tr>
             <tr>
                 <th>DateFinVote</th>
-                <td>{{ concour.dateFinVote ? concour.dateFinVote|date('Y-m-d H:i:s') : '' }}</td>
+                <td>{{ concour.dateFinVote ? concour.dateFinVote|date('Y-m-d') : '' }}</td>
             </tr>
         </tbody>
     </table>
 
-    <a href="{{ path('app_concours_index') }}">back to list</a>
 
-    <a href="{{ path('app_concours_edit', {'id': concour.id}) }}">edit</a>
 
-    {{ include('concours/_delete_form.html.twig') }}
+
+
+    <div class="d-flex gap-2 mt-4">
+
+    <a href="{{ path('app_concours_index') }}" class="btn btn-secondary">
+        <svg class="icon me-1">
+            <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-arrow-left"></use>
+        </svg>
+        Retour à la liste
+    </a>
+
+    <a href="{{ path('app_concours_edit', {'id': concour.id}) }}" class="btn btn-primary">
+        <svg class="icon me-1">
+            <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-pencil"></use>
+        </svg>
+        Modifier
+    </a>
+
+</div>
+
+    
 {% endblock %}

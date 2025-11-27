@@ -1,60 +1,178 @@
 {% extends 'backoffice.html.twig' %}
 
-{% block title %}
-    Modifier le concours
-{% endblock %}
+{% block title %}Modifier le Concours - Galerium{% endblock %}
 
 {% block breadcrumb %}
-    <li class="breadcrumb-item"><a href="#">Home</a></li>
-    <li class="breadcrumb-item"><a href="{{ path('app_concours_index') }}">Concours</a></li>
-    <li class="breadcrumb-item active"><span>Modifier</span></li>
+<li class="breadcrumb-item"><a href="#">Home</a></li>
+<li class="breadcrumb-item"><a href="{{ path('app_concours_index') }}">Concours</a></li>
+<li class="breadcrumb-item active"><span>Modifier</span></li>
 {% endblock %}
 
 {% block body %}
 <div class="body flex-grow-1">
     <div class="container-lg px-4">
 
-        <!-- Title + Back Button -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="mb-0">Modifier le concours</h1>
-
             <a href="{{ path('app_concours_index') }}" class="btn btn-secondary">
                 <svg class="icon me-2">
                     <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-arrow-left"></use>
                 </svg>
-                Retour
+                Retour à la liste
             </a>
         </div>
 
-        <div class="card">
+        <div class="card shadow-sm border-0">
             <div class="card-header">
-                <strong>Modifier les informations du concours</strong>
+                <strong>Informations du concours</strong>
             </div>
 
             <div class="card-body">
+                {{ form_start(form) }}
 
-                {# Ton formulaire existant #}
-                {{ include('concours/_form.html.twig', { button_label: 'Update' }) }}
+                <!-- TITRE -->
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        {{ form_label(form.titre, 'Titre <span class="text-danger">*</span>', {
+                            'label_attr': {'class': 'form-label'},
+                            'label_html': true
+                        }) }}
+                        {{ form_widget(form.titre, {
+                            'attr': {
+                                'class': 'form-control',
+                                'placeholder': 'Entrez le titre du concours'
+                            }
+                        }) }}
+                        {{ form_errors(form.titre) }}
+                    </div>
+                </div>
 
+                <!-- DESCRIPTION -->
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        {{ form_label(form.description, 'Description <span class="text-danger">*</span>', {
+                            'label_attr': {'class': 'form-label'},
+                            'label_html': true
+                        }) }}
+                        {{ form_widget(form.description, {
+                            'attr': {
+                                'class': 'form-control',
+                                'rows': 4,
+                                'placeholder': 'Entrez la description détaillée du concours'
+                            }
+                        }) }}
+                        {{ form_errors(form.description) }}
+                    </div>
+                </div>
+
+                <!-- DATES -->
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ form_label(form.dateDebut, 'Date de début <span class="text-danger">*</span>', {
+                            'label_attr': {'class': 'form-label'},
+                            'label_html': true
+                        }) }}
+                        {{ form_widget(form.dateDebut, {'attr': {'class': 'form-control'}}) }}
+                        {{ form_errors(form.dateDebut) }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form_label(form.dateFin, 'Date de fin <span class="text-danger">*</span>', {
+                            'label_attr': {'class': 'form-label'},
+                            'label_html': true
+                        }) }}
+                        {{ form_widget(form.dateFin, {'attr': {'class': 'form-control'}}) }}
+                        {{ form_errors(form.dateFin) }}
+                    </div>
+                </div>
+
+                <!-- STATUT + VOTE PUBLIC -->
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ form_label(form.statut, 'Statut <span class="text-danger">*</span>', {
+                            'label_attr': {'class': 'form-label'},
+                            'label_html': true
+                        }) }}
+                        {{ form_widget(form.statut, {'attr': {'class': 'form-select'}}) }}
+                        {{ form_errors(form.statut) }}
+                    </div>
+
+
+                    
+                    <!-- Vote Public -->
+<div class="col-md-6 d-flex align-items-center mb-3">
+    <div class="form-check form-switch w-100">
+        {{ form_label(form.votePublic, 'Vote public <span class="text-danger">*</span>', {
+            'label_attr': {'class': 'form-check-label'},
+            'label_html': true
+        }) }}
+        
+        {{ form_widget(form.votePublic, {
+            'attr': {'class': 'form-check-input ms-2'},
+            'checked_value': 'oui',
+            'uncheck_value': 'non'
+        }) }}
+
+        {{ form_errors(form.votePublic) }}
+    </div>
+</div>
+
+                <!-- REGLES -->
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        {{ form_label(form.regles, 'Règles du concours <span class="text-danger">*</span>', {
+                            'label_attr': {'class': 'form-label'},
+                            'label_html': true
+                        }) }}
+                        {{ form_widget(form.regles, {
+                            'attr': {
+                                'class': 'form-control',
+                                'rows': 5,
+                                'placeholder': 'Indiquez les règles et conditions du concours'
+                            }
+                        }) }}
+                        {{ form_errors(form.regles) }}
+                    </div>
+                </div>
+
+                <!-- DATES DE VOTE -->
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ form_label(form.dateDebutVote, 'Début du vote <span class="text-danger">*</span>', {
+                            'label_attr': {'class': 'form-label'},
+                            'label_html': true
+                        }) }}
+                        {{ form_widget(form.dateDebutVote, {'attr': {'class': 'form-control'}}) }}
+                        {{ form_errors(form.dateDebutVote) }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form_label(form.dateFinVote, 'Fin du vote <span class="text-danger">*</span>', {
+                            'label_attr': {'class': 'form-label'},
+                            'label_html': true
+                        }) }}
+                        {{ form_widget(form.dateFinVote, {'attr': {'class': 'form-control'}}) }}
+                        {{ form_errors(form.dateFinVote) }}
+                    </div>
+                </div>
+
+                <!-- BUTTONS -->
                 <div class="d-flex justify-content-between mt-4">
                     <a href="{{ path('app_concours_index') }}" class="btn btn-secondary">
                         <svg class="icon me-2">
                             <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-x"></use>
-                        </svg>
-                        Annuler
+                        </svg> Annuler
                     </a>
-
-                    <button type="submit" form="concours_form" class="btn btn-primary">
+                    <button type="submit" class="btn btn-primary">
                         <svg class="icon me-2">
                             <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-check"></use>
-                        </svg>
-                        Enregistrer
+                        </svg> Enregistrer
                     </button>
                 </div>
 
+                {{ form_end(form) }}
+
                 <hr class="my-4">
 
-                {{ include('concours/_delete_form.html.twig') }}
+              
 
             </div>
         </div>

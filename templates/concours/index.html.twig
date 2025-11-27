@@ -66,8 +66,8 @@
                                 </td>
 
                                 <!-- Dates -->
-                                <td>{{ c.dateDebut ? c.dateDebut|date('d/m/Y H:i') : '-' }}</td>
-                                <td>{{ c.dateFin ? c.dateFin|date('d/m/Y H:i') : '-' }}</td>
+                                <td>{{ c.dateDebut ? c.dateDebut|date('d/m/Y') : '-' }}</td>
+                                <td>{{ c.dateFin ? c.dateFin|date('d/m/Y') : '-' }}</td>
 
                                 <!-- Statut -->
                                 <td class="text-center">
@@ -101,8 +101,8 @@
                                 </td>
 
                                 <!-- Début et Fin Vote -->
-                                <td>{{ c.dateDebutVote ? c.dateDebutVote|date('d/m/Y H:i') : '-' }}</td>
-                                <td>{{ c.dateFinVote ? c.dateFinVote|date('d/m/Y H:i') : '-' }}</td>
+                                <td>{{ c.dateDebutVote ? c.dateDebutVote|date('d/m/Y') : '-' }}</td>
+                                <td>{{ c.dateFinVote ? c.dateFinVote|date('d/m/Y') : '-' }}</td>
 
                                 <!-- Actions -->
                                 <td class="text-center">
@@ -120,16 +120,20 @@
                                             </svg>
                                         </a>
 
-                                        <form method="post"
-                                              action="#"
-                                              onsubmit="return confirm('Confirmer la suppression ?');"
-                                              style="display:inline;">
-                                            <button class="btn btn-sm btn-danger" title="Supprimer">
-                                                <svg class="icon">
-                                                    <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-trash"></use>
-                                                </svg>
-                                            </button>
-                                        </form>
+
+                                      <form method="POST"
+      action="{{ path('app_concours_delete', {id: c.id}) }}"
+      style="display:inline;"
+      onsubmit="return confirm('Confirmer la suppression du concours « {{ c.titre }} » ?');">
+
+    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ c.id) }}">
+
+    <button type="submit" class="btn btn-sm btn-danger" title="Supprimer">
+        <svg class="icon">
+            <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-trash"></use>
+        </svg>
+    </button>
+</form>
 
                                     </div>
                                 </td>
