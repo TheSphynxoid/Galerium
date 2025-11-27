@@ -18,10 +18,6 @@ class Participation
 	#[ORM\JoinColumn(nullable: false)]
 	private ?Artiste $artiste = null;
 
-	#[ORM\ManyToOne(targetEntity: Concours::class)]
-	#[ORM\JoinColumn(nullable: false)]
-	private ?Concours $concours = null;
-
 	#[ORM\ManyToOne(targetEntity: Oeuvre::class)]
 	#[ORM\JoinColumn(nullable: true)]
 	private ?Oeuvre $oeuvre = null;
@@ -34,6 +30,10 @@ class Participation
 
 	#[ORM\Column(type: 'datetime_immutable')]
 	private ?\DateTimeImmutable $createdAt = null;
+
+    #[ORM\ManyToOne(inversedBy: 'participation')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Concours $concours = null;
 
 	public function __construct()
 	{
@@ -56,18 +56,6 @@ class Participation
 		$this->artiste = $artiste;
 		return $this;
 	}
-
-	public function getConcours(): ?Concours
-	{
-		return $this->concours;
-	}
-
-	public function setConcours(Concours $concours): static
-	{
-		$this->concours = $concours;
-		return $this;
-	}
-
 	public function getOeuvre(): ?Oeuvre
 	{
 		return $this->oeuvre;
@@ -111,6 +99,18 @@ class Participation
 	{
 		return $this->createdAt;
 	}
+
+    public function getConcours(): ?Concours
+    {
+        return $this->concours;
+    }
+
+    public function setConcours(?Concours $concours): static
+    {
+        $this->concours = $concours;
+
+        return $this;
+    }
 }
 
 

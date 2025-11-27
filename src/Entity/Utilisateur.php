@@ -39,9 +39,16 @@ class Utilisateur
     #[ORM\OneToMany(targetEntity: Commentaire::class, mappedBy: 'owner', orphanRemoval: true)]
     private Collection $commentaires;
 
+    /**
+     * @var Collection<int, Concours>
+     */
+    #[ORM\ManyToMany(targetEntity: Concours::class, mappedBy: 'jurys')]
+    private Collection $concours;
+
     public function __construct()
     {
         $this->commentaires = new ArrayCollection();
+        $this->concours = new ArrayCollection();
     }
 
     // Getters and Setters
@@ -147,6 +154,33 @@ class Utilisateur
             if ($commentaire->getOwner() === $this) {
                 $commentaire->setOwner(null);
             }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Concours>
+     */
+    public function getConcours(): Collection
+    {
+        return $this->concours;
+    }
+
+    public function addConcour(Concours $concour): static
+    {
+        if (!$this->concours->contains($concour)) {
+            $this->concours->add($concour);
+            $concour->addJury($this);
+        }
+
+        return $this;
+    }
+
+    public function removeConcour(Concours $concour): static
+    {
+        if ($this->concours->removeElement($concour)) {
+            $concour->removeJury($this);
         }
 
         return $this;
