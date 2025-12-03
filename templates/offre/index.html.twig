@@ -16,7 +16,6 @@
             <table class="table table-sm mb-0">
         <thead>
             <tr>
-                <th>Id</th>
                 <th>Montant</th>
                 <th>DateOffre</th>
                 <th>actions</th>
@@ -25,7 +24,6 @@
         <tbody>
         {% for offre in offres %}
             <tr>
-                <td>{{ offre.id }}</td>
                 <td>{{ offre.montant }}</td>
                 <td>{{ offre.dateOffre ? offre.dateOffre|date('Y-m-d H:i:s') : '' }}</td>
                 <td>

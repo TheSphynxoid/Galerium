@@ -13,7 +13,6 @@
             <table class="table mb-0">
         <thead>
             <tr>
-                <th>Id</th>
                 <th>PrixDeBase</th>
                 <th>PrixActuel</th>
                 <th>DateDebut</th>
@@ -25,7 +24,6 @@
         <tbody>
         {% for enchere in encheres %}
             <tr>
-                <td>{{ enchere.id }}</td>
                 <td>{{ enchere.prixDeBase }}</td>
                 <td>{{ enchere.prixActuel }}</td>
                 <td>{{ enchere.dateDebut ? enchere.dateDebut|date('Y-m-d H:i:s') : '' }}</td>

@@ -34,7 +34,6 @@ final class EnchereController extends AbstractController
 
         if ($form->isSubmitted()) {
             $entityManager->persist($enchere);
-            $this->ValidateEnchere($form, $enchere);
             if($form->isValid()){
                 $enchere->setDateDebut(new \DateTime());
                 $enchere->setPrixActuel($enchere->getPrixDeBase());
@@ -66,7 +65,6 @@ final class EnchereController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted()) {
-            $this->ValidateEnchere($form, $enchere);
             if($form->isValid()){
                 $entityManager->flush();
     
@@ -89,14 +87,5 @@ final class EnchereController extends AbstractController
         }
 
         return $this->redirectToRoute('app_enchere_index', [], Response::HTTP_SEE_OTHER);
-    }
-
-    private function ValidateEnchere(FormInterface $form, Enchere $enchere)
-    {
-        if($enchere->getDateFin() <= new \DateTime()) {
-            $form->get('dateFin')->addError(new FormError('La date de fin doit être postérieure à la date de début.'));
-            return false;
-        }
-        return true;
     }
 }

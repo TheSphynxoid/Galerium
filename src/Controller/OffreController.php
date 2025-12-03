@@ -6,6 +6,7 @@ use App\Entity\Offre;
 use App\Form\OffreType;
 use App\Repository\OffreRepository;
 use App\Service\RedisService;
+use App\Service\AuctionUtils;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormInterface;
@@ -29,7 +30,7 @@ final class OffreController extends AbstractController
     #[Route('/testoffer', name: 'app_offre_test', methods: ['GET'])]
     public function testoffer(RedisService $redisService)
     {
-        $client = $redisService->GetClient();
+        $client = RedisService::GetClient();
         $client->set('test_offer', 'This is a test offer value', 'EX', 60); // Expires in 1 min
         
         return new Response($client->get('test_offer'));
@@ -37,10 +38,10 @@ final class OffreController extends AbstractController
 
 
     #[Route('/push', name: 'app_offre_push', methods: ['POST'])]
-    private function PushOffer(Offre $offre)
+    public function PushOffer(Offre $offre)
     {
         $enchere = $offre->getEchere();
-
+        
     }
 
     #[Route('/new', name: 'app_offre_new', methods: ['GET', 'POST'])]
@@ -106,10 +107,6 @@ final class OffreController extends AbstractController
 
     private function ValidateOffer(FormInterface $form, Offre $offre)
     {
-        if ($offre->getMontant() <= 0) {
-            $form->addError(new FormError('Le montant de l\'offre doit être supérieur à zéro.'));
-            return false;
-        }
         if ($offre->getMontant() <= $offre->getEchere()->getPrixActuel()) {
             $form->get('montant')->addError(new FormError('Le montant de l\'offre doit être supérieur au prix actuel de l\'enchère.'));
             return false;
