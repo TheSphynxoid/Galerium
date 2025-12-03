@@ -1,45 +1,135 @@
-{% extends 'base.html.twig' %}
+{% extends 'backoffice.html.twig' %}
 
-{% block title %}Utilisateur index{% endblock %}
+{% block title %}Utilisateur Index{% endblock %}
 
 {% block body %}
-    <h1>Utilisateur index</h1>
+<h1>Liste des utilisateurs</h1>
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Email</th>
-                <th>Password</th>
-                <th>Nom</th>
-                <th>Prenom</th>
-                <th>Role</th>
-                <th>DateInscription</th>
-                <th>actions</th>
-            </tr>
-        </thead>
-        <tbody>
+<a href="{{ path('app_utilisateur_new') }}" style="margin-bottom:10px; display:inline-block;" class="btn btn-primary">Créer un nouvel utilisateur</a>
+
+<form method="GET" action="{{ path('app_utilisateur_index') }}" style="margin: 20px 0; padding: 15px; background: #f5f5f5; border-radius: 5px;">
+    <div class="row">
+        <div class="col-md-4">
+            <label for="search">Recherche:</label>
+            <input type="text" id="search" name="search" value="{{ search }}" placeholder="Email, Nom ou Prénom..." class="form-control">
+        </div>
+        <div class="col-md-3">
+            <label for="role">Filtrer par rôle:</label>
+            <select id="role" name="role" class="form-control">
+                <option value="">Tous les rôles</option>
+                <option value="ADMIN" {{ roleFilter == 'ADMIN' ? 'selected' : '' }}>Admin</option>
+                <option value="ARTISTE" {{ roleFilter == 'ARTISTE' ? 'selected' : '' }}>Artiste</option>
+                <option value="JURY" {{ roleFilter == 'JURY' ? 'selected' : '' }}>Jury</option>
+                <option value="VISITEUR" {{ roleFilter == 'VISITEUR' ? 'selected' : '' }}>Visiteur</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label for="sort">Trier par:</label>
+            <select id="sort" name="sort" class="form-control">
+                <option value="id" {{ sortBy == 'id' ? 'selected' : '' }}>ID</option>
+                <option value="email" {{ sortBy == 'email' ? 'selected' : '' }}>Email</option>
+                <option value="nom" {{ sortBy == 'nom' ? 'selected' : '' }}>Nom</option>
+                <option value="prenom" {{ sortBy == 'prenom' ? 'selected' : '' }}>Prénom</option>
+                <option value="role" {{ sortBy == 'role' ? 'selected' : '' }}>Rôle</option>
+                <option value="dateInscription" {{ sortBy == 'dateInscription' ? 'selected' : '' }}>Date d'inscription</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label>&nbsp;</label>
+            <button type="submit" class="btn btn-primary form-control">Filtrer</button>
+        </div>
+    </div>
+    {% if search or roleFilter %}
+        <div style="margin-top: 10px;">
+            <a href="{{ path('app_utilisateur_index') }}" class="btn btn-secondary btn-sm">Réinitialiser</a>
+        </div>
+    {% endif %}
+</form>
+
+<div style="margin-bottom: 10px;">
+    <strong>Total: {{ totalCount }} utilisateur(s)</strong>
+    {% if search or roleFilter %}
+        <span style="color: #666;">(filtré)</span>
+    {% endif %}
+</div>
+
+<table border="1" cellpadding="5" cellspacing="0" style="width:100%; border-collapse: collapse; margin-top:10px;" class="table table-striped table-bordered">
+    <thead>
+        <tr style="background:#2c3e50; color:white;">
+            <th>
+                <a href="{{ path('app_utilisateur_index', {'search': search, 'role': roleFilter, 'sort': 'id', 'order': sortBy == 'id' and sortOrder == 'ASC' ? 'DESC' : 'ASC'}) }}" style="color: white; text-decoration: none;">
+                    Id {% if sortBy == 'id' %}{{ sortOrder == 'ASC' ? '↑' : '↓' }}{% endif %}
+                </a>
+            </th>
+            <th>
+                <a href="{{ path('app_utilisateur_index', {'search': search, 'role': roleFilter, 'sort': 'email', 'order': sortBy == 'email' and sortOrder == 'ASC' ? 'DESC' : 'ASC'}) }}" style="color: white; text-decoration: none;">
+                    Email {% if sortBy == 'email' %}{{ sortOrder == 'ASC' ? '↑' : '↓' }}{% endif %}
+                </a>
+            </th>
+            <th>Nom</th>
+            <th>Prénom</th>
+            <th>
+                <a href="{{ path('app_utilisateur_index', {'search': search, 'role': roleFilter, 'sort': 'role', 'order': sortBy == 'role' and sortOrder == 'ASC' ? 'DESC' : 'ASC'}) }}" style="color: white; text-decoration: none;">
+                    Rôle {% if sortBy == 'role' %}{{ sortOrder == 'ASC' ? '↑' : '↓' }}{% endif %}
+                </a>
+            </th>
+            <th>
+                <a href="{{ path('app_utilisateur_index', {'search': search, 'role': roleFilter, 'sort': 'dateInscription', 'order': sortBy == 'dateInscription' and sortOrder == 'ASC' ? 'DESC' : 'ASC'}) }}" style="color: white; text-decoration: none;">
+                    Date d'inscription {% if sortBy == 'dateInscription' %}{{ sortOrder == 'ASC' ? '↑' : '↓' }}{% endif %}
+                </a>
+            </th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
         {% for utilisateur in utilisateurs %}
             <tr>
                 <td>{{ utilisateur.id }}</td>
                 <td>{{ utilisateur.email }}</td>
-                <td>{{ utilisateur.password }}</td>
                 <td>{{ utilisateur.nom }}</td>
                 <td>{{ utilisateur.prenom }}</td>
                 <td>{{ utilisateur.role }}</td>
                 <td>{{ utilisateur.dateInscription ? utilisateur.dateInscription|date('Y-m-d H:i:s') : '' }}</td>
                 <td>
-                    <a href="{{ path('app_utilisateur_show', {'id': utilisateur.id}) }}">show</a>
-                    <a href="{{ path('app_utilisateur_edit', {'id': utilisateur.id}) }}">edit</a>
+                    <a href="{{ path('app_utilisateur_show', {'id': utilisateur.id}) }}" class="btn btn-sm btn-info">Voir</a>
+                    <a href="{{ path('app_utilisateur_edit', {'id': utilisateur.id}) }}" class="btn btn-sm btn-warning">Modifier</a>
                 </td>
             </tr>
         {% else %}
             <tr>
-                <td colspan="8">no records found</td>
+                <td colspan="7" style="text-align:center;">Aucun utilisateur trouvé</td>
             </tr>
         {% endfor %}
-        </tbody>
-    </table>
+    </tbody>
+</table>
 
-    <a href="{{ path('app_utilisateur_new') }}">Create new</a>
+{% if totalPages > 1 %}
+    <nav aria-label="Page navigation" style="margin-top: 20px;">
+        <ul class="pagination">
+            {% if currentPage > 1 %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ path('app_utilisateur_index', {'page': currentPage - 1, 'search': search, 'role': roleFilter, 'sort': sortBy, 'order': sortOrder}) }}">Précédent</a>
+                </li>
+            {% endif %}
+            
+            {% for page in 1..totalPages %}
+                {% if page == currentPage %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ page }}</span>
+                    </li>
+                {% else %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ path('app_utilisateur_index', {'page': page, 'search': search, 'role': roleFilter, 'sort': sortBy, 'order': sortOrder}) }}">{{ page }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+            
+            {% if currentPage < totalPages %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ path('app_utilisateur_index', {'page': currentPage + 1, 'search': search, 'role': roleFilter, 'sort': sortBy, 'order': sortOrder}) }}">Suivant</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endif %}
 {% endblock %}

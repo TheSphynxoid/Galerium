@@ -2,13 +2,13 @@
 
 namespace App\Entity;
 
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity]
-#[ORM\Table(name: 'utilisateur')] // Make sure table name matches your DB
-class Utilisateur
+#[ORM\Table(name: 'utilisateur')]
+class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -18,7 +18,7 @@ class Utilisateur
     #[ORM\Column(name: 'email', length: 100, unique: true)]
     private ?string $email = null;
 
-    #[ORM\Column(name: 'password', length: 30)]
+    #[ORM\Column(name: 'password', length: 255, nullable: true)]
     private ?string $password = null;
 
     #[ORM\Column(name: 'nom', length: 30)]
@@ -33,25 +33,12 @@ class Utilisateur
     #[ORM\Column(name: 'date_inscription', type: 'datetime')]
     private ?\DateTimeInterface $dateInscription = null;
 
-    /**
-     * @var Collection<int, Commentaire>
-     */
-    #[ORM\OneToMany(targetEntity: Commentaire::class, mappedBy: 'owner', orphanRemoval: true)]
-    private Collection $commentaires;
+    #[ORM\Column(name: 'google_id', length: 255, nullable: true, unique: true)]
+    private ?string $googleId = null;
 
-    /**
-     * @var Collection<int, Concours>
-     */
-    #[ORM\ManyToMany(targetEntity: Concours::class, mappedBy: 'jurys')]
-    private Collection $concours;
+    #[ORM\Column(name: 'avatar_url', length: 500, nullable: true)]
+    private ?string $avatarUrl = null;
 
-    public function __construct()
-    {
-        $this->commentaires = new ArrayCollection();
-        $this->concours = new ArrayCollection();
-    }
-
-    // Getters and Setters
     public function getId(): ?int
     {
         return $this->id;
@@ -123,66 +110,44 @@ class Utilisateur
         return $this;
     }
 
-    // Helper method to get full name
     public function getFullName(): string
     {
         return $this->prenom . ' ' . $this->nom;
     }
 
-    /**
-     * @return Collection<int, Commentaire>
-     */
-    public function getCommentaires(): Collection
+    public function getUserIdentifier(): string
     {
-        return $this->commentaires;
+        return (string) $this->email;
     }
 
-    public function addCommentaire(Commentaire $commentaire): static
+    public function getRoles(): array
     {
-        if (!$this->commentaires->contains($commentaire)) {
-            $this->commentaires->add($commentaire);
-            $commentaire->setOwner($this);
-        }
+        return ['ROLE_' . strtoupper($this->role)];
+    }
 
+    public function eraseCredentials(): void
+    {
+    }
+
+    public function getGoogleId(): ?string
+    {
+        return $this->googleId;
+    }
+
+    public function setGoogleId(?string $googleId): self
+    {
+        $this->googleId = $googleId;
         return $this;
     }
 
-    public function removeCommentaire(Commentaire $commentaire): static
+    public function getAvatarUrl(): ?string
     {
-        if ($this->commentaires->removeElement($commentaire)) {
-            // set the owning side to null (unless already changed)
-            if ($commentaire->getOwner() === $this) {
-                $commentaire->setOwner(null);
-            }
-        }
-
-        return $this;
+        return $this->avatarUrl;
     }
 
-    /**
-     * @return Collection<int, Concours>
-     */
-    public function getConcours(): Collection
+    public function setAvatarUrl(?string $avatarUrl): self
     {
-        return $this->concours;
-    }
-
-    public function addConcour(Concours $concour): static
-    {
-        if (!$this->concours->contains($concour)) {
-            $this->concours->add($concour);
-            $concour->addJury($this);
-        }
-
-        return $this;
-    }
-
-    public function removeConcour(Concours $concour): static
-    {
-        if ($this->concours->removeElement($concour)) {
-            $concour->removeJury($this);
-        }
-
+        $this->avatarUrl = $avatarUrl;
         return $this;
     }
 }
