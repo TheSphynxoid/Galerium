@@ -15,12 +15,20 @@ class UtilisateurType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        $isEdit = $options['is_edit'] ?? false;
+        
         $builder
             ->add('email', TextType::class, [
                 'label' => 'Email'
             ])
             ->add('password', PasswordType::class, [
-                'label' => 'Mot de passe'
+                'label' => 'Mot de passe',
+                'required' => !$isEdit,
+                'mapped' => false,
+                'attr' => [
+                    'autocomplete' => 'new-password',
+                    'placeholder' => $isEdit ? 'Laisser vide pour ne pas modifier' : ''
+                ]
             ])
             ->add('nom', TextType::class, [
                 'label' => 'Nom'
@@ -36,22 +44,22 @@ class UtilisateurType extends AbstractType
                     'Jury' => 'JURY',
                     'Visiteur' => 'VISITEUR',
                 ],
-                'expanded' => false,   // liste déroulante
-                'multiple' => false,   // un seul rôle
+                'expanded' => false,
+                'multiple' => false,
             ])
             ->add('dateInscription', DateTimeType::class, [
                 'label' => 'Date et heure d\'inscription',
-                'widget' => 'single_text', // champ HTML5 avec date + heure
-                'html5' => true,           // picker natif du navigateur
-                // supprimer 'format' pour éviter l'erreur
+                'widget' => 'single_text',
+                'html5' => true,
             ])
         ;
     }
-
+    
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
             'data_class' => Utilisateur::class,
+            'is_edit' => false,
         ]);
     }
 }
