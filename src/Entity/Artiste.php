@@ -6,66 +6,103 @@ use App\Repository\ArtisteRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
-use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ArtisteRepository::class)]
-class Artiste implements UserInterface, PasswordAuthenticatedUserInterface
+#[ORM\HasLifecycleCallbacks]
+class Artiste
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'string', length: 180, unique: true)]
-    #[Assert\NotBlank]
-    #[Assert\Email]
-    private ?string $email = null;
+    #[ORM\OneToOne(inversedBy: 'artiste')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $user = null;
 
-    #[ORM\Column(type: 'json')]
-    private array $roles = [];
+    #[ORM\Column(length: 160, unique: true)]
+    #[Assert\NotBlank(message: "Le slug est obligatoire")]
+    #[Assert\Length(
+        max: 160,
+        maxMessage: "Le slug ne peut pas dépasser {{ limit }} caractères"
+    )]
+    private ?string $slug = null;
 
-    #[ORM\Column(type: 'string')]
-    private ?string $password = null;
-
-    #[ORM\Column(type: 'string', length: 255)]
-    #[Assert\NotBlank]
-    private ?string $nom = null;
-
-    #[ORM\Column(type: 'string', length: 255)]
-    #[Assert\NotBlank]
-    private ?string $prenom = null;
-
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    private ?string $specialite = null;
+    #[ORM\Column(length: 180)]
+    #[Assert\NotBlank(message: "Le nom d'artiste est obligatoire")]
+    #[Assert\Length(
+        max: 180,
+        maxMessage: "Le nom d'artiste ne peut pas dépasser {{ limit }} caractères"
+    )]
+    private ?string $displayName = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private ?string $biographie = null;
+    #[Assert\Length(
+        max: 2000,
+        maxMessage: "La biographie ne peut pas dépasser {{ limit }} caractères"
+    )]
+    private ?string $biography = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    private ?string $siteWeb = null;
+    #[ORM\Column(length: 120, nullable: true)]
+    #[Assert\Length(
+        max: 120,
+        maxMessage: "La spécialité ne peut pas dépasser {{ limit }} caractères"
+    )]
+    private ?string $specialty = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    private ?string $reseauxSociaux = null;
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $socialLinks = [];
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    private ?string $photoProfil = null;
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Assert\Url(message: "Veuillez saisir une URL valide pour le site web")]
+    #[Assert\Length(
+        max: 255,
+        maxMessage: "L'URL du site ne peut pas dépasser {{ limit }} caractères"
+    )]
+    private ?string $website = null;
 
-    #[ORM\Column(type: 'datetime_immutable')]
-    private ?\DateTimeImmutable $createdAt = null;
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Assert\Length(
+        max: 255,
+        maxMessage: "Le chemin de l'avatar ne peut pas dépasser {{ limit }} caractères"
+    )]
+    private ?string $avatarPath = null;
 
-    #[ORM\Column(type: 'boolean', options: ['default' => true])]
-    private bool $isActive = true;
+    #[ORM\Column(options: ['default' => false])]
+    private bool $isFeatured = false;
 
-    #[ORM\OneToMany(targetEntity: Oeuvre::class, mappedBy: 'artiste', orphanRemoval: true)]
+    #[ORM\Column]
+    private \DateTimeImmutable $createdAt;
+
+    #[ORM\Column]
+    private \DateTimeImmutable $updatedAt;
+
+    #[ORM\OneToMany(mappedBy: 'artiste', targetEntity: Oeuvre::class, orphanRemoval: true)]
     private Collection $oeuvres;
+
+    #[ORM\OneToMany(mappedBy: 'artiste', targetEntity: Participation::class)]
+    private Collection $participations;
+
+    // Propriétés non mappées pour les réseaux sociaux individuels (pour le formulaire)
+    private ?string $facebook = null;
+
+    private ?string $instagram = null;
+
+    private ?string $behance = null;
 
     public function __construct()
     {
-        $this->oeuvres = new ArrayCollection();
         $this->createdAt = new \DateTimeImmutable();
-        $this->isActive = true;
+        $this->updatedAt = new \DateTimeImmutable();
+        $this->oeuvres = new ArrayCollection();
+        $this->participations = new ArrayCollection();
+    }
+
+    #[ORM\PreUpdate]
+    public function touch(): void
+    {
+        $this->updatedAt = new \DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -73,158 +110,115 @@ class Artiste implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->id;
     }
 
-    public function getEmail(): ?string
+    public function getUser(): ?User
     {
-        return $this->email;
+        return $this->user;
     }
 
-    public function setEmail(string $email): static
+    public function setUser(?User $user): static
     {
-        $this->email = $email;
+        $this->user = $user;
         return $this;
     }
 
-    /**
-     * A visual identifier that represents this user.
-     *
-     * @see UserInterface
-     */
-    public function getUserIdentifier(): string
+    public function getSlug(): ?string
     {
-        return (string) $this->email;
+        return $this->slug;
     }
 
-    /**
-     * @see UserInterface
-     */
-    public function getRoles(): array
+    public function setSlug(string $slug): static
     {
-        $roles = $this->roles;
-        // guarantee every user at least has ROLE_USER
-        $roles[] = 'ROLE_ARTISTE';
-
-        return array_unique($roles);
-    }
-
-    public function setRoles(array $roles): static
-    {
-        $this->roles = $roles;
+        $this->slug = $slug;
         return $this;
     }
 
-    /**
-     * @see PasswordAuthenticatedUserInterface
-     */
-    public function getPassword(): ?string
+    public function getDisplayName(): ?string
     {
-        return $this->password;
+        return $this->displayName;
     }
 
-    public function setPassword(string $password): static
+    public function setDisplayName(string $displayName): static
     {
-        $this->password = $password;
+        $this->displayName = $displayName;
         return $this;
     }
 
-    /**
-     * @see UserInterface
-     */
-    public function eraseCredentials(): void
+    public function getBiography(): ?string
     {
-        // If you store any temporary, sensitive data on the user, clear it here
+        return $this->biography;
     }
 
-    public function getNom(): ?string
+    public function setBiography(?string $biography): static
     {
-        return $this->nom;
-    }
-
-    public function setNom(string $nom): static
-    {
-        $this->nom = $nom;
+        $this->biography = $biography;
         return $this;
     }
 
-    public function getPrenom(): ?string
+    public function getSpecialty(): ?string
     {
-        return $this->prenom;
+        return $this->specialty;
     }
 
-    public function setPrenom(string $prenom): static
+    public function setSpecialty(?string $specialty): static
     {
-        $this->prenom = $prenom;
+        $this->specialty = $specialty;
         return $this;
     }
 
-    public function getSpecialite(): ?string
+    public function getSocialLinks(): ?array
     {
-        return $this->specialite;
+        return $this->socialLinks;
     }
 
-    public function setSpecialite(?string $specialite): static
+    public function setSocialLinks(?array $socialLinks): static
     {
-        $this->specialite = $specialite;
+        $this->socialLinks = $socialLinks;
         return $this;
     }
 
-    public function getBiographie(): ?string
+    public function getWebsite(): ?string
     {
-        return $this->biographie;
+        return $this->website;
     }
 
-    public function setBiographie(?string $biographie): static
+    public function setWebsite(?string $website): static
     {
-        $this->biographie = $biographie;
+        $this->website = $website;
         return $this;
     }
 
-    public function getSiteWeb(): ?string
+    public function getAvatarPath(): ?string
     {
-        return $this->siteWeb;
+        return $this->avatarPath;
     }
 
-    public function setSiteWeb(?string $siteWeb): static
+    public function setAvatarPath(?string $avatarPath): static
     {
-        $this->siteWeb = $siteWeb;
+        $this->avatarPath = $avatarPath;
         return $this;
     }
 
-    public function getReseauxSociaux(): ?string
+    public function isFeatured(): bool
     {
-        return $this->reseauxSociaux;
+        return $this->isFeatured;
     }
 
-    public function setReseauxSociaux(?string $reseauxSociaux): static
+    public function setIsFeatured(bool $isFeatured): static
     {
-        $this->reseauxSociaux = $reseauxSociaux;
+        $this->isFeatured = $isFeatured;
         return $this;
     }
 
-    public function getPhotoProfil(): ?string
-    {
-        return $this->photoProfil;
-    }
-
-    public function setPhotoProfil(?string $photoProfil): static
-    {
-        $this->photoProfil = $photoProfil;
-        return $this;
-    }
-
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTimeImmutable $createdAt): static
+    public function getUpdatedAt(): \DateTimeImmutable
     {
-        $this->createdAt = $createdAt;
-        return $this;
+        return $this->updatedAt;
     }
 
-    /**
-     * @return Collection<int, Oeuvre>
-     */
     public function getOeuvres(): Collection
     {
         return $this->oeuvres;
@@ -236,40 +230,70 @@ class Artiste implements UserInterface, PasswordAuthenticatedUserInterface
             $this->oeuvres->add($oeuvre);
             $oeuvre->setArtiste($this);
         }
-
         return $this;
     }
 
     public function removeOeuvre(Oeuvre $oeuvre): static
     {
-        if ($this->oeuvres->removeElement($oeuvre)) {
-            // set the owning side to null (unless already changed)
-            if ($oeuvre->getArtiste() === $this) {
-                $oeuvre->setArtiste(null);
-            }
+        if ($this->oeuvres->removeElement($oeuvre) && $oeuvre->getArtiste() === $this) {
+            $oeuvre->setArtiste(null);
         }
-
         return $this;
     }
 
-    public function getFullName(): string
+    public function getParticipations(): Collection
     {
-        return $this->prenom . ' ' . $this->nom;
+        return $this->participations;
     }
 
-    public function isActive(): bool
+    public function addParticipation(Participation $participation): static
     {
-        return $this->isActive;
+        if (!$this->participations->contains($participation)) {
+            $this->participations->add($participation);
+            $participation->setArtiste($this);
+        }
+        return $this;
     }
 
-    public function setIsActive(bool $isActive): static
+    public function removeParticipation(Participation $participation): static
     {
-        $this->isActive = $isActive;
+        if ($this->participations->removeElement($participation) && $participation->getArtiste() === $this) {
+            $participation->setArtiste(null);
+        }
+        return $this;
+    }
+
+    // Getters et setters pour les réseaux sociaux individuels
+    public function getFacebook(): ?string
+    {
+        return $this->facebook ?? ($this->socialLinks['facebook'] ?? null);
+    }
+
+    public function setFacebook(?string $facebook): static
+    {
+        $this->facebook = $facebook;
+        return $this;
+    }
+
+    public function getInstagram(): ?string
+    {
+        return $this->instagram ?? ($this->socialLinks['instagram'] ?? null);
+    }
+
+    public function setInstagram(?string $instagram): static
+    {
+        $this->instagram = $instagram;
+        return $this;
+    }
+
+    public function getBehance(): ?string
+    {
+        return $this->behance ?? ($this->socialLinks['behance'] ?? null);
+    }
+
+    public function setBehance(?string $behance): static
+    {
+        $this->behance = $behance;
         return $this;
     }
 }
-
-
-
-
-

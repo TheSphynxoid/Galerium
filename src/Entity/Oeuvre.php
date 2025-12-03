@@ -10,69 +10,103 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: OeuvreRepository::class)]
-#[ORM\Table(name: '`oeuvre`')]
+#[ORM\HasLifecycleCallbacks]
 class Oeuvre
 {
+    public const STATUS_DRAFT = 'draft';
+    public const STATUS_PRIVATE = 'private';
+    public const STATUS_PUBLIC = 'public';
+    public const STATUS_ARCHIVED = 'archived';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'string', length: 255)]
-    #[Assert\NotBlank]
-    private ?string $titre = null;
-
-    #[ORM\Column(type: 'text', nullable: true)]
-    private ?string $description = null;
-
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    private ?string $categorie = null;
-
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    private ?string $image = null;
-
-    #[ORM\Column(type: 'date', nullable: true)]
-    private ?\DateTimeInterface $dateCreation = null;
-
-    #[ORM\Column(type: 'string', length: 50)]
-    private ?string $statut = 'en_attente';
-
-    #[ORM\Column(type: 'integer', options: ['default' => 0])]
-    private int $nbVotes = 0;
-
-    #[ORM\Column(type: 'integer', options: ['default' => 0])]
-    private int $nbCommentaires = 0;
-
-    #[ORM\Column(type: 'datetime_immutable')]
-    private ?\DateTimeImmutable $createdAt = null;
-
-    #[ORM\ManyToOne(targetEntity: Artiste::class, inversedBy: 'oeuvres')]
+    #[ORM\ManyToOne(inversedBy: 'oeuvres')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Artiste $artiste = null;
 
-    /**
-     * @var Collection<int, Commentaire>
-     */
-    #[ORM\OneToMany(targetEntity: Commentaire::class, mappedBy: 'oeuvre')]
-    private Collection $commentaires;
+    #[ORM\Column(length: 180)]
+    #[Assert\NotBlank(message: "Le titre est obligatoire")]
+    #[Assert\Length(
+        min: 3,
+        max: 180,
+        minMessage: "Le titre doit faire au moins {{ limit }} caractères",
+        maxMessage: "Le titre ne peut pas dépasser {{ limit }} caractères"
+    )]
+    private ?string $title = null;
 
-    /**
-     * @var Collection<int, Favori>
-     */
-    #[ORM\OneToMany(targetEntity: Favori::class, mappedBy: 'oeuvre')]
-    private Collection $favoris;
+    #[ORM\Column(length: 180, unique: true)]
+    #[Assert\Length(
+        max: 180,
+        maxMessage: "Le slug ne peut pas dépasser {{ limit }} caractères"
+    )]
+    private ?string $slug = null;
 
-    #[ORM\OneToOne(mappedBy: 'oeuvre', cascade: ['persist', 'remove'])]
-    private ?Enchere $enchere = null;
+    #[ORM\Column(type: Types::TEXT)]
+    #[Assert\NotBlank(message: "La description est obligatoire")]
+    #[Assert\Length(
+        min: 10,
+        minMessage: "La description doit faire au moins {{ limit }} caractères"
+    )]
+    private ?string $description = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $imagePath = null;
+
+    #[ORM\Column(length: 40)]
+    #[Assert\NotBlank(message: "Le statut est obligatoire")]
+    #[Assert\Choice(
+        choices: [self::STATUS_DRAFT, self::STATUS_PRIVATE, self::STATUS_PUBLIC, self::STATUS_ARCHIVED],
+        message: "Le statut sélectionné n'est pas valide"
+    )]
+    private string $status = self::STATUS_DRAFT;
+
+    #[ORM\Column(options: ['default' => true])]
+    private bool $isCommentable = true;
+
+    #[ORM\Column]
+    private \DateTimeImmutable $createdAt;
+
+    #[ORM\Column]
+    private \DateTimeImmutable $updatedAt;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $publishedAt = null;
+
+    #[ORM\ManyToMany(targetEntity: Categorie::class, inversedBy: 'oeuvres')]
+    #[ORM\JoinTable(name: 'oeuvre_categories')]
+    #[Assert\Count(
+        min: 1,
+        minMessage: "Veuillez sélectionner au moins une catégorie"
+    )]
+    private Collection $categories;
+
+    #[ORM\OneToMany(mappedBy: 'oeuvre', targetEntity: Participation::class)]
+    private Collection $participations;
+
+    #[ORM\Column(options: ['default' => 0])]
+    private int $viewsCount = 0;
+
+    #[ORM\Column(options: ['default' => 0])]
+    private int $votesCount = 0;
+
+    #[ORM\Column(options: ['default' => 0])]
+    private int $favoritesCount = 0;
 
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
-        $this->statut = 'en_attente';
-        $this->nbVotes = 0;
-        $this->nbCommentaires = 0;
-        $this->commentaires = new ArrayCollection();
-        $this->favoris = new ArrayCollection();
+        $this->updatedAt = new \DateTimeImmutable();
+        $this->categories = new ArrayCollection();
+        $this->participations = new ArrayCollection();
+    }
+
+    #[ORM\PreUpdate]
+    public function refreshUpdatedAt(): void
+    {
+        $this->updatedAt = new \DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -80,14 +114,36 @@ class Oeuvre
         return $this->id;
     }
 
-    public function getTitre(): ?string
+    public function getArtiste(): ?Artiste
     {
-        return $this->titre;
+        return $this->artiste;
     }
 
-    public function setTitre(string $titre): static
+    public function setArtiste(?Artiste $artiste): static
     {
-        $this->titre = $titre;
+        $this->artiste = $artiste;
+        return $this;
+    }
+
+    public function getTitle(): ?string
+    {
+        return $this->title;
+    }
+
+    public function setTitle(string $title): static
+    {
+        $this->title = $title;
+        return $this;
+    }
+
+    public function getSlug(): ?string
+    {
+        return $this->slug;
+    }
+
+    public function setSlug(string $slug): static
+    {
+        $this->slug = $slug;
         return $this;
     }
 
@@ -102,192 +158,136 @@ class Oeuvre
         return $this;
     }
 
-    public function getCategorie(): ?string
+    public function getImagePath(): ?string
     {
-        return $this->categorie;
+        return $this->imagePath;
     }
 
-    public function setCategorie(?string $categorie): static
+    public function setImagePath(string $imagePath): static
     {
-        $this->categorie = $categorie;
+        $this->imagePath = $imagePath;
         return $this;
     }
 
-    public function getImage(): ?string
+    public function getStatus(): string
     {
-        return $this->image;
+        return $this->status;
     }
 
-    public function setImage(?string $image): static
+    public function setStatus(string $status): static
     {
-        $this->image = $image;
+        $this->status = $status;
         return $this;
     }
 
-    public function getDateCreation(): ?\DateTimeInterface
+    public function isCommentable(): bool
     {
-        return $this->dateCreation;
+        return $this->isCommentable;
     }
 
-    public function setDateCreation(?\DateTimeInterface $dateCreation): static
+    public function setIsCommentable(bool $isCommentable): static
     {
-        $this->dateCreation = $dateCreation;
+        $this->isCommentable = $isCommentable;
         return $this;
     }
 
-    public function getStatut(): ?string
-    {
-        return $this->statut;
-    }
-
-    public function setStatut(string $statut): static
-    {
-        $this->statut = $statut;
-        return $this;
-    }
-
-    public function isPubliee(): bool
-    {
-        return $this->statut === 'publiee';
-    }
-
-    public function getNbVotes(): int
-    {
-        return $this->nbVotes;
-    }
-
-    public function setNbVotes(int $nbVotes): static
-    {
-        $this->nbVotes = $nbVotes;
-        return $this;
-    }
-
-    public function incrementVotes(): static
-    {
-        $this->nbVotes++;
-        return $this;
-    }
-
-    public function getNbCommentaires(): int
-    {
-        return $this->nbCommentaires;
-    }
-
-    public function setNbCommentaires(int $nbCommentaires): static
-    {
-        $this->nbCommentaires = $nbCommentaires;
-        return $this;
-    }
-
-    public function incrementCommentaires(): static
-    {
-        $this->nbCommentaires++;
-        return $this;
-    }
-
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTimeImmutable $createdAt): static
+    public function getUpdatedAt(): \DateTimeImmutable
     {
-        $this->createdAt = $createdAt;
+        return $this->updatedAt;
+    }
+
+    public function getPublishedAt(): ?\DateTimeImmutable
+    {
+        return $this->publishedAt;
+    }
+
+    public function setPublishedAt(?\DateTimeImmutable $publishedAt): static
+    {
+        $this->publishedAt = $publishedAt;
         return $this;
     }
 
-    public function getArtiste(): ?Artiste
+    public function getCategories(): Collection
     {
-        return $this->artiste;
+        return $this->categories;
     }
 
-    public function setArtiste(?Artiste $artiste): static
+    public function addCategory(Categorie $category): static
     {
-        $this->artiste = $artiste;
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Commentaire>
-     */
-    public function getCommentaires(): Collection
-    {
-        return $this->commentaires;
-    }
-
-    public function addCommentaire(Commentaire $commentaire): static
-    {
-        if (!$this->commentaires->contains($commentaire)) {
-            $this->commentaires->add($commentaire);
-            $commentaire->setOeuvre($this);
+        if (!$this->categories->contains($category)) {
+            $this->categories->add($category);
         }
-
         return $this;
     }
 
-    public function removeCommentaire(Commentaire $commentaire): static
+    public function removeCategory(Categorie $category): static
     {
-        if ($this->commentaires->removeElement($commentaire)) {
-            // set the owning side to null (unless already changed)
-            if ($commentaire->getOeuvre() === $this) {
-                $commentaire->setOeuvre(null);
-            }
+        $this->categories->removeElement($category);
+        return $this;
+    }
+
+    public function getParticipations(): Collection
+    {
+        return $this->participations;
+    }
+
+    public function addParticipation(Participation $participation): static
+    {
+        if (!$this->participations->contains($participation)) {
+            $this->participations->add($participation);
+            $participation->setOeuvre($this);
         }
-
         return $this;
     }
 
-    /**
-     * @return Collection<int, Favori>
-     */
-    public function getFavoris(): Collection
+    public function removeParticipation(Participation $participation): static
     {
-        return $this->favoris;
-    }
-
-    public function addFavori(Favori $favori): static
-    {
-        if (!$this->favoris->contains($favori)) {
-            $this->favoris->add($favori);
-            $favori->setOeuvre($this);
+        if ($this->participations->removeElement($participation) && $participation->getOeuvre() === $this) {
+            $participation->setOeuvre(null);
         }
-
         return $this;
     }
 
-    public function removeFavori(Favori $favori): static
+    public function incrementViews(): void
     {
-        if ($this->favoris->removeElement($favori)) {
-            // set the owning side to null (unless already changed)
-            if ($favori->getOeuvre() === $this) {
-                $favori->setOeuvre(null);
-            }
-        }
+        $this->viewsCount++;
+    }
 
+    public function setViewsCount(int $viewsCount): static
+    {
+        $this->viewsCount = $viewsCount;
         return $this;
     }
 
-    public function getEnchere(): ?Enchere
+    public function getViewsCount(): int
     {
-        return $this->enchere;
+        return $this->viewsCount;
     }
 
-    public function setEnchere(Enchere $enchere): static
+    public function setVotesCount(int $votesCount): static
     {
-        // set the owning side of the relation if necessary
-        if ($enchere->getOeuvre() !== $this) {
-            $enchere->setOeuvre($this);
-        }
-
-        $this->enchere = $enchere;
-
+        $this->votesCount = $votesCount;
         return $this;
+    }
+
+    public function getVotesCount(): int
+    {
+        return $this->votesCount;
+    }
+
+    public function setFavoritesCount(int $favoritesCount): static
+    {
+        $this->favoritesCount = $favoritesCount;
+        return $this;
+    }
+
+    public function getFavoritesCount(): int
+    {
+        return $this->favoritesCount;
     }
 }
-
-
-
-
-
-
-
