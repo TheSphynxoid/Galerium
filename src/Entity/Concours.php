@@ -77,7 +77,8 @@ class Concours
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     #[Assert\Type(\DateTime::class, message: "La date de fin de vote doit être une date valide.")]
     #[Assert\Expression(
-        "this.getDateDebutVote() === null or this.getDateFinVote() === null or this.getDateFinVote() > this.getDateDebutVote()",
+       // this.getDateDebutVote() === null or this.getDateFinVote() === null or
+        " this.getDateFinVote() > this.getDateDebutVote()",
         message: "La date de fin de vote doit être après la date de début de vote."
     )]
     private ?\DateTime $dateFinVote = null;

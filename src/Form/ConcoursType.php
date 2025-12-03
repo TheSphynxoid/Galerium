@@ -12,8 +12,7 @@ class ConcoursType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        $today = (new \DateTime())->format('Y-m-d'); // date du jour
-
+        $today = (new \DateTime())->format('Y-m-d'); 
         $builder
             ->add('titre')
             ->add('description')

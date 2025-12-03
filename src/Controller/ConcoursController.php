@@ -90,7 +90,26 @@ public function userIndex(ConcoursRepository $concoursRepository): Response
     ]);
 }
 
+#[Route('/user', name: 'app_concours_user_index', methods: ['GET'])]
+public function userIndexx(Request $request, ConcoursRepository $concoursRepository): Response
+{
+    $title = $request->query->get('title');
 
+    if ($title) {
+        $concours = $concoursRepository->createQueryBuilder('c')
+            ->where('c.titre LIKE :t')
+            ->setParameter('t', '%' . $title . '%')
+            ->getQuery()
+            ->getResult();
+    } else {
+        $concours = $concoursRepository->findAll();
+    }
+
+    return $this->render('concours/user_index.html.twig', [
+        'concours' => $concours,
+        'title' => $title,
+    ]);
+}
 
 
 

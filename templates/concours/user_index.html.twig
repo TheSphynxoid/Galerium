@@ -7,6 +7,16 @@
     <div class="container">
 
         <h1 class="h3 text-danger mb-4 text-center">Les concours disponibles</h1>
+        
+        <form method="get" class="mb-3">
+    <input 
+        type="text" 
+        name="title" 
+        class="form-control" 
+        placeholder="Rechercher par titre"
+        value="{{ title }}"
+    >
+</form>
 
         {% if concours is not empty %}
             <div class="row g-4">

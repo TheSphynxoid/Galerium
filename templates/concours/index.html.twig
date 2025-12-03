@@ -13,6 +13,7 @@
 
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="mb-0">Gestion des Concours</h1>
+            
             <a href="{{ path('app_concours_new') }}" class="btn btn-primary">
                 <svg class="icon me-2">
                     <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-plus"></use>
@@ -53,6 +54,10 @@
                                 <!-- Titre -->
                                 <td class="fw-semibold">{{ c.titre }}</td>
 
+
+
+
+
                                 <!-- Description -->
                                 <td>
                                     {% if c.description %}
@@ -64,9 +69,18 @@
                                     {% endif %}
                                 </td>
 
+
+
+
+
                                 <!-- Dates -->
                                 <td>{{ c.dateDebut ? c.dateDebut|date('d/m/Y') : '-' }}</td>
                                 <td>{{ c.dateFin ? c.dateFin|date('d/m/Y') : '-' }}</td>
+
+
+
+
+
 
                                 <!-- Statut -->
                                 <td class="text-center">
@@ -79,6 +93,10 @@
                                     {% endif %}
                                 </td>
 
+
+
+
+
                                 <!-- Règles -->
                                 <td>
                                     {% if c.regles %}
@@ -90,6 +108,10 @@
                                     {% endif %}
                                 </td>
 
+
+
+
+
                                 <!-- Vote Public -->
                                 <td class="text-center">
                                     {% if c.votePublic %}
@@ -99,9 +121,16 @@
                                     {% endif %}
                                 </td>
 
+
+
+
+
                                 <!-- Début et Fin Vote -->
                                 <td>{{ c.dateDebutVote ? c.dateDebutVote|date('d/m/Y') : '-' }}</td>
                                 <td>{{ c.dateFinVote ? c.dateFinVote|date('d/m/Y') : '-' }}</td>
+
+
+
 
                                 <!-- Actions -->
                                 <td class="text-center">
@@ -120,6 +149,10 @@
                                         </a>
 
 
+
+
+
+
                                       <form method="POST"
       action="{{ path('app_concours_delete', {id: c.id}) }}"
       style="display:inline;"
@@ -133,6 +166,10 @@
         </svg>
     </button>
 </form>
+
+
+
+
 
                                     </div>
                                 </td>
@@ -155,4 +192,8 @@
         </div>
     </div>
 </div>
+
+
+
+
 {% endblock %}
