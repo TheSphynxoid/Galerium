@@ -8,9 +8,12 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\HttpFoundation\File\File;
+use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
 #[ORM\Entity(repositoryClass: OeuvreRepository::class)]
 #[ORM\HasLifecycleCallbacks]
+#[Vich\Uploadable]
 class Oeuvre
 {
     public const STATUS_DRAFT = 'draft';
@@ -52,8 +55,14 @@ class Oeuvre
     )]
     private ?string $description = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $imagePath = null;
+
+    #[Vich\UploadableField(mapping: 'oeuvre_images', fileNameProperty: 'imagePath', size: 'imageSize')]
+    private ?File $imageFile = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $imageSize = null;
 
     #[ORM\Column(length: 40)]
     #[Assert\NotBlank(message: "Le statut est obligatoire")]
@@ -83,9 +92,6 @@ class Oeuvre
     )]
     private Collection $categories;
 
-    #[ORM\OneToMany(mappedBy: 'oeuvre', targetEntity: Participation::class)]
-    private Collection $participations;
-
     #[ORM\Column(options: ['default' => 0])]
     private int $viewsCount = 0;
 
@@ -100,7 +106,6 @@ class Oeuvre
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
         $this->categories = new ArrayCollection();
-        $this->participations = new ArrayCollection();
     }
 
     #[ORM\PreUpdate]
@@ -163,10 +168,34 @@ class Oeuvre
         return $this->imagePath;
     }
 
-    public function setImagePath(string $imagePath): static
+    public function setImagePath(?string $imagePath): static
     {
         $this->imagePath = $imagePath;
         return $this;
+    }
+
+    public function setImageFile(?File $imageFile = null): void
+    {
+        $this->imageFile = $imageFile;
+
+        if (null !== $imageFile) {
+            $this->updatedAt = new \DateTimeImmutable();
+        }
+    }
+
+    public function getImageFile(): ?File
+    {
+        return $this->imageFile;
+    }
+
+    public function setImageSize(?int $imageSize): void
+    {
+        $this->imageSize = $imageSize;
+    }
+
+    public function getImageSize(): ?int
+    {
+        return $this->imageSize;
     }
 
     public function getStatus(): string
@@ -228,28 +257,6 @@ class Oeuvre
     public function removeCategory(Categorie $category): static
     {
         $this->categories->removeElement($category);
-        return $this;
-    }
-
-    public function getParticipations(): Collection
-    {
-        return $this->participations;
-    }
-
-    public function addParticipation(Participation $participation): static
-    {
-        if (!$this->participations->contains($participation)) {
-            $this->participations->add($participation);
-            $participation->setOeuvre($this);
-        }
-        return $this;
-    }
-
-    public function removeParticipation(Participation $participation): static
-    {
-        if ($this->participations->removeElement($participation) && $participation->getOeuvre() === $this) {
-            $participation->setOeuvre(null);
-        }
         return $this;
     }
 

@@ -5,14 +5,16 @@ namespace App\Repository;
 use App\Entity\Artiste;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
-use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
-use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
-use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
 
 /**
  * @extends ServiceEntityRepository<Artiste>
+ *
+ * @method Artiste|null find($id, $lockMode = null, $lockVersion = null)
+ * @method Artiste|null findOneBy(array $criteria, array $orderBy = null)
+ * @method Artiste[]    findAll()
+ * @method Artiste[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class ArtisteRepository extends ServiceEntityRepository implements PasswordUpgraderInterface
+class ArtisteRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
@@ -20,23 +22,17 @@ class ArtisteRepository extends ServiceEntityRepository implements PasswordUpgra
     }
 
     /**
-     * Used to upgrade (rehash) the user's password automatically over time.
+     * @return Artiste[]
      */
-    public function upgradePassword(PasswordAuthenticatedUserInterface $user, string $newHashedPassword): void
+    public function findFeatured(int $limit = 8): array
     {
-        if (!$user instanceof Artiste) {
-            throw new UnsupportedUserException(sprintf('Instances of "%s" are not supported.', $user::class));
-        }
-
-        $user->setPassword($newHashedPassword);
-        $this->getEntityManager()->persist($user);
-        $this->getEntityManager()->flush();
+        return $this->createQueryBuilder('a')
+            ->andWhere('a.isFeatured = :featured')
+            ->setParameter('featured', true)
+            ->orderBy('a.updatedAt', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
     }
 }
-
-
-
-
-
-
 

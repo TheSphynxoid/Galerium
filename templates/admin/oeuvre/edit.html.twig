@@ -1,0 +1,18 @@
+{% extends 'backoffice.html.twig' %}
+
+{% block title %}Modifier l'œuvre{% endblock %}
+
+{% block body %}
+<div class="body flex-grow-1">
+    <div class="container-lg px-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <strong>Modifier l'œuvre : {{ oeuvre.title }}</strong>
+            </div>
+            <div class="card-body">
+                {{ include('oeuvre/form.html.twig', {'form': form, 'title': 'Modifier l\'œuvre', 'cancel_path': path('admin_oeuvre_index')}) }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

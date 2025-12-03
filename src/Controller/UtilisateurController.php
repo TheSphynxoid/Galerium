@@ -13,12 +13,11 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/utilisateur')]
-final class UtilisateurController extends AbstractController
+class UtilisateurController extends AbstractController
 {
     public function __construct(
         private UserPasswordHasherInterface $passwordHasher
-    ) {
-    }
+    ) {}
 
     #[Route(name: 'app_utilisateur_index', methods: ['GET'])]
     public function index(Request $request, UtilisateurRepository $utilisateurRepository): Response
@@ -35,20 +34,16 @@ final class UtilisateurController extends AbstractController
         
         $totalCount = count($qb->getQuery()->getResult());
         
-        $qb->setFirstResult($offset)
-           ->setMaxResults($limit);
-
-        $utilisateurs = $qb->getQuery()->getResult();
-        $totalPages = ceil($totalCount / $limit);
+        $qb->setFirstResult($offset)->setMaxResults($limit);
 
         return $this->render('utilisateur/index.html.twig', [
-            'utilisateurs' => $utilisateurs,
+            'utilisateurs' => $qb->getQuery()->getResult(),
             'search' => $search,
             'roleFilter' => $roleFilter,
             'sortBy' => $sortBy,
             'sortOrder' => $sortOrder,
             'currentPage' => $page,
-            'totalPages' => $totalPages,
+            'totalPages' => ceil($totalCount / $limit),
             'totalCount' => $totalCount,
         ]);
     }
@@ -61,18 +56,21 @@ final class UtilisateurController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+
             if ($utilisateur->getPassword()) {
-                $utilisateur->setPassword($this->passwordHasher->hashPassword($utilisateur, $utilisateur->getPassword()));
+                $utilisateur->setPassword(
+                    $this->passwordHasher->hashPassword($utilisateur, $utilisateur->getPassword())
+                );
             }
-            
+
             if (!$utilisateur->getDateInscription()) {
                 $utilisateur->setDateInscription(new \DateTime());
             }
-            
+
             $entityManager->persist($utilisateur);
             $entityManager->flush();
 
-            return $this->redirectToRoute('app_utilisateur_index', [], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute('app_utilisateur_index');
         }
 
         return $this->render('utilisateur/new.html.twig', [
@@ -106,13 +104,16 @@ final class UtilisateurController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+
             $plainPassword = $form->get('password')->getData();
             if (!empty($plainPassword)) {
-                $utilisateur->setPassword($this->passwordHasher->hashPassword($utilisateur, $plainPassword));
+                $utilisateur->setPassword(
+                    $this->passwordHasher->hashPassword($utilisateur, $plainPassword)
+                );
             }
-            
+
             $em->flush();
-            return $this->redirectToRoute('app_utilisateur_index', [], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute('app_utilisateur_index');
         }
 
         return $this->render('utilisateur/edit.html.twig', [
@@ -129,12 +130,11 @@ final class UtilisateurController extends AbstractController
             throw $this->createNotFoundException("Utilisateur introuvable");
         }
 
-        $token = $request->request->get('_token');
-        if ($this->isCsrfTokenValid('delete'.$utilisateur->getId(), $token)) {
+        if ($this->isCsrfTokenValid('delete'.$utilisateur->getId(), $request->request->get('_token'))) {
             $em->remove($utilisateur);
             $em->flush();
         }
 
-        return $this->redirectToRoute('app_utilisateur_index', [], Response::HTTP_SEE_OTHER);
+        return $this->redirectToRoute('app_utilisateur_index');
     }
 }

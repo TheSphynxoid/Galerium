@@ -14,6 +14,8 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
+
+
 class AuthController extends AbstractController
 {
     private EntityManagerInterface $em;
@@ -185,7 +187,7 @@ class AuthController extends AbstractController
     {
         return match (strtoupper($role)) {
             'JURY' => $this->redirectToRoute('app_jury'),
-            'ARTISTE' => $this->redirectToRoute('app_artiste'),
+            'ARTISTE' => $this->redirectToRoute('app_artiste_profile'),
             'VISITEUR' => $this->redirectToRoute('app_visiteur'),
             'ADMIN' => $this->redirectToRoute('app_admin'),
             default => $this->redirectToRoute('app_login'),

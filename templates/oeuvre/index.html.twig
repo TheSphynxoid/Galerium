@@ -1,60 +1,203 @@
-{% extends 'artiste/base.html.twig' %}
+{% extends 'base.html.twig' %}
 
-{% block title %}Mes Œuvres - Galerium{% endblock %}
+{% block title %}Galerie{% endblock %}
 
 {% block body %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>Mes Œuvres</h1>
-    <a href="{{ path('app_oeuvre_new') }}" class="btn btn-primary">
-        <i class="bi bi-plus-circle"></i> Ajouter une œuvre
-    </a>
-</div>
+<section id="galerie" class="py-5 bg-light">
+    <div class="container">
+        <div class="row mb-5">
+            <div class="col-12 text-center">
+                <h2 class="section-title display-4 fw-bold mb-3">Galerie d'Art</h2>
+                <p class="text-muted fs-5">Explorez les œuvres de nos artistes</p>
+            </div>
+        </div>
 
-{% if oeuvres|length == 0 %}
-    <div class="alert alert-info">
-        <p class="mb-0">Vous n'avez pas encore d'œuvres. <a href="{{ path('app_oeuvre_new') }}">Ajoutez-en une maintenant !</a></p>
-    </div>
-{% else %}
-    <div class="row">
-        {% for oeuvre in oeuvres %}
-            <div class="col-md-4 mb-4">
-                <div class="card">
-                    {% if oeuvre.image %}
-                        <img src="{{ asset(oeuvre.image) }}" class="card-img-top oeuvre-image" alt="{{ oeuvre.titre }}">
-                    {% else %}
-                        <div class="oeuvre-image bg-secondary d-flex align-items-center justify-content-center text-white">
-                            <i class="bi bi-image" style="font-size: 4rem;"></i>
+        <div class="row mb-5">
+            <div class="col-12">
+                <form method="get" class="bg-white p-4 rounded shadow-sm">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-4">
+                            <input type="search" 
+                                   name="q" 
+                                   class="form-control form-control-lg" 
+                                   placeholder="🔍 Rechercher une œuvre..." 
+                                   value="{{ app.request.get('q') }}">
                         </div>
-                    {% endif %}
-                    <div class="card-body">
-                        <h5 class="card-title">{{ oeuvre.titre }}</h5>
-                        <p class="card-text">
-                            <small class="text-muted">
-                                Catégorie: {{ oeuvre.categorie ?? 'Non spécifiée' }}<br>
-                                Statut: 
-                                {% if oeuvre.statut == 'publiee' %}
-                                    <span class="badge bg-success">Publiée</span>
-                                {% else %}
-                                    <span class="badge bg-warning">En attente</span>
-                                {% endif %}
-                            </small>
-                        </p>
-                        <p class="card-text">{{ oeuvre.description|slice(0, 100) }}{% if oeuvre.description|length > 100 %}...{% endif %}</p>
-                        <div class="d-flex justify-content-between">
-                            <a href="{{ path('app_oeuvre_show', {'id': oeuvre.id}) }}" class="btn btn-sm btn-outline-primary">Voir</a>
-                            <a href="{{ path('app_oeuvre_edit', {'id': oeuvre.id}) }}" class="btn btn-sm btn-outline-secondary">Modifier</a>
+                        <div class="col-md-4">
+                            <select name="categorie" class="form-select form-select-lg">
+                                <option value="">📁 Toutes les catégories</option>
+                                {% for categorie in categories %}
+                                    <option value="{{ categorie.slug }}" 
+                                            {% if app.request.get('categorie') == categorie.slug %}selected{% endif %}>
+                                        {{ categorie.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-dark btn-lg w-100 fw-bold" type="submit">
+                                🔍 Filtrer
+                            </button>
                         </div>
                     </div>
-                </div>
+                </form>
             </div>
-        {% endfor %}
+        </div>
+
+        {% if oeuvres|length > 0 %}
+            <div class="row g-4">
+                {% for oeuvre in oeuvres %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card border-0 shadow-sm h-100 overflow-hidden" style="transition: transform 0.3s ease, box-shadow 0.3s ease;">
+                            <a href="{{ path('app_oeuvre_show', {slug: oeuvre.slug}) }}" class="text-decoration-none position-relative">
+                                <div class="position-relative overflow-hidden" style="height: 300px;">
+                                    <img src="{{ vich_uploader_asset(oeuvre, 'imageFile') }}" 
+                                         class="w-100 h-100" 
+                                         alt="{{ oeuvre.title }}" 
+                                         style="object-fit: cover; transition: transform 0.3s ease;"
+                                         onmouseover="this.style.transform='scale(1.05)'"
+                                         onmouseout="this.style.transform='scale(1)'">
+                                    <div class="position-absolute top-0 start-0 w-100 h-100" 
+                                         style="background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.7) 100%);"></div>
+                                    <div class="position-absolute bottom-0 start-0 p-3 text-white w-100">
+                                        <h5 class="mb-1 fw-bold">{{ oeuvre.title }}</h5>
+                                        <p class="mb-0 small opacity-75">
+                                            Par {{ oeuvre.artiste.displayName }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </a>
+                            {% if app.user and app.user.artiste is same as(oeuvre.artiste) %}
+                                <div class="card-footer bg-white border-0 p-3">
+                                    <div class="d-flex gap-2">
+                                        <a class="btn btn-outline-dark btn-sm action-btn" 
+                                           href="{{ path('app_oeuvre_edit', {slug: oeuvre.slug}) }}">
+                                            <span class="btn-icon">✏️</span> Modifier
+                                        </a>
+                                        <form method="post" 
+                                              action="{{ path('app_oeuvre_delete', {id: oeuvre.id}) }}" 
+                                              onsubmit="return confirm('Supprimer cette œuvre ?');" 
+                                              class="flex-fill d-flex m-0">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete_oeuvre_' ~ oeuvre.id) }}">
+                                            <button class="btn btn-outline-danger btn-sm action-btn w-100" 
+                                                    type="submit">
+                                                <span class="btn-icon">🗑️</span> Supprimer
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <div class="mb-4" style="font-size: 5rem; opacity: 0.3;">🎨</div>
+                <h4 class="text-muted">Aucune œuvre trouvée</h4>
+                <p class="text-muted">Essayez de modifier vos critères de recherche</p>
+            </div>
+        {% endif %}
     </div>
-{% endif %}
+</section>
+
+<style>
+/* Animation de la carte */
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
+}
+
+/* Focus des champs de formulaire */
+.form-control:focus, .form-select:focus {
+    border-color: #212529;
+    box-shadow: 0 0 0 0.25rem rgba(33, 37, 41, 0.25);
+}
+
+/* Alignement parfait du formulaire de recherche */
+.row.align-items-center {
+    align-items: stretch !important;
+}
+
+.row.align-items-center > div {
+    display: flex;
+    align-items: stretch;
+}
+
+.row.align-items-center .form-control,
+.row.align-items-center .form-select,
+.row.align-items-center .btn {
+    height: 48px !important;
+    min-height: 48px;
+    max-height: 48px;
+    line-height: normal;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    box-sizing: border-box;
+    border-width: 1px;
+    border-style: solid;
+    display: flex;
+    align-items: center;
+    margin: 0;
+    vertical-align: middle;
+}
+
+.row.align-items-center .btn {
+    justify-content: center;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+.row.align-items-center .form-select {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+}
+
+/* Container des boutons d'action */
+.card-footer .d-flex {
+    display: flex !important;
+    gap: 0.5rem;
+}
+
+/* Taille égale pour les conteneurs des boutons */
+.card-footer .d-flex > a,
+.card-footer .d-flex > form {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+/* Style uniforme pour tous les boutons d'action */
+.action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 0.75rem;
+    white-space: nowrap;
+    transition: all 0.3s ease;
+    height: 38px;
+    width: 100%;
+    box-sizing: border-box;
+    border-width: 1px;
+    border-style: solid;
+}
+
+/* Icône dans les boutons */
+.btn-icon {
+    margin-right: 0.5rem;
+}
+
+/* Effet hover bouton Modifier */
+.btn-outline-dark:hover {
+    background-color: #212529;
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* Effet hover bouton Supprimer */
+.btn-outline-danger:hover {
+    background-color: #dc3545;
+    color: white;
+    transform: translateY(-2px);
+}
+</style>
 {% endblock %}
-
-
-
-
-
-
-

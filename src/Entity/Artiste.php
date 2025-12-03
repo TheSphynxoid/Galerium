@@ -7,9 +7,12 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\HttpFoundation\File\File;
+use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
 #[ORM\Entity(repositoryClass: ArtisteRepository::class)]
 #[ORM\HasLifecycleCallbacks]
+#[Vich\Uploadable]
 class Artiste
 {
     #[ORM\Id]
@@ -19,15 +22,7 @@ class Artiste
 
     #[ORM\OneToOne(inversedBy: 'artiste')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?User $user = null;
-
-    #[ORM\Column(length: 160, unique: true)]
-    #[Assert\NotBlank(message: "Le slug est obligatoire")]
-    #[Assert\Length(
-        max: 160,
-        maxMessage: "Le slug ne peut pas dépasser {{ limit }} caractères"
-    )]
-    private ?string $slug = null;
+    private ?Utilisateur $user = null;
 
     #[ORM\Column(length: 180)]
     #[Assert\NotBlank(message: "Le nom d'artiste est obligatoire")]
@@ -63,11 +58,13 @@ class Artiste
     private ?string $website = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Assert\Length(
-        max: 255,
-        maxMessage: "Le chemin de l'avatar ne peut pas dépasser {{ limit }} caractères"
-    )]
     private ?string $avatarPath = null;
+
+    #[Vich\UploadableField(mapping: 'artiste_avatars', fileNameProperty: 'avatarPath', size: 'imageSize')]
+    private ?File $imageFile = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $imageSize = null;
 
     #[ORM\Column(options: ['default' => false])]
     private bool $isFeatured = false;
@@ -81,9 +78,6 @@ class Artiste
     #[ORM\OneToMany(mappedBy: 'artiste', targetEntity: Oeuvre::class, orphanRemoval: true)]
     private Collection $oeuvres;
 
-    #[ORM\OneToMany(mappedBy: 'artiste', targetEntity: Participation::class)]
-    private Collection $participations;
-
     // Propriétés non mappées pour les réseaux sociaux individuels (pour le formulaire)
     private ?string $facebook = null;
 
@@ -96,13 +90,23 @@ class Artiste
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
         $this->oeuvres = new ArrayCollection();
-        $this->participations = new ArrayCollection();
     }
 
     #[ORM\PreUpdate]
+    #[ORM\PrePersist]
     public function touch(): void
     {
         $this->updatedAt = new \DateTimeImmutable();
+        $this->updateSocialLinks();
+    }
+
+    public function updateSocialLinks(): void
+    {
+        $this->socialLinks = [
+            'facebook' => $this->facebook,
+            'instagram' => $this->instagram,
+            'behance' => $this->behance,
+        ];
     }
 
     public function getId(): ?int
@@ -110,25 +114,14 @@ class Artiste
         return $this->id;
     }
 
-    public function getUser(): ?User
+    public function getUser(): ?Utilisateur
     {
         return $this->user;
     }
 
-    public function setUser(?User $user): static
+    public function setUser(?Utilisateur $user): static
     {
         $this->user = $user;
-        return $this;
-    }
-
-    public function getSlug(): ?string
-    {
-        return $this->slug;
-    }
-
-    public function setSlug(string $slug): static
-    {
-        $this->slug = $slug;
         return $this;
     }
 
@@ -198,6 +191,30 @@ class Artiste
         return $this;
     }
 
+    public function setImageFile(?File $imageFile = null): void
+    {
+        $this->imageFile = $imageFile;
+
+        if (null !== $imageFile) {
+            $this->updatedAt = new \DateTimeImmutable();
+        }
+    }
+
+    public function getImageFile(): ?File
+    {
+        return $this->imageFile;
+    }
+
+    public function setImageSize(?int $imageSize): void
+    {
+        $this->imageSize = $imageSize;
+    }
+
+    public function getImageSize(): ?int
+    {
+        return $this->imageSize;
+    }
+
     public function isFeatured(): bool
     {
         return $this->isFeatured;
@@ -241,29 +258,6 @@ class Artiste
         return $this;
     }
 
-    public function getParticipations(): Collection
-    {
-        return $this->participations;
-    }
-
-    public function addParticipation(Participation $participation): static
-    {
-        if (!$this->participations->contains($participation)) {
-            $this->participations->add($participation);
-            $participation->setArtiste($this);
-        }
-        return $this;
-    }
-
-    public function removeParticipation(Participation $participation): static
-    {
-        if ($this->participations->removeElement($participation) && $participation->getArtiste() === $this) {
-            $participation->setArtiste(null);
-        }
-        return $this;
-    }
-
-    // Getters et setters pour les réseaux sociaux individuels
     public function getFacebook(): ?string
     {
         return $this->facebook ?? ($this->socialLinks['facebook'] ?? null);

@@ -39,6 +39,15 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(name: 'avatar_url', length: 500, nullable: true)]
     private ?string $avatarUrl = null;
 
+    // 🚨 AJOUT : Relation OneToOne vers Artiste
+    #[ORM\OneToOne(mappedBy: 'user', targetEntity: Artiste::class, cascade: ['persist', 'remove'])]
+    private ?Artiste $artiste = null;
+
+
+    // ------------------------
+    // GETTERS & SETTERS
+    // ------------------------
+
     public function getId(): ?int
     {
         return $this->id;
@@ -148,6 +157,26 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     public function setAvatarUrl(?string $avatarUrl): self
     {
         $this->avatarUrl = $avatarUrl;
+        return $this;
+    }
+
+    // ------------------------------------------
+    // 🚨 AJOUT : RELATION AVEC L'ARTISTE
+    // ------------------------------------------
+
+    public function getArtiste(): ?Artiste
+    {
+        return $this->artiste;
+    }
+
+    public function setArtiste(?Artiste $artiste): self
+    {
+        // Mettre à jour le côté inverse si nécessaire
+        if ($artiste !== null && $artiste->getUser() !== $this) {
+            $artiste->setUser($this);
+        }
+
+        $this->artiste = $artiste;
         return $this;
     }
 }

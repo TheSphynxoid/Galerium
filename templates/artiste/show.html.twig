@@ -1,0 +1,77 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ artiste.displayName }}{% endblock %}
+
+{% block body %}
+<section id="artiste-profile" class="py-5">
+    <div class="container">
+        <div class="row mb-5">
+            <div class="col-md-4 text-center">
+                {% if artiste.avatarPath %}
+                    <img src="{{ vich_uploader_asset(artiste, 'imageFile') }}" 
+                         alt="{{ artiste.displayName }}" 
+                         class="rounded-circle mb-3 shadow" 
+                         style="width: 200px; height: 200px; object-fit: cover;">
+                {% else %}
+                    <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow" 
+                         style="width: 200px; height: 200px;">
+                        <i class="icon icon-user" style="font-size: 5rem; color: #999;"></i>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="col-md-8">
+                <h1 class="mb-3">{{ artiste.displayName }}</h1>
+                {% if artiste.specialty %}
+                    <p class="text-muted mb-3">
+                        <strong>{{ artiste.specialty }}</strong>
+                    </p>
+                {% endif %}
+                {% if artiste.biography %}
+                    <p class="mb-4">{{ artiste.biography }}</p>
+                {% endif %}
+                {% if artiste.website %}
+                    <a href="{{ artiste.website }}" target="_blank" class="btn btn-outline-dark btn-sm">
+                        Visiter le site web
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3>Œuvres</h3>
+                    {% if app.user and artiste.user and app.user == artiste.user %}
+                        <a href="{{ path('app_oeuvre_new') }}" class="btn btn-primary">
+                            Ajouter une œuvre
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {% if oeuvres|length > 0 %}
+            <div class="row g-4">
+                {% for oeuvre in oeuvres %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card border-0 shadow-sm h-100">
+                            <a href="{{ path('app_oeuvre_show', {slug: oeuvre.slug}) }}" class="text-decoration-none">
+                                <img src="{{ vich_uploader_asset(oeuvre, 'imageFile') }}" 
+                                     class="card-img-top" 
+                                     alt="{{ oeuvre.title }}" 
+                                     style="height: 250px; object-fit: cover;">
+                                <div class="card-body">
+                                    <h5 class="card-title text-dark">{{ oeuvre.title }}</h5>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <p class="text-muted">Aucune œuvre publiée.</p>
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

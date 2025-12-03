@@ -1,0 +1,29 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Créer un compte artiste{% endblock %}
+
+{% block body %}
+    <section class="auth-card">
+        <h1>Créer mon compte artiste</h1>
+        <p class="text-muted">Présentez-vous à la communauté en quelques étapes.</p>
+
+        {{ form_start(registrationForm, {'attr': {'novalidate': 'novalidate'}}) }}
+            <div class="form-grid">
+                {{ form_row(registrationForm.email) }}
+                {{ form_row(registrationForm.displayName) }}
+                {{ form_row(registrationForm.plainPassword) }}
+                {{ form_row(registrationForm.specialty) }}
+                {{ form_row(registrationForm.biography) }}
+                {{ form_row(registrationForm.website) }}
+            </div>
+            <div class="form-actions">
+                {{ form_row(registrationForm.acceptTerms) }}
+                <button class="btn primary" type="submit">Créer mon compte</button>
+            </div>
+        {{ form_end(registrationForm) }}
+
+        <p class="text-muted">Déjà inscrit ? <a href="{{ path('app_login') }}">Connectez-vous</a>.</p>
+    </section>
+{% endblock %}
+
+
