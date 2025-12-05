@@ -6,20 +6,14 @@
 <section id="dashboard" class="py-5">
     <div class="container">
         <div class="row mb-4">
-            <div class="col-12">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h2>Bienvenue, {{ artiste.displayName }}</h2>
-                        <p class="text-muted">Gérez vos œuvres et suivez vos performances</p>
-                    </div>
-                    <div>
-                        <a class="btn btn-dark me-2" href="{{ path('app_artiste_profile') }}">
-                            Modifier mon profil
-                        </a>
-                        <a class="btn btn-primary" href="{{ path('app_oeuvre_new') }}">
-                            Ajouter une œuvre
-                        </a>
-                    </div>
+            <div class="col-12 d-flex justify-content-between align-items-center">
+                <div>
+                    <h2>Bienvenue, {{ artiste.displayName }}</h2>
+                    <p class="text-muted">Gérez vos œuvres et suivez vos performances</p>
+                </div>
+                <div>
+                    <a class="btn btn-dark me-2" href="{{ path('app_artiste_profile') }}">Modifier mon profil</a>
+                    <a class="btn btn-primary" href="{{ path('app_oeuvre_new') }}">Ajouter une œuvre</a>
                 </div>
             </div>
         </div>
@@ -73,7 +67,7 @@
                                         <td>
                                             <img src="{{ vich_uploader_asset(oeuvre, 'imageFile') }}" 
                                                  alt="{{ oeuvre.title }}" 
-                                                 style="width: 60px; height: 60px; object-fit: cover;" 
+                                                 style="width:60px;height:60px;object-fit:cover;" 
                                                  class="rounded">
                                         </td>
                                         <td>{{ oeuvre.title }}</td>
@@ -91,10 +85,8 @@
                                         <td>{{ oeuvre.viewsCount }}</td>
                                         <td>{{ oeuvre.votesCount }}</td>
                                         <td>
-                                            <a href="{{ path('app_oeuvre_show', {slug: oeuvre.slug}) }}" 
-                                               class="btn btn-sm btn-outline-primary">Voir</a>
-                                            <a href="{{ path('app_oeuvre_edit', {slug: oeuvre.slug}) }}" 
-                                               class="btn btn-sm btn-dark">Modifier</a>
+                                            <a href="{{ path('app_oeuvre_show', {slug: oeuvre.slug}) }}" class="btn btn-sm btn-outline-primary">Voir</a>
+                                            <a href="{{ path('app_oeuvre_edit', {slug: oeuvre.slug}) }}" class="btn btn-sm btn-dark">Modifier</a>
                                         </td>
                                     </tr>
                                 {% endfor %}

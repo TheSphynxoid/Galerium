@@ -59,6 +59,11 @@ class Oeuvre
     private ?string $imagePath = null;
 
     #[Vich\UploadableField(mapping: 'oeuvre_images', fileNameProperty: 'imagePath', size: 'imageSize')]
+    #[Assert\File(
+        maxSize: '10M',
+        mimeTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
+        mimeTypesMessage: 'Veuillez télécharger une image valide (JPEG, PNG, GIF ou WebP)'
+    )]
     private ?File $imageFile = null;
 
     #[ORM\Column(nullable: true)]
@@ -84,7 +89,7 @@ class Oeuvre
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $publishedAt = null;
 
-    #[ORM\ManyToMany(targetEntity: Categorie::class, inversedBy: 'oeuvres')]
+    #[ORM\ManyToMany(targetEntity: Categorie::class, inversedBy: 'oeuvres', cascade: ['persist'])]
     #[ORM\JoinTable(name: 'oeuvre_categories')]
     #[Assert\Count(
         min: 1,

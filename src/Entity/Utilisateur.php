@@ -36,8 +36,7 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(name: 'google_id', length: 255, nullable: true, unique: true)]
     private ?string $googleId = null;
 
-    #[ORM\Column(name: 'avatar_url', length: 500, nullable: true)]
-    private ?string $avatarUrl = null;
+
 
     // 🚨 AJOUT : Relation OneToOne vers Artiste
     #[ORM\OneToOne(mappedBy: 'user', targetEntity: Artiste::class, cascade: ['persist', 'remove'])]
@@ -146,17 +145,6 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     public function setGoogleId(?string $googleId): self
     {
         $this->googleId = $googleId;
-        return $this;
-    }
-
-    public function getAvatarUrl(): ?string
-    {
-        return $this->avatarUrl;
-    }
-
-    public function setAvatarUrl(?string $avatarUrl): self
-    {
-        $this->avatarUrl = $avatarUrl;
         return $this;
     }
 

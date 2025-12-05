@@ -27,19 +27,24 @@ class Artiste
     #[ORM\Column(length: 180)]
     #[Assert\NotBlank(message: "Le nom d'artiste est obligatoire")]
     #[Assert\Length(
+        min: 2,
         max: 180,
+        minMessage: "Le nom d'artiste doit contenir au moins {{ limit }} caractères",
         maxMessage: "Le nom d'artiste ne peut pas dépasser {{ limit }} caractères"
     )]
     private ?string $displayName = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
+    #[Assert\NotBlank(message: "La biographie est obligatoire")]
     #[Assert\Length(
+     min: 10,
         max: 2000,
         maxMessage: "La biographie ne peut pas dépasser {{ limit }} caractères"
     )]
     private ?string $biography = null;
 
     #[ORM\Column(length: 120, nullable: true)]
+    #[Assert\NotBlank(message: "La spécialité est obligatoire")]
     #[Assert\Length(
         max: 120,
         maxMessage: "La spécialité ne peut pas dépasser {{ limit }} caractères"
@@ -50,6 +55,7 @@ class Artiste
     private ?array $socialLinks = [];
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Assert\NotBlank(message: "Le site web est obligatoire")]
     #[Assert\Url(message: "Veuillez saisir une URL valide pour le site web")]
     #[Assert\Length(
         max: 255,
@@ -61,6 +67,11 @@ class Artiste
     private ?string $avatarPath = null;
 
     #[Vich\UploadableField(mapping: 'artiste_avatars', fileNameProperty: 'avatarPath', size: 'imageSize')]
+    #[Assert\File(
+        maxSize: '5M',
+        mimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
+        mimeTypesMessage: 'Veuillez télécharger une image valide (JPEG, PNG, WebP).'
+    )]
     private ?File $imageFile = null;
 
     #[ORM\Column(nullable: true)]
@@ -78,11 +89,14 @@ class Artiste
     #[ORM\OneToMany(mappedBy: 'artiste', targetEntity: Oeuvre::class, orphanRemoval: true)]
     private Collection $oeuvres;
 
-    // Propriétés non mappées pour les réseaux sociaux individuels (pour le formulaire)
+    // Réseaux sociaux (facultatif mais validé en URL)
+    #[Assert\Url(message: "Veuillez saisir une URL valide pour Facebook")]
     private ?string $facebook = null;
 
+    #[Assert\Url(message: "Veuillez saisir une URL valide pour Instagram")]
     private ?string $instagram = null;
 
+    #[Assert\Url(message: "Veuillez saisir une URL valide pour Behance")]
     private ?string $behance = null;
 
     public function __construct()
@@ -109,15 +123,11 @@ class Artiste
         ];
     }
 
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
+    // === Getters & Setters ===
 
-    public function getUser(): ?Utilisateur
-    {
-        return $this->user;
-    }
+    public function getId(): ?int { return $this->id; }
+
+    public function getUser(): ?Utilisateur { return $this->user; }
 
     public function setUser(?Utilisateur $user): static
     {
@@ -125,10 +135,7 @@ class Artiste
         return $this;
     }
 
-    public function getDisplayName(): ?string
-    {
-        return $this->displayName;
-    }
+    public function getDisplayName(): ?string { return $this->displayName; }
 
     public function setDisplayName(string $displayName): static
     {
@@ -136,10 +143,7 @@ class Artiste
         return $this;
     }
 
-    public function getBiography(): ?string
-    {
-        return $this->biography;
-    }
+    public function getBiography(): ?string { return $this->biography; }
 
     public function setBiography(?string $biography): static
     {
@@ -147,10 +151,7 @@ class Artiste
         return $this;
     }
 
-    public function getSpecialty(): ?string
-    {
-        return $this->specialty;
-    }
+    public function getSpecialty(): ?string { return $this->specialty; }
 
     public function setSpecialty(?string $specialty): static
     {
@@ -158,10 +159,7 @@ class Artiste
         return $this;
     }
 
-    public function getSocialLinks(): ?array
-    {
-        return $this->socialLinks;
-    }
+    public function getSocialLinks(): ?array { return $this->socialLinks; }
 
     public function setSocialLinks(?array $socialLinks): static
     {
@@ -169,10 +167,7 @@ class Artiste
         return $this;
     }
 
-    public function getWebsite(): ?string
-    {
-        return $this->website;
-    }
+    public function getWebsite(): ?string { return $this->website; }
 
     public function setWebsite(?string $website): static
     {
@@ -180,10 +175,7 @@ class Artiste
         return $this;
     }
 
-    public function getAvatarPath(): ?string
-    {
-        return $this->avatarPath;
-    }
+    public function getAvatarPath(): ?string { return $this->avatarPath; }
 
     public function setAvatarPath(?string $avatarPath): static
     {
@@ -194,31 +186,18 @@ class Artiste
     public function setImageFile(?File $imageFile = null): void
     {
         $this->imageFile = $imageFile;
-
         if (null !== $imageFile) {
             $this->updatedAt = new \DateTimeImmutable();
         }
     }
 
-    public function getImageFile(): ?File
-    {
-        return $this->imageFile;
-    }
+    public function getImageFile(): ?File { return $this->imageFile; }
 
-    public function setImageSize(?int $imageSize): void
-    {
-        $this->imageSize = $imageSize;
-    }
+    public function setImageSize(?int $imageSize): void { $this->imageSize = $imageSize; }
 
-    public function getImageSize(): ?int
-    {
-        return $this->imageSize;
-    }
+    public function getImageSize(): ?int { return $this->imageSize; }
 
-    public function isFeatured(): bool
-    {
-        return $this->isFeatured;
-    }
+    public function isFeatured(): bool { return $this->isFeatured; }
 
     public function setIsFeatured(bool $isFeatured): static
     {
@@ -226,20 +205,11 @@ class Artiste
         return $this;
     }
 
-    public function getCreatedAt(): \DateTimeImmutable
-    {
-        return $this->createdAt;
-    }
+    public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
 
-    public function getUpdatedAt(): \DateTimeImmutable
-    {
-        return $this->updatedAt;
-    }
+    public function getUpdatedAt(): \DateTimeImmutable { return $this->updatedAt; }
 
-    public function getOeuvres(): Collection
-    {
-        return $this->oeuvres;
-    }
+    public function getOeuvres(): Collection { return $this->oeuvres; }
 
     public function addOeuvre(Oeuvre $oeuvre): static
     {
@@ -258,36 +228,15 @@ class Artiste
         return $this;
     }
 
-    public function getFacebook(): ?string
-    {
-        return $this->facebook ?? ($this->socialLinks['facebook'] ?? null);
-    }
+    public function getFacebook(): ?string { return $this->facebook ?? ($this->socialLinks['facebook'] ?? null); }
 
-    public function setFacebook(?string $facebook): static
-    {
-        $this->facebook = $facebook;
-        return $this;
-    }
+    public function setFacebook(?string $facebook): static { $this->facebook = $facebook; return $this; }
 
-    public function getInstagram(): ?string
-    {
-        return $this->instagram ?? ($this->socialLinks['instagram'] ?? null);
-    }
+    public function getInstagram(): ?string { return $this->instagram ?? ($this->socialLinks['instagram'] ?? null); }
 
-    public function setInstagram(?string $instagram): static
-    {
-        $this->instagram = $instagram;
-        return $this;
-    }
+    public function setInstagram(?string $instagram): static { $this->instagram = $instagram; return $this; }
 
-    public function getBehance(): ?string
-    {
-        return $this->behance ?? ($this->socialLinks['behance'] ?? null);
-    }
+    public function getBehance(): ?string { return $this->behance ?? ($this->socialLinks['behance'] ?? null); }
 
-    public function setBehance(?string $behance): static
-    {
-        $this->behance = $behance;
-        return $this;
-    }
+    public function setBehance(?string $behance): static { $this->behance = $behance; return $this; }
 }

@@ -24,12 +24,24 @@ class ArtisteType extends AbstractType
                     'label' => 'Nom d\'artiste',
                     'required' => true,
                 ])
-            ->add('specialty')
-            ->add('biography')
-            ->add('website')
-            ->add('facebook')
-            ->add('instagram')
-            ->add('behance')
+            ->add('specialty', TextType::class, [
+                'required' => true,  // Changé à true pour afficher les erreurs
+            ])
+            ->add('biography', TextareaType::class, [
+                'required' => true,  // Changé à true pour afficher les erreurs
+            ])
+            ->add('website', UrlType::class, [
+                'required' => true,  // Changé à true pour afficher les erreurs
+            ])
+            ->add('facebook', UrlType::class, [
+                'required' => false,
+            ])
+            ->add('instagram', UrlType::class, [
+                'required' => false,
+            ])
+            ->add('behance', UrlType::class, [
+                'required' => false,
+            ])
             ->add('imageFile', VichImageType::class, [
                 'label' => 'Avatar',
                 'required' => false,

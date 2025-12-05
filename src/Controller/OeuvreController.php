@@ -43,63 +43,45 @@ class OeuvreController extends AbstractController
     }
 
     #[Route('/nouvelle', name: 'app_oeuvre_new', methods: ['GET', 'POST'])]
-    #[IsGranted('ROLE_USER')]
-    public function new(Request $request, OeuvreService $oeuvreService): Response
-    {
-        /** @var \App\Entity\User $user */
-        $user = $this->getUser();
-        $artiste = $user?->getArtiste();
+    public function new(
+        Request $request, 
+        OeuvreService $oeuvreService,
+        \App\Repository\UtilisateurRepository $userRepository
+    ): Response {
+        // Utiliser l'authentification par session comme dans ArtisteController
+        $session = $request->getSession();
 
-        // Si l'utilisateur n'a pas de profil artiste, créer un profil vide
+        if (!$session->has('user_id')) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        $user = $userRepository->find($session->get('user_id'));
+
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        $artiste = $user->getArtiste();
+
+        // Si l'utilisateur n'a pas de profil artiste, rediriger vers la création de profil
         if (!$artiste) {
-            $artiste = (new Artiste())->setUser($user);
-            // Définir les champs minimaux obligatoires
-            $artiste->setDisplayName($user->getDisplayName() ?? $user->getEmail());
-            $artiste->setSlug(strtolower(str_replace(' ', '-', $artiste->getDisplayName())));
-            // Définir des valeurs par défaut pour éviter les erreurs de validation
-            $artiste->setBiography('');
-            $artiste->setSpecialty('');
+            $this->addFlash('warning', 'Veuillez d\'abord compléter votre profil artiste.');
+            return $this->redirectToRoute('app_artiste_profile');
         }
 
         $oeuvre = (new Oeuvre())->setArtiste($artiste);
         $form = $this->createForm(OeuvreType::class, $oeuvre);
         $form->handleRequest($request);
 
-        error_log("=== FORM PROCESSING ===");
-        error_log("Form submitted: " . ($form->isSubmitted() ? 'YES' : 'NO'));
-        
-        if ($form->isSubmitted()) {
-            error_log("Form valid: " . ($form->isValid() ? 'YES' : 'NO'));
-            
-            if (!$form->isValid()) {
-                $errors = [];
-                foreach ($form->getErrors(true) as $error) {
-                    $errors[] = $error->getMessage();
-                }
-                error_log("Form errors: " . implode(', ', $errors));
-            }
-        }
-
         if ($form->isSubmitted() && $form->isValid()) {
-            error_log("=== ATTEMPTING TO SAVE ===");
-            $imageFile = $form->get('imageFile')->getData();
-
             try {
-                $oeuvreService->save($oeuvre, $imageFile);
-                error_log("=== SAVE COMPLETED ===");
-                $this->addFlash('success', 'Œuvre ajoutée.');
+                // VichUploader gère automatiquement l'upload via le formulaire
+                $oeuvreService->save($oeuvre);
+                $this->addFlash('success', 'Œuvre ajoutée avec succès!');
+                return $this->redirectToRoute('app_artiste_dashboard');
             } catch (\Exception $e) {
-                error_log("=== SAVE FAILED ===");
-                error_log("Exception: " . $e->getMessage());
-                error_log("Trace: " . $e->getTraceAsString());
-                $this->addFlash('error', 'Erreur lors de l\'ajout de l\'œuvre: ' . $e->getMessage());
-                return $this->render('oeuvre/form.html.twig', [
-                    'form' => $form->createView(),
-                    'title' => 'Ajouter une œuvre',
-                ]);
+                $this->addFlash('error', 'Erreur lors de l\'enregistrement: ' . $e->getMessage());
             }
-
-            return $this->redirectToRoute('app_artiste_dashboard');
         }
 
         return $this->render('oeuvre/form.html.twig', [
@@ -109,20 +91,44 @@ class OeuvreController extends AbstractController
     }
 
     #[Route('/{slug}/modifier', name: 'app_oeuvre_edit', methods: ['GET', 'POST'])]
-    #[IsGranted('ROLE_USER')]
     public function edit(
         #[MapEntity(mapping: ['slug' => 'slug'])] Oeuvre $oeuvre,
         Request $request,
         OeuvreService $oeuvreService,
+        \App\Repository\UtilisateurRepository $userRepository
     ): Response {
-        $this->denyAccessUnlessGranted('OEUVRE_EDIT', $oeuvre);
+        // Vérifier l'authentification par session
+        $session = $request->getSession();
+
+        if (!$session->has('user_id')) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        $user = $userRepository->find($session->get('user_id'));
+
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        $artiste = $user->getArtiste();
+
+        if (!$artiste) {
+            $this->addFlash('error', 'Vous devez avoir un profil artiste pour modifier une œuvre.');
+            return $this->redirectToRoute('app_artiste_profile');
+        }
+
+        // Vérifier que l'artiste est bien le propriétaire de l'œuvre
+        if ($oeuvre->getArtiste()->getId() !== $artiste->getId()) {
+            $this->addFlash('error', 'Vous n\'avez pas l\'autorisation de modifier cette œuvre.');
+            return $this->redirectToRoute('app_artiste_dashboard');
+        }
 
         $form = $this->createForm(OeuvreType::class, $oeuvre);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $imageFile = $form->get('imageFile')->getData();
-            $oeuvreService->save($oeuvre, $imageFile);
+            // VichUploader gère automatiquement l'upload via le formulaire
+            $oeuvreService->save($oeuvre);
             $this->addFlash('success', 'Œuvre mise à jour.');
 
             return $this->redirectToRoute('app_artiste_dashboard');
@@ -138,9 +144,29 @@ class OeuvreController extends AbstractController
     public function show(
         #[MapEntity(mapping: ['slug' => 'slug'])] Oeuvre $oeuvre,
         \Doctrine\ORM\EntityManagerInterface $entityManager,
+        Request $request,
+        \App\Repository\UtilisateurRepository $userRepository
     ): Response {
         if ($oeuvre->getStatus() !== Oeuvre::STATUS_PUBLIC) {
-            $this->denyAccessUnlessGranted('OEUVRE_VIEW_PRIVATE', $oeuvre);
+            // Vérification manuelle pour les œuvres privées
+            $session = $request->getSession();
+            $hasAccess = false;
+
+            if ($session->has('user_id')) {
+                $user = $userRepository->find($session->get('user_id'));
+                if ($user) {
+                    $artiste = $user->getArtiste();
+                    // L'artiste propriétaire peut voir ses œuvres privées
+                    if ($artiste && $oeuvre->getArtiste()->getId() === $artiste->getId()) {
+                        $hasAccess = true;
+                    }
+                }
+            }
+
+            if (!$hasAccess) {
+                $this->addFlash('error', 'Cette œuvre est privée.');
+                return $this->redirectToRoute('app_oeuvre_index');
+            }
         }
 
         $oeuvre->incrementViews();
@@ -152,10 +178,37 @@ class OeuvreController extends AbstractController
     }
 
     #[Route('/{id}', name: 'app_oeuvre_delete', methods: ['POST'])]
-    #[IsGranted('ROLE_USER')]
-    public function delete(Oeuvre $oeuvre, Request $request, OeuvreService $oeuvreService): Response
-    {
-        $this->denyAccessUnlessGranted('OEUVRE_DELETE', $oeuvre);
+    public function delete(
+        Oeuvre $oeuvre, 
+        Request $request, 
+        OeuvreService $oeuvreService,
+        \App\Repository\UtilisateurRepository $userRepository
+    ): Response {
+        // Vérifier l'authentification par session
+        $session = $request->getSession();
+
+        if (!$session->has('user_id')) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        $user = $userRepository->find($session->get('user_id'));
+
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        $artiste = $user->getArtiste();
+
+        if (!$artiste) {
+            $this->addFlash('error', 'Vous devez avoir un profil artiste.');
+            return $this->redirectToRoute('app_artiste_profile');
+        }
+
+        // Vérifier que l'artiste est bien le propriétaire de l'œuvre
+        if ($oeuvre->getArtiste()->getId() !== $artiste->getId()) {
+            $this->addFlash('error', 'Vous n\'avez pas l\'autorisation de supprimer cette œuvre.');
+            return $this->redirectToRoute('app_artiste_dashboard');
+        }
 
         if ($this->isCsrfTokenValid('delete_oeuvre_'.$oeuvre->getId(), $request->request->get('_token'))) {
             $oeuvreService->delete($oeuvre);
@@ -165,4 +218,3 @@ class OeuvreController extends AbstractController
         return $this->redirectToRoute('app_artiste_dashboard');
     }
 }
-

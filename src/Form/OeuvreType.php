@@ -21,6 +21,8 @@ class OeuvreType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        $isNew = $options['data']->getId() === null;
+        
         $builder
             ->add('title', TextType::class, [
                 'required' => true,
@@ -33,6 +35,7 @@ class OeuvreType extends AbstractType
                 'class' => Categorie::class,
                 'choice_label' => 'name',
                 'multiple' => true,
+                'by_reference' => false, // Important pour les relations many-to-many
             ])
             ->add('status', ChoiceType::class, [
                 'choices' => [
@@ -44,7 +47,7 @@ class OeuvreType extends AbstractType
             ])
             ->add('isCommentable')
             ->add('imageFile', VichImageType::class, [
-                'required' => false,
+                'required' => $isNew, // Obligatoire pour les nouvelles œuvres
                 'allow_delete' => true,
                 'download_uri' => true,
                 'image_uri' => true,

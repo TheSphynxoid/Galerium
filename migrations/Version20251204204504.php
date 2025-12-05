@@ -20,18 +20,49 @@ final class Version20251204204504 extends AbstractMigration
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
-        $this->addSql('ALTER TABLE artiste DROP FOREIGN KEY FK_9C07354FA76ED395');
-        $this->addSql('ALTER TABLE notification DROP FOREIGN KEY FK_BF5476CAA76ED395');
-        $this->addSql('ALTER TABLE participation DROP FOREIGN KEY FK_AB55E24F88194DE8');
-        $this->addSql('ALTER TABLE participation DROP FOREIGN KEY FK_AB55E24F21D25844');
-        $this->addSql('DROP TABLE participation');
-        $this->addSql('DROP TABLE user');
-        $this->addSql('ALTER TABLE artiste DROP FOREIGN KEY FK_9C07354FA76ED395');
-        $this->addSql('ALTER TABLE artiste ADD image_size INT DEFAULT NULL');
+        
+        // Only drop participation foreign keys and table if they exist
+        if ($schema->hasTable('participation')) {
+            $this->addSql('ALTER TABLE participation DROP FOREIGN KEY FK_AB55E24F88194DE8');
+            $this->addSql('ALTER TABLE participation DROP FOREIGN KEY FK_AB55E24F21D25844');
+            $this->addSql('DROP TABLE participation');
+        }
+        
+        // Only drop user table if it exists
+        if ($schema->hasTable('user')) {
+            $this->addSql('DROP TABLE user');
+        }
+        
+        // Check if foreign key exists on artiste table before dropping
+        $artisteTable = $schema->getTable('artiste');
+        if ($artisteTable->hasForeignKey('FK_9C07354FA76ED395')) {
+            $this->addSql('ALTER TABLE artiste DROP FOREIGN KEY FK_9C07354FA76ED395');
+        }
+        
+        // Add image_size column if it doesn't exist
+        if (!$artisteTable->hasColumn('image_size')) {
+            $this->addSql('ALTER TABLE artiste ADD image_size INT DEFAULT NULL');
+        }
+        
+        // Add foreign key constraint
         $this->addSql('ALTER TABLE artiste ADD CONSTRAINT FK_9C07354FA76ED395 FOREIGN KEY (user_id) REFERENCES utilisateur (id)');
-        $this->addSql('ALTER TABLE notification DROP FOREIGN KEY FK_BF5476CAA76ED395');
+        
+        // Check if foreign key exists on notification table before dropping
+        $notificationTable = $schema->getTable('notification');
+        if ($notificationTable->hasForeignKey('FK_BF5476CAA76ED395')) {
+            $this->addSql('ALTER TABLE notification DROP FOREIGN KEY FK_BF5476CAA76ED395');
+        }
+        
+        // Add foreign key constraint
         $this->addSql('ALTER TABLE notification ADD CONSTRAINT FK_BF5476CAA76ED395 FOREIGN KEY (user_id) REFERENCES utilisateur (id)');
-        $this->addSql('ALTER TABLE oeuvre ADD image_size INT DEFAULT NULL, CHANGE image_path image_path VARCHAR(255) DEFAULT NULL');
+        
+        // Add image_size to oeuvre and make image_path nullable
+        $oeuvreTable = $schema->getTable('oeuvre');
+        if (!$oeuvreTable->hasColumn('image_size')) {
+            $this->addSql('ALTER TABLE oeuvre ADD image_size INT DEFAULT NULL, CHANGE image_path image_path VARCHAR(255) DEFAULT NULL');
+        } else {
+            $this->addSql('ALTER TABLE oeuvre CHANGE image_path image_path VARCHAR(255) DEFAULT NULL');
+        }
     }
 
     public function down(Schema $schema): void

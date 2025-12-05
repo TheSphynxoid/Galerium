@@ -58,9 +58,7 @@ class ArtisteController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $artisteService->save($artiste);
-
-            $this->addFlash('success', 'Profil mis à jour.');
-
+            $this->addFlash('success', 'Profil mis à jour avec succès!');
             return $this->redirectToRoute('app_artiste_dashboard');
         }
 
@@ -70,10 +68,26 @@ class ArtisteController extends AbstractController
     }
 
     #[Route('/dashboard', name: 'app_artiste_dashboard', methods: ['GET'])]
-    public function dashboard(OeuvreRepository $oeuvreRepository, EntityManagerInterface $entityManager): Response
-    {
-        $user = $this->getUser();
-        $artiste = $user?->getArtiste();
+    public function dashboard(
+        Request $request,
+        OeuvreRepository $oeuvreRepository, 
+        EntityManagerInterface $entityManager,
+        UtilisateurRepository $userRepository
+    ): Response {
+        // Utiliser la même authentification que profile()
+        $session = $request->getSession();
+
+        if (!$session->has('user_id')) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        $user = $userRepository->find($session->get('user_id'));
+
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        $artiste = $user->getArtiste();
 
         if (!$artiste) {
             return $this->redirectToRoute('app_artiste_profile');
@@ -102,9 +116,9 @@ class ArtisteController extends AbstractController
         ]);
     }
 
-    #[Route('/{slug}', name: 'app_artiste_show', methods: ['GET'])]
+    #[Route('/{id}', name: 'app_artiste_show', methods: ['GET'], requirements: ['id' => '\d+'])]
     public function show(
-        #[MapEntity(mapping: ['slug' => 'slug'])] Artiste $artiste,
+        Artiste $artiste,
         OeuvreRepository $oeuvreRepository,
     ): Response {
         return $this->render('artiste/show.html.twig', [

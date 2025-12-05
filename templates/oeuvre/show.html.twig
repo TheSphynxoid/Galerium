@@ -13,7 +13,7 @@
             <div class="col-md-5">
                 <h1 class="mb-3">{{ oeuvre.title }}</h1>
                 <p class="text-muted mb-4">
-                    Par <a href="{{ path('app_artiste_show', {slug: oeuvre.artiste.slug}) }}" 
+                    Par <a href="{{ path('app_artiste_show', {id: oeuvre.artiste.id}) }}" 
                            class="text-decoration-none text-dark fw-bold">
                         {{ oeuvre.artiste.displayName }}
                     </a>
