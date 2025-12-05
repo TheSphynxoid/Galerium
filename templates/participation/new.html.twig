@@ -32,50 +32,27 @@
 
                         {{ form_start(form) }}
 
-                        <div class="mb-3">
-                            {{ form_label(form.oeuvre) }}
-                            {{ form_widget(form.oeuvre, {'attr': {'class': 'form-control'}}) }}
-                            {{ form_errors(form.oeuvre) }}
-                        </div>
+                            <div class="mb-3">
+                                {{ form_label(form.description) }}
+                                {{ form_widget(form.description, {'attr': {'class': 'form-control'}}) }}
+                                {{ form_errors(form.description) }}
+                            </div>
 
-                        <div class="mb-3">
-                            {{ form_label(form.description) }}
-                            {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': 5}}) }}
-                            {{ form_errors(form.description) }}
-                        </div>
+                            <div class="mb-3">
+                                {{ form_label(form.statut) }}
+                                {{ form_widget(form.statut, {'attr': {'class': 'form-control'}}) }}
+                                {{ form_errors(form.statut) }}
+                            </div>
 
-                        <div class="mb-3">
-                            {{ form_label(form.statut) }}
-                            {{ form_widget(form.statut, {'attr': {'class': 'form-control'}}) }}
-                            {{ form_errors(form.statut) }}
-                        </div>
+                            {# 🔥 Affiche les autres champs restants : dateParticipation, noteFinale, etc. #}
+                            {{ form_rest(form) }}
 
-                        <div class="mb-3">
-                            {{ form_label(form.dateParticipation) }}
-                            {{ form_widget(form.dateParticipation, {'attr': {'class': 'form-control'}}) }}
-                            {{ form_errors(form.dateParticipation) }}
-                        </div>
-
-                        <div class="mb-3">
-                            {{ form_label(form.noteFinale) }}
-                            {{ form_widget(form.noteFinale, {'attr': {'class': 'form-control'}}) }}
-                            {{ form_errors(form.noteFinale) }}
-                        </div>
-
-                        <div class="mb-3">
-                            {{ form_label(form.scoreVote) }}
-                            {{ form_widget(form.scoreVote, {'attr': {'class': 'form-control'}}) }}
-                            {{ form_errors(form.scoreVote) }}
-                        </div>
-
-                        {# Champs restants #}
-                        {{ form_rest(form) }}
-
-                        <div class="d-grid mt-3">
-                            <button type="submit" class="btn btn-success btn-lg">
-                                Envoyer ma participation
-                            </button>
-                        </div>
+                            <!-- Bouton à la fin -->
+                            <div class="d-grid mt-3">
+                                <button type="submit" class="btn btn-success btn-lg">
+                                    Envoyer ma participation
+                                </button>
+                            </div>
 
                         {{ form_end(form) }}
 

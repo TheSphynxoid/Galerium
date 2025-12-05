@@ -6,8 +6,6 @@ use App\Entity\Participation;
 use App\Form\ParticipationType;
 use App\Repository\ParticipationRepository;
 use App\Repository\ConcoursRepository;
-use App\Repository\OeuvreRepository;
-use App\Repository\UtilisateurRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -31,42 +29,12 @@ final class ParticipationController extends AbstractController
         int $concoursId,
         Request $request,
         EntityManagerInterface $entityManager,
-        ConcoursRepository $concoursRepository,
-        OeuvreRepository $oeuvreRepository,
-        UtilisateurRepository $userRepository
+        ConcoursRepository $concoursRepository
     ): Response {
-        // Utiliser l'authentification par session comme dans OeuvreController
-        $session = $request->getSession();
-
-        if (!$session->has('user_id')) {
-            return $this->redirectToRoute('app_login');
-        }
-
-        $user = $userRepository->find($session->get('user_id'));
-
-        if (!$user) {
-            return $this->redirectToRoute('app_login');
-        }
-
-        // Récupérer l'artiste associé à l'utilisateur
-        $artiste = $user->getArtiste();
-        if (!$artiste) {
-            $this->addFlash('warning', 'Veuillez d\'abord compléter votre profil artiste.');
-            return $this->redirectToRoute('app_concours_artistev_index');
-        }
-
         $concour = $concoursRepository->find($concoursId);
 
         if (!$concour) {
             throw $this->createNotFoundException('Concours non trouvé');
-        }
-
-        // Récupérer les œuvres de l'artiste connecté
-        $oeuvres = $oeuvreRepository->findByArtiste($artiste);
-
-        if (empty($oeuvres)) {
-            $this->addFlash('warning', 'Vous devez avoir au moins une œuvre pour participer à un concours.');
-            return $this->redirectToRoute('app_concours_artistev_index');
         }
 
         $participation = new Participation();
@@ -76,9 +44,7 @@ final class ParticipationController extends AbstractController
         // On associe automatiquement le concours à la participation
         $participation->addConcour($concour);
 
-        $form = $this->createForm(ParticipationType::class, $participation, [
-            'oeuvres' => $oeuvres
-        ]);
+        $form = $this->createForm(ParticipationType::class, $participation);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
