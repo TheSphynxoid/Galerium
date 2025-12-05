@@ -3,27 +3,67 @@
 namespace App\Form;
 
 use App\Entity\Participation;
+use App\Entity\Oeuvre;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\DateType;
+use Symfony\Component\Form\Extension\Core\Type\NumberType;
 
 class ParticipationType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('dateParticipation')
-            ->add('statut')
-            ->add('noteFinale')
-            ->add('scoreVote')
-            ->add('description')
-        ;
+            ->add('oeuvre', EntityType::class, [
+                'class' => Oeuvre::class,
+                'choice_label' => 'title',
+                'choices' => $options['oeuvres'] ?? [],
+                'placeholder' => 'Sélectionnez une œuvre',
+                'required' => true,
+                'label' => 'Votre œuvre',
+                'attr' => ['class' => 'form-control'],
+            ])
+            ->add('description', TextareaType::class, [
+                'label' => 'Description leur oeuvre par apport au concours',
+                'required' => false,
+                'attr' => ['class' => 'form-control', 'rows' => 5],
+            ])
+            ->add('statut', ChoiceType::class, [
+                'label' => 'Statut',
+                'choices' => [
+                    'En cours' => 'En cours',
+                    'Soumis' => 'Soumis',
+                ],
+                'data' => 'En cours',
+                'attr' => ['class' => 'form-control'],
+            ])
+            ->add('dateParticipation', DateType::class, [
+                'widget' => 'single_text',
+                'label' => 'Date de participation',
+                'required' => false,
+                'attr' => ['class' => 'form-control'],
+            ])
+            ->add('noteFinale', NumberType::class, [
+                'label' => 'Note finale',
+                'required' => false,
+                'attr' => ['class' => 'form-control'],
+            ])
+            ->add('scoreVote', NumberType::class, [
+                'label' => 'Score du vote',
+                'required' => false,
+                'attr' => ['class' => 'form-control'],
+            ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
             'data_class' => Participation::class,
+            'oeuvres' => [],
         ]);
     }
 }
