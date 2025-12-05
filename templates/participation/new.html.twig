@@ -1,0 +1,74 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Participer au concours{% endblock %}
+
+{% block body %}
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-8 col-lg-6">
+                <div class="card shadow-lg p-4" style="border-radius: 12px; border: 2px solid #0428B5;">
+                    <div class="card-body">
+
+                        <h2 class="card-title text-center text-primary mb-3">
+                            Participer au concours : {{ concour.titre }}
+                        </h2>
+
+                        <ul class="list-group list-group-flush mb-4">
+                            <li class="list-group-item"><strong>Statut :</strong> {{ concour.statut }}</li>
+                            <li class="list-group-item"><strong>Description :</strong> {{ concour.description }}</li>
+                            <li class="list-group-item"><strong>Date Début :</strong> {{ concour.dateDebut ? concour.dateDebut|date('d/m/Y') : '—' }}</li>
+                            <li class="list-group-item"><strong>Date Fin :</strong> {{ concour.dateFin ? concour.dateFin|date('d/m/Y') : '—' }}</li>
+                            <li class="list-group-item"><strong>Règles :</strong> {{ concour.regles ?: '—' }}</li>
+                            <li class="list-group-item"><strong>Vote public :</strong> {{ concour.votePublic ? 'Oui' : 'Non' }}</li>
+                            <li class="list-group-item"><strong>Date Début Vote :</strong> {{ concour.dateDebutVote ? concour.dateDebutVote|date('d/m/Y') : '—' }}</li>
+                            <li class="list-group-item"><strong>Date Fin Vote :</strong> {{ concour.dateFinVote ? concour.dateFinVote|date('d/m/Y') : '—' }}</li>
+                            {% if concour.scoreVote is defined %}
+                                <li class="list-group-item"><strong>Score Vote :</strong> {{ concour.scoreVote ?: '—' }}</li>
+                            {% endif %}
+                        </ul>
+
+                        <h5 class="text-center text-secondary mb-3">Votre participation</h5>
+
+                        {{ form_start(form) }}
+
+                            <div class="mb-3">
+                                {{ form_label(form.description) }}
+                                {{ form_widget(form.description, {'attr': {'class': 'form-control'}}) }}
+                                {{ form_errors(form.description) }}
+                            </div>
+
+                            <div class="mb-3">
+                                {{ form_label(form.statut) }}
+                                {{ form_widget(form.statut, {'attr': {'class': 'form-control'}}) }}
+                                {{ form_errors(form.statut) }}
+                            </div>
+
+                            {# 🔥 Affiche les autres champs restants : dateParticipation, noteFinale, etc. #}
+                            {{ form_rest(form) }}
+
+                            <!-- Bouton à la fin -->
+                            <div class="d-grid mt-3">
+                                <button type="submit" class="btn btn-success btn-lg">
+                                    Envoyer ma participation
+                                </button>
+                            </div>
+
+                        {{ form_end(form) }}
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .card-title {
+        font-weight: 700;
+    }
+    .list-group-item {
+        font-size: 0.95rem;
+    }
+</style>
+{% endblock %}

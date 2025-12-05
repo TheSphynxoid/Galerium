@@ -106,6 +106,9 @@ class Oeuvre
     #[ORM\Column(options: ['default' => 0])]
     private int $favoritesCount = 0;
 
+    #[ORM\OneToOne(mappedBy: 'oeuvre', cascade: ['persist', 'remove'])]
+    private ?Participation $participation = null;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
@@ -301,5 +304,22 @@ class Oeuvre
     public function getFavoritesCount(): int
     {
         return $this->favoritesCount;
+    }
+
+    public function getParticipation(): ?Participation
+    {
+        return $this->participation;
+    }
+
+    public function setParticipation(Participation $participation): static
+    {
+        // set the owning side of the relation if necessary
+        if ($participation->getOeuvre() !== $this) {
+            $participation->setOeuvre($this);
+        }
+
+        $this->participation = $participation;
+
+        return $this;
     }
 }
