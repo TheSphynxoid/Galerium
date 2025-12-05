@@ -1,20 +1,24 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Participation index{% endblock %}
+{% block title %}Liste des Participations{% endblock %}
 
 {% block body %}
-    <h1>Participation index</h1>
+    <h1>Liste des Participations</h1>
 
-    <table class="table">
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success">{{ message }}</div>
+    {% endfor %}
+
+    <table class="table table-striped">
         <thead>
             <tr>
                 <th>Id</th>
-                <th>DateParticipation</th>
+                <th>Date de Participation</th>
                 <th>Statut</th>
-                <th>NoteFinale</th>
-                <th>ScoreVote</th>
+                <th>Note Finale</th>
+                <th>Score Vote</th>
                 <th>Description</th>
-                <th>actions</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -27,17 +31,21 @@
                 <td>{{ participation.scoreVote }}</td>
                 <td>{{ participation.description }}</td>
                 <td>
-                    <a href="{{ path('app_participation_show', {'id': participation.id}) }}">show</a>
-                    <a href="{{ path('app_participation_edit', {'id': participation.id}) }}">edit</a>
+                    <a href="{{ path('app_participation_show', {'id': participation.id}) }}" class="btn btn-info btn-sm">Afficher</a>
+                    <a href="{{ path('app_participation_edit', {'id': participation.id}) }}" class="btn btn-warning btn-sm">Modifier</a>
+                    <form method="post" action="{{ path('app_participation_delete', {'id': participation.id}) }}" style="display:inline-block;" onsubmit="return confirm('Voulez-vous vraiment supprimer cette participation ?');">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ participation.id) }}">
+                        <button class="btn btn-danger btn-sm">Supprimer</button>
+                    </form>
                 </td>
             </tr>
         {% else %}
             <tr>
-                <td colspan="7">no records found</td>
+                <td colspan="7" class="text-center">Aucune participation trouvée</td>
             </tr>
         {% endfor %}
         </tbody>
     </table>
 
-    <a href="{{ path('app_participation_new') }}">Create new</a>
+    <a href="{{ path('app_participation_new', {'concoursId': 1}) }}" class="btn btn-primary">Créer une nouvelle participation</a>
 {% endblock %}
