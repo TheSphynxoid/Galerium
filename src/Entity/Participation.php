@@ -5,7 +5,9 @@ namespace App\Entity;
 use App\Repository\ParticipationRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ParticipationRepository::class)]
 class Participation
@@ -24,7 +26,14 @@ class Participation
     #[ORM\Column]
     private ?int $votepublic = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(type: Types::TEXT, nullable: false)]
+    #[Assert\NotBlank(message: "La description est obligatoire.")]
+    #[Assert\Length(
+        min: 10,
+        minMessage: "La description doit contenir au moins 10 caractères.",
+        max: 1000,
+        maxMessage: "La description ne peut pas dépasser {{ limit }} caractères."
+    )]
     private ?string $description = null;
 
     /**
@@ -51,7 +60,6 @@ class Participation
     public function setDateparticipation(\DateTime $dateparticipation): static
     {
         $this->dateparticipation = $dateparticipation;
-
         return $this;
     }
 
@@ -63,7 +71,6 @@ class Participation
     public function setStatut(string $statut): static
     {
         $this->statut = $statut;
-
         return $this;
     }
 
@@ -75,7 +82,6 @@ class Participation
     public function setVotepublic(int $votepublic): static
     {
         $this->votepublic = $votepublic;
-
         return $this;
     }
 
@@ -87,7 +93,6 @@ class Participation
     public function setDescription(string $description): static
     {
         $this->description = $description;
-
         return $this;
     }
 
@@ -104,14 +109,12 @@ class Participation
         if (!$this->concours->contains($concour)) {
             $this->concours->add($concour);
         }
-
         return $this;
     }
 
     public function removeConcour(Concours $concour): static
     {
         $this->concours->removeElement($concour);
-
         return $this;
     }
 }

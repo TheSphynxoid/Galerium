@@ -37,13 +37,5 @@
         </tbody>
     </table>
 
-    <h2>Participer à un concours</h2>
-    <ul>
-        {% for concours in concoursList %}
-            <li>
-                {{ concours.titre }} -
-                <a href="{{ path('app_participation_new', {'concoursId': concours.id}) }}">Participer</a>
-            </li>
-        {% endfor %}
-    </ul>
+  
 {% endblock %}

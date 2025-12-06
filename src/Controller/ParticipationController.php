@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Participation;
 use App\Form\ParticipationType;
+use App\Form\ParticipationEditType;
 use App\Repository\ParticipationRepository;
 use App\Repository\ConcoursRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -75,11 +76,12 @@ final class ParticipationController extends AbstractController
     #[Route('/{id}/edit', name: 'app_participation_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Participation $participation, EntityManagerInterface $entityManager): Response
     {
-        $form = $this->createForm(ParticipationType::class, $participation);
+        $form = $this->createForm(ParticipationEditType::class, $participation);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
+            $this->addFlash("success", "Statut mis à jour avec succès !");
             return $this->redirectToRoute('app_participation_index');
         }
 

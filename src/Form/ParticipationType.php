@@ -6,9 +6,9 @@ use App\Entity\Participation;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 
 class ParticipationType extends AbstractType
 {
@@ -19,14 +19,14 @@ class ParticipationType extends AbstractType
             ->add('dateparticipation', DateTimeType::class, [
                 'widget' => 'single_text',
                 'attr' => [
-                    'readonly' => true, // visible mais non modifiable
+                    'readonly' => true,
                 ],
             ])
             // Statut du concours (disabled, valeur par défaut affichée)
             ->add('statut', TextType::class, [
                 'label' => 'Statut',
-                'data' => 'en_cours',  // valeur affichée
-                'disabled' => true,     // non modifiable
+                'data' => 'en_cours',
+                'disabled' => true,
                 'required' => true,
             ])
             // Vote public (affichage 👍 0, disabled)
@@ -35,10 +35,13 @@ class ParticipationType extends AbstractType
                 'data' => '👍 0',
                 'disabled' => true,
             ])
-            // Description facultative
-            ->add('description', TextType::class, [
+            // Description (textarea avec validation)
+            ->add('description', TextareaType::class, [
                 'label' => 'Description',
-                'required' => false,
+                'required' => true,
+                'attr' => [
+                    'placeholder' => 'Entrez votre description (au moins 10 caractères)...'
+                ],
             ]);
     }
 
