@@ -133,10 +133,7 @@
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="border rounded p-3">
-                            <h3>{{ totalParticipations }}</h3>
-                            <p class="text-muted mb-0">Participations</p>
-                        </div>
+                       
                     </div>
                     <div class="col-md-3">
                         <div class="border rounded p-3">
@@ -198,46 +195,7 @@
             </div>
         </div>
 
-        <div class="card mt-3">
-            <div class="card-header">
-                <h5>Participations aux concours ({{ participations|length }})</h5>
-            </div>
-            <div class="card-body">
-                {% if participations|length > 0 %}
-                    <div class="table-responsive">
-                        <table class="table table-sm">
-                            <thead>
-                                <tr>
-                                    <th>Concours</th>
-                                    <th>Œuvre</th>
-                                    <th>Votes publics</th>
-                                    <th>Note jury</th>
-                                    <th>Date</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for participation in participations %}
-                                <tr>
-                                    <td>{{ participation.concours.titre }}</td>
-                                    <td>{{ participation.oeuvre ? participation.oeuvre.titre : '-' }}</td>
-                                    <td>{{ participation.votesPublic }}</td>
-                                    <td>{{ participation.noteJury ?? '-' }}</td>
-                                    <td>{{ participation.createdAt|date('d/m/Y') }}</td>
-                                    <td>
-                                        <a href="{{ path('admin_participations_show', {id: participation.id}) }}" class="btn btn-sm btn-info">
-                                            <i class="bi bi-eye"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                {% else %}
-                    <p class="text-muted">Aucune participation pour cet artiste.</p>
-                {% endif %}
-            </div>
+       
         </div>
     </div>
 </div>

@@ -34,9 +34,6 @@ final class Version20251203141938 extends AbstractMigration
         $this->addSql('CREATE UNIQUE INDEX UNIQ_9C07354FA76ED395 ON artiste (user_id)');
         $this->addSql('ALTER TABLE oeuvre ADD title VARCHAR(180) NOT NULL, ADD slug VARCHAR(180) NOT NULL, ADD status VARCHAR(40) NOT NULL, ADD is_commentable TINYINT(1) DEFAULT 1 NOT NULL, ADD updated_at DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\', ADD published_at DATETIME DEFAULT NULL COMMENT \'(DC2Type:datetime_immutable)\', ADD views_count INT DEFAULT 0 NOT NULL, ADD votes_count INT DEFAULT 0 NOT NULL, ADD favorites_count INT DEFAULT 0 NOT NULL, DROP categorie, DROP image, DROP date_creation, DROP statut, DROP nb_votes, DROP nb_commentaires, CHANGE description description LONGTEXT NOT NULL, CHANGE titre image_path VARCHAR(255) NOT NULL');
         $this->addSql('CREATE UNIQUE INDEX UNIQ_35FE2EFE989D9B62 ON oeuvre (slug)');
-        $this->addSql('ALTER TABLE participation DROP FOREIGN KEY FK_AB55E24FD11E3C7');
-        $this->addSql('DROP INDEX IDX_AB55E24FD11E3C7 ON participation');
-        $this->addSql('ALTER TABLE participation ADD concours_title VARCHAR(180) DEFAULT NULL, ADD status VARCHAR(20) NOT NULL, ADD jury_notes LONGTEXT DEFAULT NULL, ADD score NUMERIC(5, 2) DEFAULT NULL, ADD notified_at DATETIME DEFAULT NULL COMMENT \'(DC2Type:datetime_immutable)\', DROP concours_id, DROP votes_public, CHANGE oeuvre_id oeuvre_id INT NOT NULL, CHANGE created_at submitted_at DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\', CHANGE note_jury result_position INT DEFAULT NULL');
     }
 
     public function down(Schema $schema): void
@@ -56,8 +53,5 @@ final class Version20251203141938 extends AbstractMigration
         $this->addSql('CREATE UNIQUE INDEX UNIQ_9C07354FE7927C74 ON artiste (email)');
         $this->addSql('DROP INDEX UNIQ_35FE2EFE989D9B62 ON oeuvre');
         $this->addSql('ALTER TABLE oeuvre ADD categorie VARCHAR(255) DEFAULT NULL, ADD image VARCHAR(255) DEFAULT NULL, ADD date_creation DATE DEFAULT NULL, ADD statut VARCHAR(50) NOT NULL, ADD nb_votes INT DEFAULT 0 NOT NULL, ADD nb_commentaires INT DEFAULT 0 NOT NULL, DROP title, DROP slug, DROP status, DROP is_commentable, DROP updated_at, DROP published_at, DROP views_count, DROP votes_count, DROP favorites_count, CHANGE description description LONGTEXT DEFAULT NULL, CHANGE image_path titre VARCHAR(255) NOT NULL');
-        $this->addSql('ALTER TABLE participation ADD concours_id INT NOT NULL, ADD votes_public INT DEFAULT 0 NOT NULL, DROP concours_title, DROP status, DROP jury_notes, DROP score, DROP notified_at, CHANGE oeuvre_id oeuvre_id INT DEFAULT NULL, CHANGE result_position note_jury INT DEFAULT NULL, CHANGE submitted_at created_at DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\'');
-        $this->addSql('ALTER TABLE participation ADD CONSTRAINT FK_AB55E24FD11E3C7 FOREIGN KEY (concours_id) REFERENCES concours (id)');
-        $this->addSql('CREATE INDEX IDX_AB55E24FD11E3C7 ON participation (concours_id)');
     }
 }

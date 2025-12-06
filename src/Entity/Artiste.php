@@ -81,8 +81,8 @@ class Artiste
     #[ORM\OneToMany(mappedBy: 'artiste', targetEntity: Oeuvre::class, orphanRemoval: true)]
     private Collection $oeuvres;
 
-    #[ORM\OneToMany(mappedBy: 'artiste', targetEntity: Participation::class)]
-    private Collection $participations;
+    
+
 
     // Propriétés non mappées pour les réseaux sociaux individuels (pour le formulaire)
     private ?string $facebook = null;
@@ -96,7 +96,7 @@ class Artiste
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
         $this->oeuvres = new ArrayCollection();
-        $this->participations = new ArrayCollection();
+      
     }
 
     #[ORM\PreUpdate]
@@ -241,27 +241,11 @@ class Artiste
         return $this;
     }
 
-    public function getParticipations(): Collection
-    {
-        return $this->participations;
-    }
+    
 
-    public function addParticipation(Participation $participation): static
-    {
-        if (!$this->participations->contains($participation)) {
-            $this->participations->add($participation);
-            $participation->setArtiste($this);
-        }
-        return $this;
-    }
+    
 
-    public function removeParticipation(Participation $participation): static
-    {
-        if ($this->participations->removeElement($participation) && $participation->getArtiste() === $this) {
-            $participation->setArtiste(null);
-        }
-        return $this;
-    }
+   
 
     // Getters et setters pour les réseaux sociaux individuels
     public function getFacebook(): ?string

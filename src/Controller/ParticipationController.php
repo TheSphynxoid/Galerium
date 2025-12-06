@@ -2,11 +2,8 @@
 
 namespace App\Controller;
 
-use App\Entity\Concours;
 use App\Entity\Participation;
-use App\Form\SoumissionParticipationType;
-use App\Repository\ConcoursRepository;
-use App\Repository\OeuvreRepository;
+use App\Form\ParticipationType;
 use App\Repository\ParticipationRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -14,111 +11,71 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-class ParticipationController extends AbstractController
+#[Route('/participation')]
+final class ParticipationController extends AbstractController
 {
-	#[Route('/artiste/concours', name: 'app_concours_actifs')]
-	public function listerConcours(ConcoursRepository $concoursRepository, ParticipationRepository $participationRepository): Response
-	{
-		$this->denyAccessUnlessGranted('ROLE_ARTISTE');
+    #[Route(name: 'app_participation_index', methods: ['GET'])]
+    public function index(ParticipationRepository $participationRepository): Response
+    {
+        return $this->render('participation/index.html.twig', [
+            'participations' => $participationRepository->findAll(),
+        ]);
+    }
 
-		/** @var \App\Entity\Artiste $artiste */
-		$artiste = $this->getUser();
-		$concours = $concoursRepository->findActifs();
+    #[Route('/new', name: 'app_participation_new', methods: ['GET', 'POST'])]
+    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $participation = new Participation();
+        $form = $this->createForm(ParticipationType::class, $participation);
+        $form->handleRequest($request);
 
-		// Marquer ceux où l'artiste est déjà inscrit
-		$partByConcoursId = [];
-		foreach ($concours as $c) {
-			$part = $participationRepository->findOneByArtisteAndConcours($artiste, $c);
-			$partByConcoursId[$c->getId()] = $part;
-		}
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->persist($participation);
+            $entityManager->flush();
 
-		return $this->render('concours/index.html.twig', [
-			'concours' => $concours,
-			'participations' => $partByConcoursId,
-		]);
-	}
+            return $this->redirectToRoute('app_participation_index', [], Response::HTTP_SEE_OTHER);
+        }
 
-	#[Route('/artiste/concours/{id}/participer', name: 'app_participer_concours', requirements: ['id' => '\d+'])]
-	public function participer(
-		Concours $concours,
-		ParticipationRepository $participationRepository,
-		EntityManagerInterface $entityManager
-	): Response {
-		$this->denyAccessUnlessGranted('ROLE_ARTISTE');
+        return $this->render('participation/new.html.twig', [
+            'participation' => $participation,
+            'form' => $form,
+        ]);
+    }
 
-		/** @var \App\Entity\Artiste $artiste */
-		$artiste = $this->getUser();
+    #[Route('/{id}', name: 'app_participation_show', methods: ['GET'])]
+    public function show(Participation $participation): Response
+    {
+        return $this->render('participation/show.html.twig', [
+            'participation' => $participation,
+        ]);
+    }
 
-		if (!$concours->isActif()) {
-			$this->addFlash('warning', 'Ce concours n\'est pas actif.');
-			return $this->redirectToRoute('app_concours_actifs');
-		}
+    #[Route('/{id}/edit', name: 'app_participation_edit', methods: ['GET', 'POST'])]
+    public function edit(Request $request, Participation $participation, EntityManagerInterface $entityManager): Response
+    {
+        $form = $this->createForm(ParticipationType::class, $participation);
+        $form->handleRequest($request);
 
-		$existante = $participationRepository->findOneByArtisteAndConcours($artiste, $concours);
-		if ($existante) {
-			$this->addFlash('info', 'Vous êtes déjà inscrit à ce concours.');
-			return $this->redirectToRoute('app_concours_actifs');
-		}
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->flush();
 
-		$participation = (new Participation())
-			->setArtiste($artiste)
-			->setConcours($concours);
+            return $this->redirectToRoute('app_participation_index', [], Response::HTTP_SEE_OTHER);
+        }
 
-		$entityManager->persist($participation);
-		$entityManager->flush();
+        return $this->render('participation/edit.html.twig', [
+            'participation' => $participation,
+            'form' => $form,
+        ]);
+    }
 
-		$this->addFlash('success', 'Inscription au concours réussie. Vous pouvez maintenant soumettre une œuvre.');
-		return $this->redirectToRoute('app_concours_actifs');
-	}
+    #[Route('/{id}', name: 'app_participation_delete', methods: ['POST'])]
+    public function delete(Request $request, Participation $participation, EntityManagerInterface $entityManager): Response
+    {
+        if ($this->isCsrfTokenValid('delete'.$participation->getId(), $request->getPayload()->getString('_token'))) {
+            $entityManager->remove($participation);
+            $entityManager->flush();
+        }
 
-	#[Route('/artiste/concours/{id}/soumettre', name: 'app_soumettre_oeuvre_concours', requirements: ['id' => '\d+'])]
-	public function soumettreOeuvre(
-		Request $request,
-		Concours $concours,
-		OeuvreRepository $oeuvreRepository,
-		ParticipationRepository $participationRepository,
-		EntityManagerInterface $entityManager
-	): Response {
-		$this->denyAccessUnlessGranted('ROLE_ARTISTE');
-
-		/** @var \App\Entity\Artiste $artiste */
-		$artiste = $this->getUser();
-
-		if (!$concours->isActif()) {
-			$this->addFlash('warning', 'Ce concours n\'est pas actif.');
-			return $this->redirectToRoute('app_concours_actifs');
-		}
-
-		$participation = $participationRepository->findOneByArtisteAndConcours($artiste, $concours);
-		if (!$participation) {
-			$this->addFlash('warning', 'Inscrivez-vous au concours avant de soumettre une œuvre.');
-			return $this->redirectToRoute('app_concours_actifs');
-		}
-
-		$oeuvres = $oeuvreRepository->findByArtiste($artiste);
-
-		$form = $this->createForm(SoumissionParticipationType::class, null, [
-			'oeuvres' => $oeuvres,
-		]);
-		$form->handleRequest($request);
-
-		if ($form->isSubmitted() && $form->isValid()) {
-			$oeuvre = $form->get('oeuvre')->getData();
-			$participation->setOeuvre($oeuvre);
-			$entityManager->flush();
-
-			$this->addFlash('success', 'Œuvre soumise au concours avec succès !');
-			return $this->redirectToRoute('app_concours_actifs');
-		}
-
-		return $this->render('participation/soumettre.html.twig', [
-			'concours' => $concours,
-			'form' => $form,
-		]);
-	}
+        return $this->redirectToRoute('app_participation_index', [], Response::HTTP_SEE_OTHER);
+    }
 }
-
-
-
-
-

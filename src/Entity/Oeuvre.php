@@ -83,8 +83,7 @@ class Oeuvre
     )]
     private Collection $categories;
 
-    #[ORM\OneToMany(mappedBy: 'oeuvre', targetEntity: Participation::class)]
-    private Collection $participations;
+   
 
     #[ORM\Column(options: ['default' => 0])]
     private int $viewsCount = 0;
@@ -100,7 +99,7 @@ class Oeuvre
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
         $this->categories = new ArrayCollection();
-        $this->participations = new ArrayCollection();
+        
     }
 
     #[ORM\PreUpdate]
@@ -231,27 +230,11 @@ class Oeuvre
         return $this;
     }
 
-    public function getParticipations(): Collection
-    {
-        return $this->participations;
-    }
+   
 
-    public function addParticipation(Participation $participation): static
-    {
-        if (!$this->participations->contains($participation)) {
-            $this->participations->add($participation);
-            $participation->setOeuvre($this);
-        }
-        return $this;
-    }
+  
 
-    public function removeParticipation(Participation $participation): static
-    {
-        if ($this->participations->removeElement($participation) && $participation->getOeuvre() === $this) {
-            $participation->setOeuvre(null);
-        }
-        return $this;
-    }
+ 
 
     public function incrementViews(): void
     {

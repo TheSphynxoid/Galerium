@@ -1,0 +1,38 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Participation{% endblock %}
+
+{% block body %}
+    <h1>Participation</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ participation.id }}</td>
+            </tr>
+            <tr>
+                <th>Dateparticipation</th>
+                <td>{{ participation.dateparticipation ? participation.dateparticipation|date('Y-m-d H:i:s') : '' }}</td>
+            </tr>
+            <tr>
+                <th>Statut</th>
+                <td>{{ participation.statut }}</td>
+            </tr>
+            <tr>
+                <th>Votepublic</th>
+                <td>{{ participation.votepublic }}</td>
+            </tr>
+            <tr>
+                <th>Description</th>
+                <td>{{ participation.description }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_participation_index') }}">back to list</a>
+
+    <a href="{{ path('app_participation_edit', {'id': participation.id}) }}">edit</a>
+
+    {{ include('participation/_delete_form.html.twig') }}
+{% endblock %}
