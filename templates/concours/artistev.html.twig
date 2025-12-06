@@ -24,15 +24,12 @@
                         value="{{ title }}"
                     >
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <select name="statut" class="form-select">
                         <option value="">Tous les statuts</option>
                         <option value="Actif" {{ statut == 'Actif' ? 'selected' : '' }}>Actif</option>
                         <option value="cloturé" {{ statut == 'cloturé' ? 'selected' : '' }}>Clôturé</option>
                     </select>
-                </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary w-100">Rechercher</button>
                 </div>
             </div>
         </form>

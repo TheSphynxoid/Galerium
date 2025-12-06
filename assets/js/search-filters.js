@@ -23,6 +23,47 @@
     container.innerHTML = '<div class="alert alert-danger">' + (message || 'Une erreur est survenue lors de la recherche.') + '</div>';
   }
 
+  // Fonction pour exécuter la recherche AJAX
+  function performSearch(form, results, ajaxUrl, resultsId) {
+    const params = serializeForm(form);
+    params.append('ajax', '1'); // Indicateur AJAX
+    
+    // Afficher le chargement
+    renderLoading(results);
+
+    // Requête AJAX
+    fetch(ajaxUrl + '?' + params.toString(), {
+      method: 'GET',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Erreur réseau');
+      }
+      return response.text();
+    })
+    .then(html => {
+      // Créer un élément temporaire pour parser le HTML
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = html;
+      
+      // Extraire uniquement le contenu de la section des résultats
+      const resultsContent = tempDiv.querySelector('#' + resultsId);
+      if (resultsContent) {
+        results.innerHTML = resultsContent.innerHTML;
+      } else {
+        // Si la section n'est pas trouvée, utiliser tout le HTML
+        results.innerHTML = html;
+      }
+    })
+    .catch(err => {
+      console.error('Erreur AJAX:', err);
+      renderError(results);
+    });
+  }
+
   // Gestion des formulaires de recherche AJAX
   function initAjaxSearch(formId, resultsId, ajaxUrl) {
     const form = document.getElementById(formId);
@@ -30,59 +71,29 @@
 
     if (!form || !results) return;
 
+    // Empêcher la soumission classique du formulaire
     form.addEventListener('submit', function(e){
       e.preventDefault();
-      
-      const params = serializeForm(form);
-      params.append('ajax', '1'); // Indicateur AJAX
-      
-      // Afficher le chargement
-      renderLoading(results);
-
-      // Requête AJAX
-      fetch(ajaxUrl + '?' + params.toString(), {
-        method: 'GET',
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest'
-        }
-      })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Erreur réseau');
-        }
-        return response.text();
-      })
-      .then(html => {
-        // Créer un élément temporaire pour parser le HTML
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = html;
-        
-        // Extraire uniquement le contenu de la section des résultats
-        const resultsContent = tempDiv.querySelector('#' + resultsId);
-        if (resultsContent) {
-          results.innerHTML = resultsContent.innerHTML;
-        } else {
-          // Si la section n'est pas trouvée, utiliser tout le HTML
-          results.innerHTML = html;
-        }
-      })
-      .catch(err => {
-        console.error('Erreur AJAX:', err);
-        renderError(results);
-      });
+      performSearch(form, results, ajaxUrl, resultsId);
     });
 
-    // Recherche en temps réel lors de la saisie (optionnel, avec debounce)
+    // Recherche automatique lors de la saisie dans le champ titre (avec debounce)
     const searchInput = form.querySelector('input[name="title"]');
     if (searchInput) {
       let timeout;
       searchInput.addEventListener('input', function() {
         clearTimeout(timeout);
         timeout = setTimeout(() => {
-          if (this.value.length >= 2 || this.value.length === 0) {
-            form.dispatchEvent(new Event('submit'));
-          }
+          performSearch(form, results, ajaxUrl, resultsId);
         }, 500); // Attendre 500ms après la dernière frappe
+      });
+    }
+
+    // Recherche automatique lors du changement de statut
+    const statutSelect = form.querySelector('select[name="statut"]');
+    if (statutSelect) {
+      statutSelect.addEventListener('change', function() {
+        performSearch(form, results, ajaxUrl, resultsId);
       });
     }
   }
