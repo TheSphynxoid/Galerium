@@ -22,7 +22,7 @@ final class ParticipationController extends AbstractController
     ): Response {
         return $this->render('participation/index.html.twig', [
             'participations' => $participationRepository->findAll(),
-            'concoursList' => $concoursRepository->findAll(), // ✅ liste des concours
+            'concoursList' => $concoursRepository->findAll(),
         ]);
     }
 
@@ -39,7 +39,12 @@ final class ParticipationController extends AbstractController
         }
 
         $participation = new Participation();
-        $participation->addConcour($concours); // ✅ ManyToMany
+
+        // ✅ Initialise les champs pour éviter NOT NULL
+        $participation->setDateparticipation(new \DateTime());
+        $participation->setStatut('en_cours');
+        $participation->setVotepublic(false); // valeur réelle en base
+        $participation->addConcour($concours);
 
         $form = $this->createForm(ParticipationType::class, $participation);
         $form->handleRequest($request);
@@ -55,7 +60,7 @@ final class ParticipationController extends AbstractController
         return $this->render('participation/new.html.twig', [
             'concours' => $concours,
             'participation' => $participation,
-            'form' => $form,
+            'form' => $form->createView(),
         ]);
     }
 
@@ -80,7 +85,7 @@ final class ParticipationController extends AbstractController
 
         return $this->render('participation/edit.html.twig', [
             'participation' => $participation,
-            'form' => $form,
+            'form' => $form->createView(),
         ]);
     }
 

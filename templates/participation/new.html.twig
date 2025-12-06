@@ -9,10 +9,22 @@
         <h2 class="text-primary">Participer au concours : {{ concours.titre }}</h2>
 
         <div class="card p-3 mb-4">
-            <p><strong>Description :</strong> {{ concours.description }}</p>
-            <p><strong>Règles :</strong> {{ concours.regles }}</p>
+        <p><strong>statut :</strong> {{ concours.statut }}</p>
             <p><strong>Date début :</strong> {{ concours.dateDebut|date('d/m/Y') }}</p>
             <p><strong>Date fin :</strong> {{ concours.dateFin|date('d/m/Y') }}</p>
+            <p><strong>Description :</strong> {{ concours.description }}</p>
+            <p><strong>Règles :</strong> {{ concours.regles }}</p>
+                         <p class="mb-1">
+    <strong>Vote public :</strong>
+    <span class="badge {{ concours.votePublic ? 'bg-success' : 'bg-danger' }}">
+        {{ concours.votePublic ? 'Oui' : 'Non' }}
+    </span>
+</p>
+            <p><strong>Date début vote :</strong> {{ concours.dateDebutVote|date('d/m/Y') }}</p>
+            <p><strong>Date fin vote :</strong> {{ concours.dateFinVote|date('d/m/Y') }}</p>
+
+
+
         </div>
 
         <h3 class="mt-4">Formulaire de participation</h3>
