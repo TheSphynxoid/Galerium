@@ -23,6 +23,41 @@
         </div>
 
         <div class="card mb-4">
+            <div class="card-body">
+                <form method="get" class="mb-3">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <input 
+                                    type="text" 
+                                    name="title" 
+                                    class="form-control" 
+                                    placeholder="Rechercher par titre"
+                                    value="{{ title }}"
+                                >
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <select name="statut" class="form-select">
+                                <option value="">Tous les statuts</option>
+                                <option value="Actif" {{ statut == 'Actif' ? 'selected' : '' }}>Actif</option>
+                                <option value="cloturé" {{ statut == 'cloturé' ? 'selected' : '' }}>Clôturé</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <svg class="icon me-1">
+                                    <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-magnifying-glass"></use>
+                                </svg>
+                                Rechercher
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mb-4">
             <div class="card-header">
                 <strong>Liste des concours ({{ concours|length }})</strong>
             </div>

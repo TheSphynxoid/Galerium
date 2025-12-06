@@ -15,10 +15,29 @@ use Symfony\Component\Routing\Attribute\Route;
 final class ConcoursController extends AbstractController
 {
     #[Route(name: 'app_concours_index', methods: ['GET'])]
-    public function index(ConcoursRepository $concoursRepository): Response
+    public function index(Request $request, ConcoursRepository $concoursRepository): Response
     {
+        $title = $request->query->get('title');
+        $statut = $request->query->get('statut');
+
+        $qb = $concoursRepository->createQueryBuilder('c');
+
+        if ($title) {
+            $qb->andWhere('c.titre LIKE :t')
+               ->setParameter('t', '%' . $title . '%');
+        }
+
+        if ($statut) {
+            $qb->andWhere('c.statut = :s')
+               ->setParameter('s', $statut);
+        }
+
+        $concours = $qb->getQuery()->getResult();
+
         return $this->render('concours/index.html.twig', [
-            'concours' => $concoursRepository->findAll(),
+            'concours' => $concours,
+            'title' => $title,
+            'statut' => $statut,
         ]);
     }
 
@@ -131,20 +150,26 @@ public function artistev(ConcoursRepository $concoursRepository): Response
 public function rechercheartistev(Request $request, ConcoursRepository $concoursRepository): Response
 {
     $title = $request->query->get('title');
+    $statut = $request->query->get('statut');
+
+    $qb = $concoursRepository->createQueryBuilder('c');
 
     if ($title) {
-        $concours = $concoursRepository->createQueryBuilder('c')
-            ->where('c.titre LIKE :t')
-            ->setParameter('t', '%' . $title . '%')
-            ->getQuery()
-            ->getResult();
-    } else {
-        $concours = $concoursRepository->findAll();
+        $qb->andWhere('c.titre LIKE :t')
+           ->setParameter('t', '%' . $title . '%');
     }
+
+    if ($statut) {
+        $qb->andWhere('c.statut = :s')
+           ->setParameter('s', $statut);
+    }
+
+    $concours = $qb->getQuery()->getResult();
 
     return $this->render('concours/artistev.html.twig', [
         'concours' => $concours,
         'title' => $title,
+        'statut' => $statut,
     ]);
 }
 
