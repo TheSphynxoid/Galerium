@@ -10,6 +10,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 
 #[Route('/concours')]
 final class ConcoursController extends AbstractController
@@ -175,6 +177,39 @@ public function rechercheartistev(Request $request, ConcoursRepository $concours
 
 
 
+    // ------------------------------------
+    // 🔵 GÉNÉRATION DU PDF
+    // ------------------------------------
+   #[Route('/pdf', name: 'app_concours_pdf', methods: ['GET'])]
+public function pdf(ConcoursRepository $concoursRepository): Response
+{
+    $concours = $concoursRepository->findAll();
+
+    $options = new Options();
+    $options->set('defaultFont', 'Arial');
+    $dompdf = new Dompdf($options);
+
+    // Génération du HTML
+    $html = $this->renderView('concours/pdf.html.twig', [
+        'concours' => $concours,
+    ]);
+
+    $dompdf->loadHtml($html);
+    $dompdf->setPaper('A4', 'portrait');
+    $dompdf->render();
+
+    // ❗ LA PARTIE IMPORTANTE : récupérer le PDF dans une variable
+    $output = $dompdf->output();
+
+    return new Response(
+        $output,
+        200,
+        [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="liste_concours.pdf"'
+        ]
+    );
+}
 
 
 
