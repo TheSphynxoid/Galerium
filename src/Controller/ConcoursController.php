@@ -36,6 +36,15 @@ final class ConcoursController extends AbstractController
 
         $concours = $qb->getQuery()->getResult();
 
+        // Si c'est une requête AJAX, retourner uniquement les résultats
+        if ($request->isXmlHttpRequest() || $request->query->get('ajax')) {
+            return $this->render('concours/index.html.twig', [
+                'concours' => $concours,
+                'title' => $title,
+                'statut' => $statut,
+            ]);
+        }
+
         return $this->render('concours/index.html.twig', [
             'concours' => $concours,
             'title' => $title,
@@ -101,18 +110,7 @@ final class ConcoursController extends AbstractController
     }
 
 #[Route('/visiteur', name: 'app_concours_visiteur_index', methods: ['GET'])]
-public function visiteur(ConcoursRepository $concoursRepository): Response
-{
-    // Ici tu peux filtrer les concours si nécessaire, par exemple uniquement ceux qui sont actifs
-    $concours = $concoursRepository->findAll(); 
-
-    return $this->render('concours/visiteur.html.twig', [
-        'concours' => $concours,
-    ]);
-}
-
-#[Route('/visiteur', name: 'app_concours_visiteur_index', methods: ['GET'])]
-public function recherchevisiteur(Request $request, ConcoursRepository $concoursRepository): Response
+public function visiteur(Request $request, ConcoursRepository $concoursRepository): Response
 {
     $title = $request->query->get('title');
 
@@ -124,6 +122,14 @@ public function recherchevisiteur(Request $request, ConcoursRepository $concours
             ->getResult();
     } else {
         $concours = $concoursRepository->findAll();
+    }
+
+    // Si c'est une requête AJAX, retourner uniquement les résultats
+    if ($request->isXmlHttpRequest() || $request->query->get('ajax')) {
+        return $this->render('concours/visiteur.html.twig', [
+            'concours' => $concours,
+            'title' => $title,
+        ]);
     }
 
     return $this->render('concours/visiteur.html.twig', [
@@ -138,18 +144,7 @@ public function recherchevisiteur(Request $request, ConcoursRepository $concours
 
 
 #[Route('/artistev', name: 'app_concours_artistev_index', methods: ['GET'])]
-public function artistev(ConcoursRepository $concoursRepository): Response
-{
-    // Ici tu peux filtrer les concours si nécessaire, par exemple uniquement ceux qui sont actifs
-    $concours = $concoursRepository->findAll(); 
-
-    return $this->render('concours/artistev.html.twig', [
-        'concours' => $concours,
-    ]);
-}
-
-#[Route('/artistev', name: 'app_concours_artistev_index', methods: ['GET'])]
-public function rechercheartistev(Request $request, ConcoursRepository $concoursRepository): Response
+public function artistev(Request $request, ConcoursRepository $concoursRepository): Response
 {
     $title = $request->query->get('title');
     $statut = $request->query->get('statut');
@@ -167,6 +162,15 @@ public function rechercheartistev(Request $request, ConcoursRepository $concours
     }
 
     $concours = $qb->getQuery()->getResult();
+
+    // Si c'est une requête AJAX, retourner uniquement les résultats
+    if ($request->isXmlHttpRequest() || $request->query->get('ajax')) {
+        return $this->render('concours/artistev.html.twig', [
+            'concours' => $concours,
+            'title' => $title,
+            'statut' => $statut,
+        ]);
+    }
 
     return $this->render('concours/artistev.html.twig', [
         'concours' => $concours,
