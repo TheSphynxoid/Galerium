@@ -89,11 +89,18 @@ class Concours
     #[ORM\ManyToMany(targetEntity: Utilisateur::class, inversedBy: 'concours')]
     private Collection $jurys;
 
+    /**
+     * @var Collection<int, Participation>
+     */
+    #[ORM\ManyToMany(targetEntity: Participation::class, mappedBy: 'concours')]
+    private Collection $participations;
+
     
 
     public function __construct()
     {
         $this->jurys = new ArrayCollection();
+        $this->participations = new ArrayCollection();
         
     }
 
@@ -223,6 +230,33 @@ class Concours
     public function removeJury(Utilisateur $jury): static
     {
         $this->jurys->removeElement($jury);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Participation>
+     */
+    public function getParticipations(): Collection
+    {
+        return $this->participations;
+    }
+
+    public function addParticipation(Participation $participation): static
+    {
+        if (!$this->participations->contains($participation)) {
+            $this->participations->add($participation);
+            $participation->addConcour($this);
+        }
+
+        return $this;
+    }
+
+    public function removeParticipation(Participation $participation): static
+    {
+        if ($this->participations->removeElement($participation)) {
+            $participation->removeConcour($this);
+        }
 
         return $this;
     }

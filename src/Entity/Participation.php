@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\ParticipationRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ParticipationRepository::class)]
@@ -24,6 +26,17 @@ class Participation
 
     #[ORM\Column(length: 255)]
     private ?string $description = null;
+
+    /**
+     * @var Collection<int, Concours>
+     */
+    #[ORM\ManyToMany(targetEntity: Concours::class, inversedBy: 'participations')]
+    private Collection $concours;
+
+    public function __construct()
+    {
+        $this->concours = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -74,6 +87,30 @@ class Participation
     public function setDescription(string $description): static
     {
         $this->description = $description;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Concours>
+     */
+    public function getConcours(): Collection
+    {
+        return $this->concours;
+    }
+
+    public function addConcour(Concours $concour): static
+    {
+        if (!$this->concours->contains($concour)) {
+            $this->concours->add($concour);
+        }
+
+        return $this;
+    }
+
+    public function removeConcour(Concours $concour): static
+    {
+        $this->concours->removeElement($concour);
 
         return $this;
     }

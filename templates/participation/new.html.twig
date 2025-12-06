@@ -1,11 +1,26 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}New Participation{% endblock %}
+{% block title %}Participer au concours{% endblock %}
 
 {% block body %}
-    <h1>Create new Participation</h1>
+<section class="py-4">
+    <div class="container">
 
-    {{ include('participation/_form.html.twig') }}
+        <h2 class="text-primary">Participer au concours : {{ concours.titre }}</h2>
 
-    <a href="{{ path('app_participation_index') }}">back to list</a>
+        <div class="card p-3 mb-4">
+            <p><strong>Description :</strong> {{ concours.description }}</p>
+            <p><strong>Règles :</strong> {{ concours.regles }}</p>
+            <p><strong>Date début :</strong> {{ concours.dateDebut|date('d/m/Y') }}</p>
+            <p><strong>Date fin :</strong> {{ concours.dateFin|date('d/m/Y') }}</p>
+        </div>
+
+        <h3 class="mt-4">Formulaire de participation</h3>
+        {{ form_start(form) }}
+            {{ form_widget(form) }}
+            <button class="btn btn-success mt-3">Envoyer ma participation</button>
+        {{ form_end(form) }}
+
+    </div>
+</section>
 {% endblock %}

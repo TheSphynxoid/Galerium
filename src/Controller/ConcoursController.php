@@ -79,19 +79,19 @@ final class ConcoursController extends AbstractController
         return $this->redirectToRoute('app_concours_index', [], Response::HTTP_SEE_OTHER);
     }
 
-#[Route('/user', name: 'app_concours_user_index', methods: ['GET'])]
-public function userIndex(ConcoursRepository $concoursRepository): Response
+#[Route('/visiteur', name: 'app_concours_visiteur_index', methods: ['GET'])]
+public function visiteur(ConcoursRepository $concoursRepository): Response
 {
     // Ici tu peux filtrer les concours si nécessaire, par exemple uniquement ceux qui sont actifs
     $concours = $concoursRepository->findAll(); 
 
-    return $this->render('concours/user_index.html.twig', [
+    return $this->render('concours/visiteur.html.twig', [
         'concours' => $concours,
     ]);
 }
 
-#[Route('/user', name: 'app_concours_user_index', methods: ['GET'])]
-public function userIndexx(Request $request, ConcoursRepository $concoursRepository): Response
+#[Route('/visiteur', name: 'app_concours_visiteur_index', methods: ['GET'])]
+public function recherchevisiteur(Request $request, ConcoursRepository $concoursRepository): Response
 {
     $title = $request->query->get('title');
 
@@ -105,11 +105,54 @@ public function userIndexx(Request $request, ConcoursRepository $concoursReposit
         $concours = $concoursRepository->findAll();
     }
 
-    return $this->render('concours/user_index.html.twig', [
+    return $this->render('concours/visiteur.html.twig', [
         'concours' => $concours,
         'title' => $title,
     ]);
 }
+
+
+
+
+
+
+#[Route('/artistev', name: 'app_concours_artistev_index', methods: ['GET'])]
+public function artistev(ConcoursRepository $concoursRepository): Response
+{
+    // Ici tu peux filtrer les concours si nécessaire, par exemple uniquement ceux qui sont actifs
+    $concours = $concoursRepository->findAll(); 
+
+    return $this->render('concours/artistev.html.twig', [
+        'concours' => $concours,
+    ]);
+}
+
+#[Route('/artistev', name: 'app_concours_artistev_index', methods: ['GET'])]
+public function rechercheartistev(Request $request, ConcoursRepository $concoursRepository): Response
+{
+    $title = $request->query->get('title');
+
+    if ($title) {
+        $concours = $concoursRepository->createQueryBuilder('c')
+            ->where('c.titre LIKE :t')
+            ->setParameter('t', '%' . $title . '%')
+            ->getQuery()
+            ->getResult();
+    } else {
+        $concours = $concoursRepository->findAll();
+    }
+
+    return $this->render('concours/artistev.html.twig', [
+        'concours' => $concours,
+        'title' => $title,
+    ]);
+}
+
+
+
+
+
+
 
 
 
