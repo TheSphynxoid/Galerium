@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\ParticipationRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -10,70 +12,39 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: ParticipationRepository::class)]
 class Participation
 {
-    public const STATUS_PENDING = 'pending';
-    public const STATUS_ACCEPTED = 'accepted';
-    public const STATUS_REJECTED = 'rejected';
-    public const STATUS_WON = 'won';
-
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 180, nullable: true)]
-    #[Assert\NotBlank(message: "Le nom du concours est obligatoire")]
-    #[Assert\Length(
-        max: 180,
-        maxMessage: "Le nom du concours ne peut pas dépasser {{ limit }} caractères"
-    )]
-    private ?string $concoursTitle = null;
-
-    #[ORM\ManyToOne(inversedBy: 'participations')]
-    #[ORM\JoinColumn(nullable: false)]
-    #[Assert\NotNull(message: "Veuillez sélectionner une œuvre")]
-    private ?Oeuvre $oeuvre = null;
-
-    #[ORM\ManyToOne(inversedBy: 'participations')]
-    #[ORM\JoinColumn(nullable: false)]
-    #[Assert\NotNull(message: "L'artiste est obligatoire")]
-    private ?Artiste $artiste = null;
+    #[ORM\Column]
+    private ?\DateTime $dateparticipation = null;
 
     #[ORM\Column(length: 20)]
-    #[Assert\NotBlank(message: "Le statut est obligatoire")]
-    #[Assert\Choice(
-        choices: [self::STATUS_PENDING, self::STATUS_ACCEPTED, self::STATUS_REJECTED, self::STATUS_WON],
-        message: "Le statut sélectionné n'est pas valide"
-    )]
-    private string $status = self::STATUS_PENDING;
+    private ?string $statut = null;
 
-    #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
-    private \DateTimeImmutable $submittedAt;
+    #[ORM\Column]
+    private ?int $votepublic = null;
 
-    #[ORM\Column(nullable: true)]
-    #[Assert\Positive(message: "La position doit être un nombre positif")]
-    private ?int $resultPosition = null;
-
-    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[ORM\Column(type: Types::TEXT, nullable: false)]
+    #[Assert\NotBlank(message: "La description est obligatoire.")]
     #[Assert\Length(
-        max: 5000,
-        maxMessage: "Les notes du jury ne peuvent pas dépasser {{ limit }} caractères"
+        min: 10,
+        minMessage: "La description doit contenir au moins 10 caractères.",
+        max: 1000,
+        maxMessage: "La description ne peut pas dépasser {{ limit }} caractères."
     )]
-    private ?string $juryNotes = null;
+    private ?string $description = null;
 
-    #[ORM\Column(type: Types::DECIMAL, precision: 5, scale: 2, nullable: true)]
-    #[Assert\Range(
-        min: 0,
-        max: 100,
-        notInRangeMessage: "Le score doit être entre {{ min }} et {{ max }}"
-    )]
-    private ?string $score = null;
-
-    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
-    private ?\DateTimeImmutable $notifiedAt = null;
+    /**
+     * @var Collection<int, Concours>
+     */
+    #[ORM\ManyToMany(targetEntity: Concours::class, inversedBy: 'participations')]
+    private Collection $concours;
 
     public function __construct()
     {
-        $this->submittedAt = new \DateTimeImmutable();
+        $this->concours = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -81,102 +52,69 @@ class Participation
         return $this->id;
     }
 
-    public function getConcoursTitle(): ?string
+    public function getDateparticipation(): ?\DateTime
     {
-        return $this->concoursTitle;
+        return $this->dateparticipation;
     }
 
-    public function setConcoursTitle(?string $concoursTitle): static
+    public function setDateparticipation(\DateTime $dateparticipation): static
     {
-        $this->concoursTitle = $concoursTitle;
+        $this->dateparticipation = $dateparticipation;
         return $this;
     }
 
-    public function getOeuvre(): ?Oeuvre
+    public function getStatut(): ?string
     {
-        return $this->oeuvre;
+        return $this->statut;
     }
 
-    public function setOeuvre(?Oeuvre $oeuvre): static
+    public function setStatut(string $statut): static
     {
-        $this->oeuvre = $oeuvre;
+        $this->statut = $statut;
         return $this;
     }
 
-    public function getArtiste(): ?Artiste
+    public function getVotepublic(): ?int
     {
-        return $this->artiste;
+        return $this->votepublic;
     }
 
-    public function setArtiste(?Artiste $artiste): static
+    public function setVotepublic(int $votepublic): static
     {
-        $this->artiste = $artiste;
+        $this->votepublic = $votepublic;
         return $this;
     }
 
-    public function getStatus(): string
+    public function getDescription(): ?string
     {
-        return $this->status;
+        return $this->description;
     }
 
-    public function setStatus(string $status): static
+    public function setDescription(string $description): static
     {
-        $this->status = $status;
+        $this->description = $description;
         return $this;
     }
 
-    public function getSubmittedAt(): \DateTimeImmutable
+    /**
+     * @return Collection<int, Concours>
+     */
+    public function getConcours(): Collection
     {
-        return $this->submittedAt;
+        return $this->concours;
     }
 
-    public function setSubmittedAt(\DateTimeImmutable $submittedAt): static
+    public function addConcour(Concours $concour): static
     {
-        $this->submittedAt = $submittedAt;
+        if (!$this->concours->contains($concour)) {
+            $this->concours->add($concour);
+        }
         return $this;
     }
 
-    public function getResultPosition(): ?int
+    public function removeConcour(Concours $concour): static
     {
-        return $this->resultPosition;
-    }
-
-    public function setResultPosition(?int $resultPosition): static
-    {
-        $this->resultPosition = $resultPosition;
-        return $this;
-    }
-
-    public function getJuryNotes(): ?string
-    {
-        return $this->juryNotes;
-    }
-
-    public function setJuryNotes(?string $juryNotes): static
-    {
-        $this->juryNotes = $juryNotes;
-        return $this;
-    }
-
-    public function getScore(): ?string
-    {
-        return $this->score;
-    }
-
-    public function setScore(?string $score): static
-    {
-        $this->score = $score;
-        return $this;
-    }
-
-    public function getNotifiedAt(): ?\DateTimeImmutable
-    {
-        return $this->notifiedAt;
-    }
-
-    public function setNotifiedAt(?\DateTimeImmutable $notifiedAt): static
-    {
-        $this->notifiedAt = $notifiedAt;
+        $this->concours->removeElement($concour);
         return $this;
     }
 }

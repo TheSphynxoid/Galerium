@@ -84,11 +84,6 @@ class Oeuvre
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $publishedAt = null;
 
-
-
-    #[ORM\OneToMany(mappedBy: 'oeuvre', targetEntity: Participation::class)]
-    private Collection $participations;
-
     #[ORM\Column(options: ['default' => 0])]
     private int $viewsCount = 0;
 
@@ -106,18 +101,6 @@ class Oeuvre
     {
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
-        $this->participations = new ArrayCollection();
-    }
-
-    #[ORM\PrePersist]
-    public function generateSlug(): void
-    {
-        if (empty($this->slug) && !empty($this->title)) {
-            // Generate a URL-friendly slug from the title
-            $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $this->title), '-'));
-            // Add a unique identifier to ensure uniqueness
-            $this->slug = $slug . '-' . uniqid();
-        }
     }
 
     #[ORM\PreUpdate]
@@ -249,30 +232,6 @@ class Oeuvre
     public function setPublishedAt(?\DateTimeImmutable $publishedAt): static
     {
         $this->publishedAt = $publishedAt;
-        return $this;
-    }
-
-
-
-    public function getParticipations(): Collection
-    {
-        return $this->participations;
-    }
-
-    public function addParticipation(Participation $participation): static
-    {
-        if (!$this->participations->contains($participation)) {
-            $this->participations->add($participation);
-            $participation->setOeuvre($this);
-        }
-        return $this;
-    }
-
-    public function removeParticipation(Participation $participation): static
-    {
-        if ($this->participations->removeElement($participation) && $participation->getOeuvre() === $this) {
-            $participation->setOeuvre(null);
-        }
         return $this;
     }
 

@@ -92,13 +92,16 @@ class Concours
     /**
      * @var Collection<int, Participation>
      */
-    #[ORM\OneToMany(targetEntity: Participation::class, mappedBy: 'concours', orphanRemoval: true)]
-    private Collection $participation;
+    #[ORM\ManyToMany(targetEntity: Participation::class, mappedBy: 'concours')]
+    private Collection $participations;
+
+    
 
     public function __construct()
     {
         $this->jurys = new ArrayCollection();
-        $this->participation = new ArrayCollection();
+        $this->participations = new ArrayCollection();
+        
     }
 
     
@@ -234,16 +237,16 @@ class Concours
     /**
      * @return Collection<int, Participation>
      */
-    public function getParticipation(): Collection
+    public function getParticipations(): Collection
     {
-        return $this->participation;
+        return $this->participations;
     }
 
     public function addParticipation(Participation $participation): static
     {
-        if (!$this->participation->contains($participation)) {
-            $this->participation->add($participation);
-            $participation->setConcours($this);
+        if (!$this->participations->contains($participation)) {
+            $this->participations->add($participation);
+            $participation->addConcour($this);
         }
 
         return $this;
@@ -251,13 +254,16 @@ class Concours
 
     public function removeParticipation(Participation $participation): static
     {
-        if ($this->participation->removeElement($participation)) {
-            // set the owning side to null (unless already changed)
-            if ($participation->getConcours() === $this) {
-                $participation->setConcours(null);
-            }
+        if ($this->participations->removeElement($participation)) {
+            $participation->removeConcour($this);
         }
 
         return $this;
     }
+
+   
+
+    
+
+    
 }

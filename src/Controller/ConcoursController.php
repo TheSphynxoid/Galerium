@@ -10,15 +10,45 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 
 #[Route('/concours')]
 final class ConcoursController extends AbstractController
 {
     #[Route(name: 'app_concours_index', methods: ['GET'])]
-    public function index(ConcoursRepository $concoursRepository): Response
+    public function index(Request $request, ConcoursRepository $concoursRepository): Response
     {
+        $title = $request->query->get('title');
+        $statut = $request->query->get('statut');
+
+        $qb = $concoursRepository->createQueryBuilder('c');
+
+        if ($title) {
+            $qb->andWhere('c.titre LIKE :t')
+               ->setParameter('t', '%' . $title . '%');
+        }
+
+        if ($statut) {
+            $qb->andWhere('c.statut = :s')
+               ->setParameter('s', $statut);
+        }
+
+        $concours = $qb->getQuery()->getResult();
+
+        // Si c'est une requête AJAX, retourner uniquement les résultats
+        if ($request->isXmlHttpRequest() || $request->query->get('ajax')) {
+            return $this->render('concours/index.html.twig', [
+                'concours' => $concours,
+                'title' => $title,
+                'statut' => $statut,
+            ]);
+        }
+
         return $this->render('concours/index.html.twig', [
-            'concours' => $concoursRepository->findAll(),
+            'concours' => $concours,
+            'title' => $title,
+            'statut' => $statut,
         ]);
     }
 
@@ -79,19 +109,8 @@ final class ConcoursController extends AbstractController
         return $this->redirectToRoute('app_concours_index', [], Response::HTTP_SEE_OTHER);
     }
 
-#[Route('/user', name: 'app_concours_user_index', methods: ['GET'])]
-public function userIndex(ConcoursRepository $concoursRepository): Response
-{
-    // Ici tu peux filtrer les concours si nécessaire, par exemple uniquement ceux qui sont actifs
-    $concours = $concoursRepository->findAll(); 
-
-    return $this->render('concours/user_index.html.twig', [
-        'concours' => $concours,
-    ]);
-}
-
-#[Route('/user', name: 'app_concours_user_index', methods: ['GET'])]
-public function userIndexx(Request $request, ConcoursRepository $concoursRepository): Response
+#[Route('/visiteur', name: 'app_concours_visiteur_index', methods: ['GET'])]
+public function visiteur(Request $request, ConcoursRepository $concoursRepository): Response
 {
     $title = $request->query->get('title');
 
@@ -105,11 +124,99 @@ public function userIndexx(Request $request, ConcoursRepository $concoursReposit
         $concours = $concoursRepository->findAll();
     }
 
-    return $this->render('concours/user_index.html.twig', [
+    // Si c'est une requête AJAX, retourner uniquement les résultats
+    if ($request->isXmlHttpRequest() || $request->query->get('ajax')) {
+        return $this->render('concours/visiteur.html.twig', [
+            'concours' => $concours,
+            'title' => $title,
+        ]);
+    }
+
+    return $this->render('concours/visiteur.html.twig', [
         'concours' => $concours,
         'title' => $title,
     ]);
 }
+
+
+
+
+
+
+#[Route('/artistev', name: 'app_concours_artistev_index', methods: ['GET'])]
+public function artistev(Request $request, ConcoursRepository $concoursRepository): Response
+{
+    $title = $request->query->get('title');
+    $statut = $request->query->get('statut');
+
+    $qb = $concoursRepository->createQueryBuilder('c');
+
+    if ($title) {
+        $qb->andWhere('c.titre LIKE :t')
+           ->setParameter('t', '%' . $title . '%');
+    }
+
+    if ($statut) {
+        $qb->andWhere('c.statut = :s')
+           ->setParameter('s', $statut);
+    }
+
+    $concours = $qb->getQuery()->getResult();
+
+    // Si c'est une requête AJAX, retourner uniquement les résultats
+    if ($request->isXmlHttpRequest() || $request->query->get('ajax')) {
+        return $this->render('concours/artistev.html.twig', [
+            'concours' => $concours,
+            'title' => $title,
+            'statut' => $statut,
+        ]);
+    }
+
+    return $this->render('concours/artistev.html.twig', [
+        'concours' => $concours,
+        'title' => $title,
+        'statut' => $statut,
+    ]);
+}
+
+
+
+    // ------------------------------------
+    // 🔵 GÉNÉRATION DU PDF
+    // ------------------------------------
+   #[Route('/pdf', name: 'app_concours_pdf', methods: ['GET'])]
+public function pdf(ConcoursRepository $concoursRepository): Response
+{
+    $concours = $concoursRepository->findAll();
+
+    $options = new Options();
+    $options->set('defaultFont', 'Arial');
+    $dompdf = new Dompdf($options);
+
+    // Génération du HTML
+    $html = $this->renderView('concours/pdf.html.twig', [
+        'concours' => $concours,
+    ]);
+
+    $dompdf->loadHtml($html);
+    $dompdf->setPaper('A4', 'portrait');
+    $dompdf->render();
+
+    // ❗ LA PARTIE IMPORTANTE : récupérer le PDF dans une variable
+    $output = $dompdf->output();
+
+    return new Response(
+        $output,
+        200,
+        [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="liste_concours.pdf"'
+        ]
+    );
+}
+
+
+
 
 
 

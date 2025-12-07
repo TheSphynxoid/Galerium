@@ -228,7 +228,17 @@ class Artiste
         return $this;
     }
 
-    public function getFacebook(): ?string { return $this->facebook ?? ($this->socialLinks['facebook'] ?? null); }
+    
+
+    
+
+   
+
+    // Getters et setters pour les réseaux sociaux individuels
+    public function getFacebook(): ?string
+    {
+        return $this->facebook ?? ($this->socialLinks['facebook'] ?? null);
+    }
 
     public function setFacebook(?string $facebook): static { $this->facebook = $facebook; return $this; }
 

@@ -39,7 +39,7 @@ security:
         - { path: ^/artiste/inscription, roles: PUBLIC_ACCESS }
         - { path: ^/artiste/connexion, roles: PUBLIC_ACCESS }
         - { path: ^/admin, roles: ROLE_ADMIN }
-        # - { path: ^/artiste, roles: ROLE_ARTISTE }
+        - { path: ^/artiste, roles: ROLE_ARTISTE }
 
 when@test:
     security:

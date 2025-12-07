@@ -1,90 +1,178 @@
-// JS scaffold for the search section with expandable filters
-// - Collects form data and exposes a hook for AJAX submission.
-// - Currently logs payload to console and updates #search-results with a placeholder.
+// JS pour la recherche et filtrage par AJAX
+// Gère les formulaires avec l'attribut data-ajax-url
 
 (function(){
   'use strict';
 
   function serializeForm(form){
     const data = new FormData(form);
-    const obj = {};
-    for (const [k,v] of data.entries()){
-      // convert empty strings to null for clarity
-      obj[k] = v === '' ? null : v;
+    const params = new URLSearchParams();
+    for (const [k, v] of data.entries()){
+      if (v !== '') {
+        params.append(k, v);
+      }
     }
-    return obj;
+    return params;
   }
 
   function renderLoading(container){
-    container.innerHTML = '<div class="text-center py-4">Loading results&hellip;</div>';
+    container.innerHTML = '<div class="text-center py-4"><div class="spinner-border" role="status"><span class="visually-hidden">Chargement...</span></div></div>';
   }
 
-  function renderPlaceholder(container, payload){
-    container.innerHTML = '<div class="card p-3"><pre style="white-space:pre-wrap;">' +
-      'AJAX payload (placeholder):\n' + JSON.stringify(payload, null, 2) +
-      '</pre></div>';
+  function renderError(container, message){
+    container.innerHTML = '<div class="alert alert-danger">' + (message || 'Une erreur est survenue lors de la recherche.') + '</div>';
   }
 
-  document.addEventListener('DOMContentLoaded', function(){
+  // Fonction pour exécuter la recherche AJAX
+  function performSearch(form, results, ajaxUrl, resultsId) {
+    const params = serializeForm(form);
+    params.append('ajax', '1'); // Indicateur AJAX
+    
+    // Afficher le chargement
+    renderLoading(results);
+
+    // Requête AJAX
+    fetch(ajaxUrl + '?' + params.toString(), {
+      method: 'GET',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Erreur réseau');
+      }
+      return response.text();
+    })
+    .then(html => {
+      // Créer un élément temporaire pour parser le HTML
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = html;
+      
+      // Extraire uniquement le contenu de la section des résultats
+      const resultsContent = tempDiv.querySelector('#' + resultsId);
+      if (resultsContent) {
+        results.innerHTML = resultsContent.innerHTML;
+      } else {
+        // Si la section n'est pas trouvée, utiliser tout le HTML
+        results.innerHTML = html;
+      }
+    })
+    .catch(err => {
+      console.error('Erreur AJAX:', err);
+      renderError(results);
+    });
+  }
+
+  // Gestion des formulaires de recherche AJAX
+  function initAjaxSearch(formId, resultsId, ajaxUrl) {
+    const form = document.getElementById(formId);
+    const results = document.getElementById(resultsId);
+
+    if (!form || !results) return;
+
+    // Empêcher la soumission classique du formulaire
+    form.addEventListener('submit', function(e){
+      e.preventDefault();
+      performSearch(form, results, ajaxUrl, resultsId);
+    });
+
+    // Recherche automatique lors de la saisie dans le champ titre (avec debounce)
+    const searchInput = form.querySelector('input[name="title"]');
+    if (searchInput) {
+      let timeout;
+      searchInput.addEventListener('input', function() {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+          performSearch(form, results, ajaxUrl, resultsId);
+        }, 500); // Attendre 500ms après la dernière frappe
+      });
+    }
+
+    // Recherche automatique lors du changement de statut
+    const statutSelect = form.querySelector('select[name="statut"]');
+    if (statutSelect) {
+      statutSelect.addEventListener('change', function() {
+        performSearch(form, results, ajaxUrl, resultsId);
+      });
+    }
+  }
+
+  // Gestion du formulaire de recherche générique (_search_section.html.twig)
+  function initGenericSearch() {
     const form = document.getElementById('search-form');
     const results = document.getElementById('search-results');
     const clearBtn = document.getElementById('clear-filters');
-    const filterToggle = form ? form.querySelector('[data-bs-toggle="collapse"][data-bs-target]') : null;
 
     if (!form || !results) return;
 
     form.addEventListener('submit', function(e){
       e.preventDefault();
       const payload = serializeForm(form);
-      // show loading
       renderLoading(results);
 
-      // TODO: Replace this with real AJAX (fetch/XHR) to your search endpoint.
-      // Example:
-      // fetch('/search', { method: 'POST', body: new URLSearchParams(payload) })
-      //   .then(r => r.text())
-      //   .then(html => { results.innerHTML = html })
-      //   .catch(err => { results.innerHTML = '<div class="text-danger">Error</div>' });
-
-      // For now show payload for integration testing
-    //   setTimeout(function(){
-    //     console.log('Search payload:', payload);
-    //     renderPlaceholder(results, payload);
-    //   }, 400);
+      // TODO: Configurer l'URL AJAX pour ce formulaire générique
+      // Pour l'instant, on garde le comportement par défaut
+      console.log('Search payload:', payload);
     });
 
     if (clearBtn){
       clearBtn.addEventListener('click', function(){
         form.reset();
-        // collapse filters (if using bootstrap collapse)
         const collapseEl = document.getElementById('search-filters');
         if (collapseEl && typeof bootstrap !== 'undefined'){
           const bsCollapse = bootstrap.Collapse.getInstance(collapseEl) || new bootstrap.Collapse(collapseEl, {toggle:false});
           bsCollapse.hide();
         }
-        // trigger an empty search or clear results
-        results.innerHTML = '<div class="text-muted">Filters cleared.</div>';
+        results.innerHTML = '<div class="text-muted">Filtres réinitialisés.</div>';
       });
     }
+  }
 
-    // Lightweight toggle for the Filters button: works even if Bootstrap JS isn't initialized yet.
+  document.addEventListener('DOMContentLoaded', function(){
+    // Initialiser les formulaires de recherche AJAX spécifiques
+    const concoursForm = document.getElementById('search-form-concours');
+    if (concoursForm) {
+      const ajaxUrl = concoursForm.getAttribute('data-ajax-url');
+      if (ajaxUrl) {
+        initAjaxSearch('search-form-concours', 'search-results-concours', ajaxUrl);
+      }
+    }
+
+    const visiteurForm = document.getElementById('search-form-visiteur');
+    if (visiteurForm) {
+      const ajaxUrl = visiteurForm.getAttribute('data-ajax-url');
+      if (ajaxUrl) {
+        initAjaxSearch('search-form-visiteur', 'search-results-visiteur', ajaxUrl);
+      }
+    }
+
+    const artistevForm = document.getElementById('search-form-artistev');
+    if (artistevForm) {
+      const ajaxUrl = artistevForm.getAttribute('data-ajax-url');
+      if (ajaxUrl) {
+        initAjaxSearch('search-form-artistev', 'search-results-artistev', ajaxUrl);
+      }
+    }
+
+    // Initialiser le formulaire générique
+    initGenericSearch();
+
+    // Gestion du toggle des filtres (Bootstrap collapse)
+    const filterToggle = document.querySelector('[data-bs-toggle="collapse"][data-bs-target]');
     if (filterToggle){
       filterToggle.addEventListener('click', function(e){
-        // determine target selector and element
         const targetSel = filterToggle.getAttribute('data-bs-target') || filterToggle.getAttribute('data-target');
         if (!targetSel) return;
         const collapseEl = document.querySelector(targetSel);
         if (!collapseEl) return;
 
-        // If Bootstrap is available, use its Collapse to preserve animations/aria
         if (typeof bootstrap !== 'undefined' && bootstrap.Collapse){
           const bsCollapse = bootstrap.Collapse.getInstance(collapseEl) || new bootstrap.Collapse(collapseEl, {toggle:false});
-          // toggle via Bootstrap API
           bsCollapse._isShown() ? bsCollapse.hide() : bsCollapse.show();
           return;
         }
 
-        // Fallback: toggle the show class and aria-expanded attribute
         const isShown = collapseEl.classList.contains('show');
         if (isShown){
           collapseEl.classList.remove('show');
