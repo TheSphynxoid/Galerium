@@ -136,6 +136,18 @@ class Oeuvre
         return $this;
     }
 
+
+    #[ORM\PrePersist]
+    public function generateSlug(): void
+    {
+        if (empty($this->slug) && !empty($this->title)) {
+            // Generate a URL-friendly slug from the title
+            $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $this->title), '-'));
+            // Add a unique identifier to ensure uniqueness
+            $this->slug = $slug . '-' . uniqid();
+        }
+    }
+
     public function getSlug(): ?string
     {
         return $this->slug;
@@ -265,6 +277,7 @@ class Oeuvre
     public function setFavoritesCount(int $favoritesCount): static
     {
         $this->favoritesCount = $favoritesCount;
+        return $this;
     }
 
     public function getFavoritesCount(): int
