@@ -7,6 +7,7 @@ use App\Form\ParticipationType;
 use App\Form\ParticipationEditType;
 use App\Repository\ParticipationRepository;
 use App\Repository\ConcoursRepository;
+use App\Repository\UtilisateurRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -32,8 +33,27 @@ final class ParticipationController extends AbstractController
         int $concoursId,
         Request $request,
         EntityManagerInterface $entityManager,
-        ConcoursRepository $concoursRepository
+        ConcoursRepository $concoursRepository,
+        UtilisateurRepository $userRepository
     ): Response {
+        // Vérifier que l'utilisateur est connecté
+        $session = $request->getSession();
+        if (!$session->has('user_id')) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        $user = $userRepository->find($session->get('user_id'));
+        if (!$user || !in_array('ROLE_ARTISTE', $user->getRoles())) {
+            $this->addFlash("error", "Vous devez être un artiste pour participer à un concours.");
+            return $this->redirectToRoute('app_participation_index');
+        }
+
+        $artiste = $user->getArtiste();
+        if (!$artiste) {
+            $this->addFlash("error", "Profil artiste introuvable.");
+            return $this->redirectToRoute('app_participation_index');
+        }
+
         $concours = $concoursRepository->find($concoursId);
         if (!$concours) {
             throw $this->createNotFoundException("Concours introuvable !");
@@ -47,7 +67,9 @@ final class ParticipationController extends AbstractController
         $participation->setVotepublic(false); // valeur réelle en base
         $participation->addConcour($concours);
 
-        $form = $this->createForm(ParticipationType::class, $participation);
+        $form = $this->createForm(ParticipationType::class, $participation, [
+            'artiste' => $artiste,
+        ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {

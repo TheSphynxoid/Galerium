@@ -28,6 +28,11 @@
         </div>
 
         <h3 class="mt-4">Formulaire de participation</h3>
+        <div class="mb-3">
+                {{ form_label(form.oeuvre, null, {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                {{ form_widget(form.oeuvre, {'attr': {'class': 'form-select'}}) }}
+                {{ form_errors(form.oeuvre) }}
+            </div>
         {{ form_start(form) }}
             {{ form_widget(form) }}
             <button class="btn btn-success mt-3">Envoyer ma participation</button>

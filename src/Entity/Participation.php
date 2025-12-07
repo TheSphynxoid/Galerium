@@ -42,6 +42,9 @@ class Participation
     #[ORM\ManyToMany(targetEntity: Concours::class, inversedBy: 'participations')]
     private Collection $concours;
 
+    #[ORM\ManyToOne(inversedBy: 'participations')]
+    private ?Oeuvre $oeuvre = null;
+
     public function __construct()
     {
         $this->concours = new ArrayCollection();
@@ -115,6 +118,18 @@ class Participation
     public function removeConcour(Concours $concour): static
     {
         $this->concours->removeElement($concour);
+        return $this;
+    }
+
+    public function getOeuvre(): ?Oeuvre
+    {
+        return $this->oeuvre;
+    }
+
+    public function setOeuvre(?Oeuvre $oeuvre): static
+    {
+        $this->oeuvre = $oeuvre;
+
         return $this;
     }
 }

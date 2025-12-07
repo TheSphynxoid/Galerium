@@ -97,10 +97,17 @@ class Oeuvre
     #[Assert\PositiveOrZero(message: "Le prix ne peut pas être négatif")]
     private ?float $price = null;
 
+    /**
+     * @var Collection<int, Participation>
+     */
+    #[ORM\OneToMany(targetEntity: Participation::class, mappedBy: 'oeuvre')]
+    private Collection $participations;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
+        $this->participations = new ArrayCollection();
     }
 
     #[ORM\PreUpdate]
@@ -293,6 +300,36 @@ class Oeuvre
     public function setPrice(?float $price): static
     {
         $this->price = $price;
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Participation>
+     */
+    public function getParticipations(): Collection
+    {
+        return $this->participations;
+    }
+
+    public function addParticipation(Participation $participation): static
+    {
+        if (!$this->participations->contains($participation)) {
+            $this->participations->add($participation);
+            $participation->setOeuvre($this);
+        }
+
+        return $this;
+    }
+
+    public function removeParticipation(Participation $participation): static
+    {
+        if ($this->participations->removeElement($participation)) {
+            // set the owning side to null (unless already changed)
+            if ($participation->getOeuvre() === $this) {
+                $participation->setOeuvre(null);
+            }
+        }
+
         return $this;
     }
 }
