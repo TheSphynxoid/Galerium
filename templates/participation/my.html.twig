@@ -1,0 +1,61 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes Participations{% endblock %}
+
+{% block body %}
+
+<h2 class="text-center mb-4">Mes Participations aux Concours</h2>
+
+{% if participations is empty %}
+    <div class="alert alert-info text-center">
+        Vous n'avez encore participé à aucun concours.
+    </div>
+{% else %}
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Concours</th>
+                <th>Date participation</th>
+                <th>Statut</th>
+                <th>Oeuvre présentée</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for p in participations %}
+            <tr>
+                <td>
+                    {% for c in p.concours %}
+                        {{ c.titre }}
+                    {% endfor %}
+                </td>
+                <td>{{ p.dateparticipation|date('d/m/Y H:i') }}</td>
+                <td>{{ p.statut }}</td>
+                <td>
+                    {% if p.oeuvre %}
+                        <div class="d-flex align-items-center">
+                            {% if p.oeuvre.imagePath %}
+                                <img src="{{ vich_uploader_asset(p.oeuvre, 'imageFile') }}" 
+                                     alt="{{ p.oeuvre.title }}" 
+                                     class="img-thumbnail me-2" 
+                                     style="max-width: 100px; max-height: 100px; object-fit: cover;">
+                            {% else %}
+                                <div class="bg-secondary text-white d-flex align-items-center justify-content-center me-2" 
+                                     style="width: 100px; height: 100px;">
+                                    <small>Pas d'image</small>
+                                </div>
+                            {% endif %}
+                            <div>
+                                <strong>{{ p.oeuvre.title }}</strong>
+                            </div>
+                        </div>
+                    {% else %}
+                        Non renseignée
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+
+{% endblock %}

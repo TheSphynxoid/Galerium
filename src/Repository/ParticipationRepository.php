@@ -40,4 +40,22 @@ class ParticipationRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
+
+    /**
+     * Récupère toutes les participations d'un artiste
+     * @return Participation[]
+     */
+    public function findByArtiste($artiste): array
+    {
+        // Récupérer toutes les participations avec leur œuvre et concours
+        $qb = $this->createQueryBuilder('p')
+            ->select('p', 'o', 'c')
+            ->innerJoin('p.oeuvre', 'o')
+            ->leftJoin('p.concours', 'c')
+            ->where('o.artiste = :artiste')
+            ->setParameter('artiste', $artiste)
+            ->orderBy('p.dateparticipation', 'DESC');
+        
+        return $qb->getQuery()->getResult();
+    }
 }

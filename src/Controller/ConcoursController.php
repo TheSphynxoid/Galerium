@@ -181,6 +181,7 @@ public function artistev(Request $request, ConcoursRepository $concoursRepositor
 
 
 
+
     // ------------------------------------
     // 🔵 GÉNÉRATION DU PDF
     // ------------------------------------

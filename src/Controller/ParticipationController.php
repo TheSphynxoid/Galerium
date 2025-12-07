@@ -79,7 +79,7 @@ final class ParticipationController extends AbstractController
             $entityManager->flush();
 
             $this->addFlash("success", "Participation envoyée avec succès !");
-            return $this->redirectToRoute('app_participation_index');
+            return $this->redirectToRoute('app_concours_artistev_index');
         }
 
         // Récupérer les œuvres de l'artiste pour l'affichage visuel
@@ -93,7 +93,7 @@ final class ParticipationController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'app_participation_show', methods: ['GET'])]
+    #[Route('/{id<\d+>}', name: 'app_participation_show', methods: ['GET'])]
     public function show(Participation $participation): Response
     {
         return $this->render('participation/show.html.twig', [
@@ -101,7 +101,7 @@ final class ParticipationController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/edit', name: 'app_participation_edit', methods: ['GET', 'POST'])]
+    #[Route('/{id<\d+>}/edit', name: 'app_participation_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Participation $participation, EntityManagerInterface $entityManager): Response
     {
         $form = $this->createForm(ParticipationEditType::class, $participation);
@@ -119,7 +119,7 @@ final class ParticipationController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'app_participation_delete', methods: ['POST'])]
+    #[Route('/{id<\d+>}', name: 'app_participation_delete', methods: ['POST'])]
     public function delete(Request $request, Participation $participation, EntityManagerInterface $entityManager): Response
     {
         if ($this->isCsrfTokenValid('delete'.$participation->getId(), $request->request->get('_token'))) {
@@ -129,4 +129,69 @@ final class ParticipationController extends AbstractController
 
         return $this->redirectToRoute('app_participation_index');
     }
+
+
+
+#[Route('/mes-participations', name: 'app_participation_my', methods: ['GET'])]
+public function myParticipations(
+    Request $request,
+    ParticipationRepository $participationRepository,
+    UtilisateurRepository $userRepository
+): Response {
+    // Vérifier la session
+    $session = $request->getSession();
+    if (!$session->has('user_id')) {
+        return $this->redirectToRoute('app_login');
+    }
+
+    // Récupérer utilisateur connecté
+    $user = $userRepository->find($session->get('user_id'));
+
+    if (!$user || !in_array('ROLE_ARTISTE', $user->getRoles())) {
+        $this->addFlash("error", "Vous devez être artiste pour accéder à vos participations.");
+        return $this->redirectToRoute('app_participation_index');
+    }
+
+    $artiste = $user->getArtiste();
+    if (!$artiste) {
+        $this->addFlash("error", "Profil artiste introuvable.");
+        return $this->redirectToRoute('app_participation_index');
+    }
+
+    // 🔥 Récupérer les participations via l'œuvre de l'artiste
+    $participations = $participationRepository->findByArtiste($artiste);
+
+    return $this->render('participation/my.html.twig', [
+        'participations' => $participations,
+    ]);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
