@@ -18,6 +18,9 @@
                 <th>Date participation</th>
                 <th>Statut</th>
                 <th>Oeuvre présentée</th>
+                <th>Vote public</th>
+                <th>Description</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -51,6 +54,27 @@
                     {% else %}
                         Non renseignée
                     {% endif %}
+                </td>
+                <td>
+                    <span class="badge bg-info">👍 {{ p.votepublic ?? 0 }}</span>
+                </td>
+                <td>
+                    <div style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+                        {{ p.description|slice(0, 100) }}{% if p.description|length > 100 %}...{% endif %}
+                    </div>
+                </td>
+                <td>
+                    <div class="btn-group" role="group">
+                        <a href="{{ path('app_participation_edit', {'id': p.id}) }}" class="btn btn-sm btn-warning">
+                            <i class="bi bi-pencil"></i> Modifier
+                        </a>
+                        <form method="post" action="{{ path('app_participation_delete', {'id': p.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette participation ?');" style="display: inline;">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ p.id) }}">
+                            <button type="submit" class="btn btn-sm btn-danger">
+                                <i class="bi bi-trash"></i> Supprimer
+                            </button>
+                        </form>
+                    </div>
                 </td>
             </tr>
         {% endfor %}

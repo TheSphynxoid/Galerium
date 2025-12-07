@@ -25,8 +25,8 @@
                 <td>{{ participation.votepublic }}</td>
                 <td>{{ participation.description }}</td>
                 <td>
-                    <a href="{{ path('app_participation_show', {'id': participation.id}) }}">show</a>
-                    <a href="{{ path('app_participation_edit', {'id': participation.id}) }}">edit</a>
+                    <a href="{{ path('app_participation_show', {'id': participation.id}) }}" class="btn btn-sm btn-info">Voir</a>
+                    <a href="{{ path('app_participation_edit_status', {'id': participation.id}) }}" class="btn btn-sm btn-warning">Modifier statut</a>
                 </td>
             </tr>
         {% else %}

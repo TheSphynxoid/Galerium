@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Participation;
 use App\Form\ParticipationType;
 use App\Form\ParticipationEditType;
+use App\Form\ParticipationStatusEditType;
 use App\Repository\ParticipationRepository;
 use App\Repository\ConcoursRepository;
 use App\Repository\UtilisateurRepository;
@@ -102,9 +103,65 @@ final class ParticipationController extends AbstractController
     }
 
     #[Route('/{id<\d+>}/edit', name: 'app_participation_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Participation $participation, EntityManagerInterface $entityManager): Response
-    {
-        $form = $this->createForm(ParticipationEditType::class, $participation);
+    public function edit(
+        Request $request, 
+        Participation $participation, 
+        EntityManagerInterface $entityManager,
+        UtilisateurRepository $userRepository,
+        OeuvreRepository $oeuvreRepository
+    ): Response {
+        // Vérifier la session
+        $session = $request->getSession();
+        if (!$session->has('user_id')) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        $user = $userRepository->find($session->get('user_id'));
+        if (!$user || !in_array('ROLE_ARTISTE', $user->getRoles())) {
+            $this->addFlash("error", "Vous devez être artiste pour modifier une participation.");
+            return $this->redirectToRoute('app_participation_my');
+        }
+
+        $artiste = $user->getArtiste();
+        if (!$artiste) {
+            $this->addFlash("error", "Profil artiste introuvable.");
+            return $this->redirectToRoute('app_participation_my');
+        }
+
+        // Vérifier que la participation appartient à l'artiste
+        if (!$participation->getOeuvre() || $participation->getOeuvre()->getArtiste() !== $artiste) {
+            $this->addFlash("error", "Vous n'avez pas le droit de modifier cette participation.");
+            return $this->redirectToRoute('app_participation_my');
+        }
+
+        $form = $this->createForm(ParticipationEditType::class, $participation, [
+            'artiste' => $artiste,
+        ]);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->flush();
+            $this->addFlash("success", "Participation modifiée avec succès !");
+            return $this->redirectToRoute('app_participation_my');
+        }
+
+        // Récupérer les œuvres de l'artiste pour l'affichage visuel
+        $oeuvres = $oeuvreRepository->findByArtiste($artiste);
+
+        return $this->render('participation/edit.html.twig', [
+            'participation' => $participation,
+            'form' => $form->createView(),
+            'oeuvres' => $oeuvres,
+        ]);
+    }
+
+    #[Route('/{id<\d+>}/edit-status', name: 'app_participation_edit_status', methods: ['GET', 'POST'])]
+    public function editStatus(
+        Request $request, 
+        Participation $participation, 
+        EntityManagerInterface $entityManager
+    ): Response {
+        $form = $this->createForm(ParticipationStatusEditType::class, $participation);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -113,7 +170,7 @@ final class ParticipationController extends AbstractController
             return $this->redirectToRoute('app_participation_index');
         }
 
-        return $this->render('participation/edit.html.twig', [
+        return $this->render('participation/edit_status.html.twig', [
             'participation' => $participation,
             'form' => $form->createView(),
         ]);
