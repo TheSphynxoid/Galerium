@@ -1,60 +1,68 @@
-{% extends 'artiste/base.html.twig' %}
+{% extends 'base.html.twig' %}
 
-{% block title %}{{ oeuvre.titre }} - Galerium{% endblock %}
+{% block title %}{{ oeuvre.title }} - Galerium{% endblock %}
 
 {% block body %}
-<div class="row">
-    <div class="col-md-8">
-        <div class="card">
-            {% if oeuvre.image %}
-                <img src="{{ asset(oeuvre.image) }}" class="card-img-top" alt="{{ oeuvre.titre }}">
-            {% endif %}
-            <div class="card-body">
-                <h1 class="card-title">{{ oeuvre.titre }}</h1>
-                <p class="text-muted">
-                    <strong>Catégorie:</strong> {{ oeuvre.categorie ?? 'Non spécifiée' }}<br>
-                    <strong>Date de création:</strong> {{ oeuvre.dateCreation ? oeuvre.dateCreation|date('d/m/Y') : 'Non spécifiée' }}<br>
-                    <strong>Statut:</strong> 
-                    {% if oeuvre.statut == 'publiee' %}
-                        <span class="badge bg-success">Publiée</span>
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card border-0 shadow-sm">
+                    {% if oeuvre.imagePath %}
+                        <img src="{{ vich_uploader_asset(oeuvre, 'imageFile') }}" class="card-img-top" alt="{{ oeuvre.title }}">
                     {% else %}
-                        <span class="badge bg-warning">En attente</span>
+                        <div class="bg-secondary d-flex align-items-center justify-content-center" style="height: 400px;">
+                            <i class="bi bi-image text-white" style="font-size: 5rem;"></i>
+                        </div>
                     {% endif %}
-                </p>
-                <hr>
-                <h5>Description</h5>
-                <p>{{ oeuvre.description ?? 'Aucune description' }}</p>
+                    <div class="card-body">
+                        <h1 class="card-title">{{ oeuvre.title }}</h1>
+                        <p class="text-muted">
+                            <strong>Artiste:</strong> {{ oeuvre.artiste.displayName }}<br>
+                            <strong>Date de création:</strong> {{ oeuvre.createdAt|date('d/m/Y') }}<br>
+                            <strong>Statut:</strong> 
+                            {% if oeuvre.status == 'public' %}
+                                <span class="badge bg-success">Publié</span>
+                            {% elseif oeuvre.status == 'draft' %}
+                                <span class="badge bg-secondary">Brouillon</span>
+                            {% elseif oeuvre.status == 'private' %}
+                                <span class="badge bg-warning text-dark">Privé</span>
+                            {% else %}
+                                <span class="badge bg-dark">Archivé</span>
+                            {% endif %}
+                        </p>
+                        {% if oeuvre.price %}
+                            <p><strong>Prix:</strong> {{ oeuvre.price }} TND</p>
+                        {% endif %}
+                        <hr>
+                        <h5>Description</h5>
+                        <p>{{ oeuvre.description }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Statistiques</h5>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Vues:</strong> {{ oeuvre.viewsCount }}</p>
+                        <p><strong>Votes:</strong> {{ oeuvre.votesCount }}</p>
+                        <p><strong>Favoris:</strong> {{ oeuvre.favoritesCount }}</p>
+                        <p class="mb-0"><strong>Commentaires:</strong> {{ oeuvre.isCommentable ? 'Autorisés' : 'Désactivés' }}</p>
+                    </div>
+                </div>
+                <div class="card border-0 shadow-sm mt-3">
+                    <div class="card-body">
+                        <a href="{{ path('app_artiste_dashboard') }}" class="btn btn-outline-secondary w-100">
+                            <i class="bi bi-arrow-left"></i> Retour au dashboard
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Statistiques</h5>
-            </div>
-            <div class="card-body">
-                <p><strong>Nombre de votes:</strong> {{ oeuvre.nbVotes }}</p>
-                <p><strong>Nombre de commentaires:</strong> {{ oeuvre.nbCommentaires }}</p>
-            </div>
-        </div>
-        <div class="card mt-3">
-            <div class="card-body">
-                <a href="{{ path('app_oeuvre_edit', {'id': oeuvre.id}) }}" class="btn btn-primary w-100 mb-2">
-                    <i class="bi bi-pencil"></i> Modifier
-                </a>
-                <form method="post" action="{{ path('app_oeuvre_delete', {'id': oeuvre.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette œuvre ?');">
-                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ oeuvre.id) }}">
-                    <button type="submit" class="btn btn-danger w-100">
-                        <i class="bi bi-trash"></i> Supprimer
-                    </button>
-                </form>
-                <a href="{{ path('app_oeuvre_index') }}" class="btn btn-secondary w-100 mt-2">
-                    <i class="bi bi-arrow-left"></i> Retour à la liste
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
+</section>
 {% endblock %}
 
 

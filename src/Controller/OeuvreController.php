@@ -6,6 +6,7 @@ use App\Entity\Oeuvre;
 use App\Form\OeuvreFormType;
 use App\Repository\OeuvreRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use App\Repository\UtilisateurRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,12 +17,26 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 class OeuvreController extends AbstractController
 {
     #[Route('/artiste/oeuvres', name: 'app_oeuvre_index')]
-    public function index(OeuvreRepository $oeuvreRepository): Response
-    {
-        $this->denyAccessUnlessGranted('ROLE_ARTISTE');
+    public function index(
+        OeuvreRepository $oeuvreRepository,
+        Request $request,
+        UtilisateurRepository $userRepository
+    ): Response {
+        $session = $request->getSession();
+        if (!$session->has('user_id')) {
+            return $this->redirectToRoute('app_login');
+        }
 
-        /** @var \App\Entity\Artiste $artiste */
-        $artiste = $this->getUser();
+        $user = $userRepository->find($session->get('user_id'));
+        if (!$user || !in_array('ROLE_ARTISTE', $user->getRoles())) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        $artiste = $user->getArtiste();
+        if (!$artiste) {
+             return $this->redirectToRoute('app_artiste_profile');
+        }
+
         $oeuvres = $oeuvreRepository->findByArtiste($artiste);
 
         return $this->render('oeuvre/index.html.twig', [
@@ -33,37 +48,31 @@ class OeuvreController extends AbstractController
     public function new(
         Request $request,
         EntityManagerInterface $entityManager,
-        SluggerInterface $slugger
+        UtilisateurRepository $userRepository
     ): Response {
-        $this->denyAccessUnlessGranted('ROLE_ARTISTE');
+        $session = $request->getSession();
+        if (!$session->has('user_id')) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        $user = $userRepository->find($session->get('user_id'));
+        if (!$user || !in_array('ROLE_ARTISTE', $user->getRoles())) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        $artiste = $user->getArtiste();
+        if (!$artiste) {
+            return $this->redirectToRoute('app_artiste_profile');
+        }
 
         $oeuvre = new Oeuvre();
-        /** @var \App\Entity\Artiste $artiste */
-        $artiste = $this->getUser();
         $oeuvre->setArtiste($artiste);
 
         $form = $this->createForm(OeuvreFormType::class, $oeuvre);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            // Gérer l'upload de l'image
-            $imageFile = $form->get('imageFile')->getData();
-            if ($imageFile) {
-                $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
-                $safeFilename = $slugger->slug($originalFilename);
-                $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
-
-                try {
-                    $imageFile->move(
-                        $this->getParameter('kernel.project_dir') . '/public/uploads/oeuvres',
-                        $newFilename
-                    );
-                    $oeuvre->setImage('uploads/oeuvres/' . $newFilename);
-                } catch (FileException $e) {
-                    $this->addFlash('error', 'Erreur lors de l\'upload de l\'image.');
-                }
-            }
-
+            // VichUploader handles the image automatically
             $entityManager->persist($oeuvre);
             $entityManager->flush();
 
@@ -74,17 +83,24 @@ class OeuvreController extends AbstractController
 
         return $this->render('oeuvre/new.html.twig', [
             'oeuvre' => $oeuvre,
-            'form' => $form,
+            'form' => $form->createView(),
         ]);
     }
 
     #[Route('/artiste/oeuvres/{id}', name: 'app_oeuvre_show', requirements: ['id' => '\d+'])]
-    public function show(Oeuvre $oeuvre): Response
-    {
-        $this->denyAccessUnlessGranted('ROLE_ARTISTE');
-
+    public function show(
+        Oeuvre $oeuvre,
+        Request $request,
+        UtilisateurRepository $userRepository
+    ): Response {
+        $session = $request->getSession();
+        if (!$session->has('user_id')) {
+            return $this->redirectToRoute('app_login');
+        }
+        $user = $userRepository->find($session->get('user_id'));
+        
         // Vérifier que l'œuvre appartient à l'artiste connecté
-        if ($oeuvre->getArtiste() !== $this->getUser()) {
+        if (!$user || !$user->getArtiste() || $oeuvre->getArtiste() !== $user->getArtiste()) {
             throw $this->createAccessDeniedException('Vous n\'avez pas accès à cette œuvre.');
         }
 
@@ -98,12 +114,16 @@ class OeuvreController extends AbstractController
         Request $request,
         Oeuvre $oeuvre,
         EntityManagerInterface $entityManager,
-        SluggerInterface $slugger
+        UtilisateurRepository $userRepository
     ): Response {
-        $this->denyAccessUnlessGranted('ROLE_ARTISTE');
+        $session = $request->getSession();
+        if (!$session->has('user_id')) {
+            return $this->redirectToRoute('app_login');
+        }
+        $user = $userRepository->find($session->get('user_id'));
 
         // Vérifier que l'œuvre appartient à l'artiste connecté
-        if ($oeuvre->getArtiste() !== $this->getUser()) {
+        if (!$user || !$user->getArtiste() || $oeuvre->getArtiste() !== $user->getArtiste()) {
             throw $this->createAccessDeniedException('Vous n\'avez pas accès à cette œuvre.');
         }
 
@@ -111,32 +131,7 @@ class OeuvreController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            // Gérer l'upload de la nouvelle image
-            $imageFile = $form->get('imageFile')->getData();
-            if ($imageFile) {
-                // Supprimer l'ancienne image si elle existe
-                if ($oeuvre->getImage()) {
-                    $oldImagePath = $this->getParameter('kernel.project_dir') . '/public/' . $oeuvre->getImage();
-                    if (file_exists($oldImagePath)) {
-                        unlink($oldImagePath);
-                    }
-                }
-
-                $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
-                $safeFilename = $slugger->slug($originalFilename);
-                $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
-
-                try {
-                    $imageFile->move(
-                        $this->getParameter('kernel.project_dir') . '/public/uploads/oeuvres',
-                        $newFilename
-                    );
-                    $oeuvre->setImage('uploads/oeuvres/' . $newFilename);
-                } catch (FileException $e) {
-                    $this->addFlash('error', 'Erreur lors de l\'upload de l\'image.');
-                }
-            }
-
+            // VichUploader handles updates automatically
             $entityManager->flush();
 
             $this->addFlash('success', 'Œuvre modifiée avec succès !');
@@ -146,7 +141,7 @@ class OeuvreController extends AbstractController
 
         return $this->render('oeuvre/edit.html.twig', [
             'oeuvre' => $oeuvre,
-            'form' => $form,
+            'form' => $form->createView(),
         ]);
     }
 
@@ -154,24 +149,22 @@ class OeuvreController extends AbstractController
     public function delete(
         Request $request,
         Oeuvre $oeuvre,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        UtilisateurRepository $userRepository
     ): Response {
-        $this->denyAccessUnlessGranted('ROLE_ARTISTE');
+        $session = $request->getSession();
+        if (!$session->has('user_id')) {
+            return $this->redirectToRoute('app_login');
+        }
+        $user = $userRepository->find($session->get('user_id'));
 
         // Vérifier que l'œuvre appartient à l'artiste connecté
-        if ($oeuvre->getArtiste() !== $this->getUser()) {
+        if (!$user || !$user->getArtiste() || $oeuvre->getArtiste() !== $user->getArtiste()) {
             throw $this->createAccessDeniedException('Vous n\'avez pas accès à cette œuvre.');
         }
 
         if ($this->isCsrfTokenValid('delete' . $oeuvre->getId(), $request->request->get('_token'))) {
-            // Supprimer l'image associée
-            if ($oeuvre->getImage()) {
-                $imagePath = $this->getParameter('kernel.project_dir') . '/public/' . $oeuvre->getImage();
-                if (file_exists($imagePath)) {
-                    unlink($imagePath);
-                }
-            }
-
+            // VichUploader handles file deletion on remove
             $entityManager->remove($oeuvre);
             $entityManager->flush();
 
@@ -181,7 +174,8 @@ class OeuvreController extends AbstractController
         return $this->redirectToRoute('app_oeuvre_index');
     }
 
-     #[Route('/oeuvre/{id}/vote', name: 'app_oeuvre_increment_vote', requirements: ['id' => '\d+'], methods: ['POST'])]
+     // ... keep updateVote ...
+    #[Route('/oeuvre/{id}/vote', name: 'app_oeuvre_increment_vote', requirements: ['id' => '\d+'], methods: ['POST'])]
      public function incrementVote(
          Request $request,
          Oeuvre $oeuvre,
@@ -197,14 +191,24 @@ class OeuvreController extends AbstractController
  
          return $this->json(['success' => true, 'votes' => $oeuvre->getNbVotes()]);
      }
- 
-    #[Route('/artiste/oeuvres/statistiques', name: 'app_oeuvre_statistics')]
-    public function statistics(OeuvreRepository $oeuvreRepository): Response
-    {
-        $this->denyAccessUnlessGranted('ROLE_ARTISTE');
 
-        /** @var \App\Entity\Artiste $artiste */
-        $artiste = $this->getUser();
+    #[Route('/artiste/oeuvres/statistiques', name: 'app_oeuvre_statistics')]
+    public function statistics(
+        OeuvreRepository $oeuvreRepository,
+        Request $request,
+        UtilisateurRepository $userRepository
+    ): Response {
+        $session = $request->getSession();
+        if (!$session->has('user_id')) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        $user = $userRepository->find($session->get('user_id'));
+        if (!$user || !in_array('ROLE_ARTISTE', $user->getRoles())) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        $artiste = $user->getArtiste();
         $statistics = $oeuvreRepository->getStatisticsForArtiste($artiste);
         $oeuvres = $oeuvreRepository->findByArtiste($artiste);
 
@@ -213,7 +217,38 @@ class OeuvreController extends AbstractController
             'oeuvres' => $oeuvres,
         ]);
     }
+
+    #[Route('/galerie', name: 'app_oeuvre_gallery')]
+    public function gallery(OeuvreRepository $oeuvreRepository, Request $request): Response
+    {
+        $artisteName = $request->query->get('artiste');
+        
+        if ($artisteName) {
+            // Filter by artist name if provided
+            $oeuvres = $oeuvreRepository->createQueryBuilder('o')
+                ->join('o.artiste', 'a')
+                ->where('o.status = :status')
+                ->andWhere('a.displayName LIKE :name')
+                ->setParameter('status', Oeuvre::STATUS_PUBLIC)
+                ->setParameter('name', '%' . $artisteName . '%')
+                ->orderBy('o.createdAt', 'DESC')
+                ->getQuery()
+                ->getResult();
+        } else {
+            // Get all public artworks from all artists, ordered by newest first
+            $oeuvres = $oeuvreRepository->findBy(
+                ['status' => Oeuvre::STATUS_PUBLIC],
+                ['createdAt' => 'DESC']
+            );
+        }
+
+        return $this->render('oeuvre/gallery.html.twig', [
+            'oeuvres' => $oeuvres,
+        ]);
+    }
 }
+
+
 
 
 

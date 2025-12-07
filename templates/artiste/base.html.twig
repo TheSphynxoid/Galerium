@@ -48,14 +48,14 @@
                             <span class="navbar-text me-3">Bonjour, {{ app.user.prenom }} {{ app.user.nom }}</span>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ path('app_artiste_logout') }}">Déconnexion</a>
+                            <a class="nav-link" href="{{ path('app_logout') }}">Déconnexion</a>
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ path('app_artiste_login') }}">Connexion</a>
+                            <a class="nav-link" href="{{ path('app_login') }}">Connexion</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ path('app_artiste_register') }}">Inscription</a>
+                            <a class="nav-link" href="{{ path('app_registre') }}">Inscription</a>
                         </li>
                     {% endif %}
                 </ul>

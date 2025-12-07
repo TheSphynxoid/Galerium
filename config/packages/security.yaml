@@ -4,24 +4,28 @@ security:
         Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
     # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
     providers:
-        app_artiste_provider:
+        app_user_provider:
             entity:
-                class: App\Entity\Artiste
+                class: App\Entity\Utilisateur
                 property: email
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
+        # main:
+        #     lazy: true
         main:
             lazy: true
-            provider: app_artiste_provider
-            form_login:
-                login_path: app_artiste_login
-                check_path: app_artiste_login
-                default_target_path: app_artiste_profile
-            logout:
-                path: app_artiste_logout
-                target: app_artiste_login
+            provider: app_user_provider
+            # form_login:
+            #     login_path: app_login
+            #     check_path: app_login
+            #     username_parameter: email
+            #     password_parameter: password
+            #     default_target_path: app_home
+            # logout:
+            #     path: app_logout
+            #     target: app_login
 
             # activate different ways to authenticate
             # https://symfony.com/doc/current/security.html#the-firewall
@@ -35,7 +39,7 @@ security:
         - { path: ^/artiste/inscription, roles: PUBLIC_ACCESS }
         - { path: ^/artiste/connexion, roles: PUBLIC_ACCESS }
         - { path: ^/admin, roles: ROLE_ADMIN }
-        - { path: ^/artiste, roles: ROLE_ARTISTE }
+        # - { path: ^/artiste, roles: ROLE_ARTISTE }
 
 when@test:
     security:

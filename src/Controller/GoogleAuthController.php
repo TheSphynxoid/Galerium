@@ -65,7 +65,11 @@ class GoogleAuthController extends AbstractController
                 $user->setEmail($email);
                 $user->setNom($nom ?: 'User');
                 $user->setPrenom($prenom ?: 'Google');
-                $user->setRole('VISITEUR');
+                
+                // Si l'utilisateur a un avatar Google, il devient automatiquement ARTISTE
+                // Sinon, il reste VISITEUR
+                $user->setRole($avatar ? 'ARTISTE' : 'VISITEUR');
+
                 $user->setDateInscription(new \DateTime());
                 
                 $user->setPassword($this->passwordHasher->hashPassword($user, bin2hex(random_bytes(32))));

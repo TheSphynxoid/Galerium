@@ -1,4 +1,4 @@
-{% extends 'artiste/base.html.twig' %}
+{% extends 'base.html.twig' %}
 
 {% block title %}Mes Œuvres - Galerium{% endblock %}
 
@@ -18,32 +18,36 @@
     <div class="row">
         {% for oeuvre in oeuvres %}
             <div class="col-md-4 mb-4">
-                <div class="card">
-                    {% if oeuvre.image %}
-                        <img src="{{ asset(oeuvre.image) }}" class="card-img-top oeuvre-image" alt="{{ oeuvre.titre }}">
+                <div class="card h-100">
+                    {% if oeuvre.imagePath %}
+                        <img src="{{ vich_uploader_asset(oeuvre, 'imageFile') }}" class="card-img-top oeuvre-image" alt="{{ oeuvre.title }}">
                     {% else %}
-                        <div class="oeuvre-image bg-secondary d-flex align-items-center justify-content-center text-white">
-                            <i class="bi bi-image" style="font-size: 4rem;"></i>
+                        <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 250px;">
+                            <i class="bi bi-image text-white" style="font-size: 3rem;"></i>
                         </div>
                     {% endif %}
                     <div class="card-body">
-                        <h5 class="card-title">{{ oeuvre.titre }}</h5>
-                        <p class="card-text">
-                            <small class="text-muted">
-                                Catégorie: {{ oeuvre.categorie ?? 'Non spécifiée' }}<br>
-                                Statut: 
-                                {% if oeuvre.statut == 'publiee' %}
-                                    <span class="badge bg-success">Publiée</span>
-                                {% else %}
-                                    <span class="badge bg-warning">En attente</span>
-                                {% endif %}
-                            </small>
-                        </p>
-                        <p class="card-text">{{ oeuvre.description|slice(0, 100) }}{% if oeuvre.description|length > 100 %}...{% endif %}</p>
-                        <div class="d-flex justify-content-between">
-                            <a href="{{ path('app_oeuvre_show', {'id': oeuvre.id}) }}" class="btn btn-sm btn-outline-primary">Voir</a>
-                            <a href="{{ path('app_oeuvre_edit', {'id': oeuvre.id}) }}" class="btn btn-sm btn-outline-secondary">Modifier</a>
+                        <h5 class="card-title">{{ oeuvre.title }}</h5>
+                        <p class="card-text text-truncate">{{ oeuvre.description }}</p>
+                        <div class="mb-2">
+                            <span class="badge bg-{{ oeuvre.status == 'public' ? 'success' : (oeuvre.status == 'draft' ? 'warning' : 'secondary') }}">
+                                {{ oeuvre.status|upper }}
+                            </span>
                         </div>
+                        <div class="d-flex gap-2">
+                            <a href="{{ path('app_oeuvre_show', {'id': oeuvre.id}) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i> Voir
+                            </a>
+                            <a href="{{ path('app_oeuvre_edit', {'id': oeuvre.id}) }}" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-pencil"></i> Modifier
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-footer text-muted">
+                        <small>
+                            <i class="bi bi-eye"></i> {{ oeuvre.viewsCount }}
+                            <i class="bi bi-hand-thumbs-up ms-2"></i> {{ oeuvre.votesCount }}
+                        </small>
                     </div>
                 </div>
             </div>
@@ -51,10 +55,3 @@
     </div>
 {% endif %}
 {% endblock %}
-
-
-
-
-
-
-

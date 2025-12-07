@@ -17,42 +17,47 @@ class ArtisteProfileFormType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('specialite', TextType::class, [
+            ->add('displayName', TextType::class, [
+                'label' => 'Nom d\'artiste',
+                'required' => true,
+                'attr' => ['class' => 'form-control']
+            ])
+            ->add('specialty', TextType::class, [
                 'label' => 'Spécialité',
                 'required' => false,
                 'attr' => ['class' => 'form-control']
             ])
-            ->add('biographie', TextareaType::class, [
+            ->add('biography', TextareaType::class, [
                 'label' => 'Biographie',
                 'required' => false,
                 'attr' => ['class' => 'form-control', 'rows' => 5]
             ])
-            ->add('siteWeb', UrlType::class, [
+            ->add('website', UrlType::class, [
                 'label' => 'Site web',
                 'required' => false,
                 'attr' => ['class' => 'form-control']
             ])
-            ->add('reseauxSociaux', TextType::class, [
-                'label' => 'Réseaux sociaux (lien)',
+            ->add('facebook', UrlType::class, [
+                'label' => 'Facebook',
                 'required' => false,
                 'attr' => ['class' => 'form-control']
             ])
-            ->add('photoProfilFile', FileType::class, [
-                'label' => 'Photo de profil',
-                'mapped' => false,
+            ->add('instagram', UrlType::class, [
+                'label' => 'Instagram',
                 'required' => false,
-                'constraints' => [
-                    new File([
-                        'maxSize' => '5M',
-                        'mimeTypes' => [
-                            'image/jpeg',
-                            'image/png',
-                            'image/gif',
-                            'image/webp',
-                        ],
-                        'mimeTypesMessage' => 'Veuillez uploader une image valide (JPEG, PNG, GIF ou WebP)',
-                    ])
-                ],
+                'attr' => ['class' => 'form-control']
+            ])
+            ->add('behance', UrlType::class, [
+                'label' => 'Behance',
+                'required' => false,
+                'attr' => ['class' => 'form-control']
+            ])
+            ->add('imageFile', \Vich\UploaderBundle\Form\Type\VichImageType::class, [
+                'label' => 'Photo de profil',
+                'required' => false,
+                'allow_delete' => true,
+                'download_uri' => true,
+                'image_uri' => true,
                 'attr' => ['class' => 'form-control']
             ]);
     }

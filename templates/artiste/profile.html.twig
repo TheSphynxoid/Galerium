@@ -16,8 +16,8 @@
                 {% endif %}
                 <h4>{{ artiste.prenom }} {{ artiste.nom }}</h4>
                 <p class="text-muted">{{ artiste.email }}</p>
-                {% if artiste.specialite %}
-                    <p><strong>Spécialité:</strong> {{ artiste.specialite }}</p>
+                {% if artiste.specialty %}
+                    <p><strong>Spécialité:</strong> {{ artiste.specialty }}</p>
                 {% endif %}
             </div>
         </div>
@@ -30,13 +30,13 @@
             <div class="card-body">
                 {{ form_start(profileForm, {'attr': {'enctype': 'multipart/form-data'}}) }}
                     <div class="mb-3">
-                        {{ form_row(profileForm.specialite) }}
+                        {{ form_row(profileForm.specialty) }}
                     </div>
                     <div class="mb-3">
-                        {{ form_row(profileForm.biographie) }}
+                        {{ form_row(profileForm.biography) }}
                     </div>
                     <div class="mb-3">
-                        {{ form_row(profileForm.siteWeb) }}
+                        {{ form_row(profileForm.website) }}
                     </div>
                     <div class="mb-3">
                         {{ form_row(profileForm.reseauxSociaux) }}

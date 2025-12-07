@@ -2,11 +2,13 @@
 
 namespace App\Entity;
 
+use App\Entity\Artiste;
+use App\Repository\UtilisateurRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: UtilisateurRepository::class)]
 #[ORM\Table(name: 'utilisateur')]
 class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
 {
@@ -35,9 +37,12 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(name: 'google_id', length: 255, nullable: true, unique: true)]
     private ?string $googleId = null;
-
+/////////////////////////
     #[ORM\Column(name: 'avatar_url', length: 500, nullable: true)]
     private ?string $avatarUrl = null;
+///////////////////////////////////
+    #[ORM\OneToOne(mappedBy: 'user', cascade: ['persist', 'remove'])]
+    private ?Artiste $artiste = null;
 
     public function getId(): ?int
     {
@@ -148,6 +153,23 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     public function setAvatarUrl(?string $avatarUrl): self
     {
         $this->avatarUrl = $avatarUrl;
+        return $this;
+    }
+
+    public function getArtiste(): ?Artiste
+    {
+        return $this->artiste;
+    }
+
+    public function setArtiste(Artiste $artiste): self
+    {
+        // set the owning side of the relation if necessary
+        if ($artiste->getUser() !== $this) {
+            $artiste->setUser($this);
+        }
+
+        $this->artiste = $artiste;
+
         return $this;
     }
 }

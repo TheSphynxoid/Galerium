@@ -59,7 +59,11 @@ class AuthController extends AbstractController
             $prenom = trim($request->request->get('prenom', ''));
             $email = strtolower(trim($request->request->get('email', '')));
             $password = trim($request->request->get('password', ''));
-            $role = 'VISITEUR';
+            $role = strtoupper(trim($request->request->get('role', 'VISITEUR')));
+            
+            if (!in_array($role, ['VISITEUR', 'ARTISTE', 'JURY'])) {
+                $role = 'VISITEUR';
+            }
 
             if (empty($nom) || empty($prenom) || empty($email) || empty($password)) {
                 $error = 'Tous les champs sont obligatoires.';
@@ -185,7 +189,7 @@ class AuthController extends AbstractController
     {
         return match (strtoupper($role)) {
             'JURY' => $this->redirectToRoute('app_jury'),
-            'ARTISTE' => $this->redirectToRoute('app_artiste'),
+            'ARTISTE' => $this->redirectToRoute('app_artiste_profile'),
             'VISITEUR' => $this->redirectToRoute('app_visiteur'),
             'ADMIN' => $this->redirectToRoute('app_admin'),
             default => $this->redirectToRoute('app_login'),

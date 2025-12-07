@@ -8,9 +8,12 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\HttpFoundation\File\File;
+use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
 #[ORM\Entity(repositoryClass: OeuvreRepository::class)]
 #[ORM\HasLifecycleCallbacks]
+#[Vich\Uploadable]
 class Oeuvre
 {
     public const STATUS_DRAFT = 'draft';
@@ -55,6 +58,12 @@ class Oeuvre
     #[ORM\Column(length: 255)]
     private ?string $imagePath = null;
 
+    #[Vich\UploadableField(mapping: 'oeuvres_images', fileNameProperty: 'imagePath', size: 'imageSize')]
+    private ?File $imageFile = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $imageSize = null;
+
     #[ORM\Column(length: 40)]
     #[Assert\NotBlank(message: "Le statut est obligatoire")]
     #[Assert\Choice(
@@ -75,13 +84,7 @@ class Oeuvre
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $publishedAt = null;
 
-    #[ORM\ManyToMany(targetEntity: Categorie::class, inversedBy: 'oeuvres')]
-    #[ORM\JoinTable(name: 'oeuvre_categories')]
-    #[Assert\Count(
-        min: 1,
-        minMessage: "Veuillez sélectionner au moins une catégorie"
-    )]
-    private Collection $categories;
+
 
     #[ORM\OneToMany(mappedBy: 'oeuvre', targetEntity: Participation::class)]
     private Collection $participations;
@@ -95,12 +98,26 @@ class Oeuvre
     #[ORM\Column(options: ['default' => 0])]
     private int $favoritesCount = 0;
 
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 2, nullable: true)]
+    #[Assert\PositiveOrZero(message: "Le prix ne peut pas être négatif")]
+    private ?float $price = null;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
-        $this->categories = new ArrayCollection();
         $this->participations = new ArrayCollection();
+    }
+
+    #[ORM\PrePersist]
+    public function generateSlug(): void
+    {
+        if (empty($this->slug) && !empty($this->title)) {
+            // Generate a URL-friendly slug from the title
+            $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $this->title), '-'));
+            // Add a unique identifier to ensure uniqueness
+            $this->slug = $slug . '-' . uniqid();
+        }
     }
 
     #[ORM\PreUpdate]
@@ -169,6 +186,29 @@ class Oeuvre
         return $this;
     }
 
+    public function setImageFile(?File $imageFile = null): void
+    {
+        $this->imageFile = $imageFile;
+        if (null !== $imageFile) {
+            $this->updatedAt = new \DateTimeImmutable();
+        }
+    }
+
+    public function getImageFile(): ?File
+    {
+        return $this->imageFile;
+    }
+
+    public function setImageSize(?int $imageSize): void
+    {
+        $this->imageSize = $imageSize;
+    }
+
+    public function getImageSize(): ?int
+    {
+        return $this->imageSize;
+    }
+
     public function getStatus(): string
     {
         return $this->status;
@@ -212,24 +252,7 @@ class Oeuvre
         return $this;
     }
 
-    public function getCategories(): Collection
-    {
-        return $this->categories;
-    }
 
-    public function addCategory(Categorie $category): static
-    {
-        if (!$this->categories->contains($category)) {
-            $this->categories->add($category);
-        }
-        return $this;
-    }
-
-    public function removeCategory(Categorie $category): static
-    {
-        $this->categories->removeElement($category);
-        return $this;
-    }
 
     public function getParticipations(): Collection
     {
@@ -283,11 +306,21 @@ class Oeuvre
     public function setFavoritesCount(int $favoritesCount): static
     {
         $this->favoritesCount = $favoritesCount;
-        return $this;
     }
 
     public function getFavoritesCount(): int
     {
         return $this->favoritesCount;
+    }
+
+    public function getPrice(): ?float
+    {
+        return $this->price;
+    }
+
+    public function setPrice(?float $price): static
+    {
+        $this->price = $price;
+        return $this;
     }
 }
