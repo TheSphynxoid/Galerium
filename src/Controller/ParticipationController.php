@@ -8,6 +8,7 @@ use App\Form\ParticipationEditType;
 use App\Repository\ParticipationRepository;
 use App\Repository\ConcoursRepository;
 use App\Repository\UtilisateurRepository;
+use App\Repository\OeuvreRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -34,7 +35,8 @@ final class ParticipationController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
         ConcoursRepository $concoursRepository,
-        UtilisateurRepository $userRepository
+        UtilisateurRepository $userRepository,
+        OeuvreRepository $oeuvreRepository
     ): Response {
         // Vérifier que l'utilisateur est connecté
         $session = $request->getSession();
@@ -80,10 +82,14 @@ final class ParticipationController extends AbstractController
             return $this->redirectToRoute('app_participation_index');
         }
 
+        // Récupérer les œuvres de l'artiste pour l'affichage visuel
+        $oeuvres = $oeuvreRepository->findByArtiste($artiste);
+
         return $this->render('participation/new.html.twig', [
             'concours' => $concours,
             'participation' => $participation,
             'form' => $form->createView(),
+            'oeuvres' => $oeuvres,
         ]);
     }
 
