@@ -56,13 +56,9 @@
                     {% endif %}
                 </td>
                 <td>
-                    {% if p.oeuvre %}
-                        <span class="badge bg-success">
-                            <i class="bi bi-heart-fill"></i> {{ p.oeuvre.votesCount ?? 0 }} vote(s)
-                        </span>
-                    {% else %}
-                        <span class="badge bg-secondary">0 vote</span>
-                    {% endif %}
+                    <span class="badge bg-success">
+                        <i class="bi bi-heart-fill"></i> {{ votesCount[p.id] ?? 0 }} vote(s)
+                    </span>
                 </td>
                 <td>
                     <div style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">

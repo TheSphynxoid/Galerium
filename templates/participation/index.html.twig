@@ -11,7 +11,8 @@
                 <th>Id</th>
                 <th>Dateparticipation</th>
                 <th>Statut</th>
-                <th>Votepublic</th>
+                <th>Oeuvre</th>
+                <th>Votes</th>
                 <th>Description</th>
                 <th>Actions</th>
             </tr>
@@ -22,7 +23,18 @@
                 <td>{{ participation.id }}</td>
                 <td>{{ participation.dateparticipation ? participation.dateparticipation|date('Y-m-d H:i:s') : '' }}</td>
                 <td>{{ participation.statut }}</td>
-                <td>{{ participation.votepublic }}</td>
+                <td>
+                    {% if participation.oeuvre %}
+                        {{ participation.oeuvre.title }}
+                    {% else %}
+                        <span class="text-muted">Aucune œuvre</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <span class="badge bg-success">
+                        <i class="bi bi-heart-fill"></i> {{ votesCount[participation.id] ?? 0 }} vote(s)
+                    </span>
+                </td>
                 <td>{{ participation.description }}</td>
                 <td>
                     <a href="{{ path('app_participation_show', {'id': participation.id}) }}" class="btn btn-sm btn-info">Voir</a>
@@ -31,7 +43,7 @@
             </tr>
         {% else %}
             <tr>
-                <td colspan="6">no records found</td>
+                <td colspan="7">no records found</td>
             </tr>
         {% endfor %}
         </tbody>

@@ -39,12 +39,14 @@ class VoteRepository extends ServiceEntityRepository
      */
     public function countVotesForParticipation($participation): int
     {
-        return $this->createQueryBuilder('v')
+        $result = $this->createQueryBuilder('v')
             ->select('COUNT(v.id)')
             ->where('v.participation = :participation')
             ->setParameter('participation', $participation)
             ->getQuery()
             ->getSingleScalarResult();
+        
+        return (int) $result;
     }
 }
 

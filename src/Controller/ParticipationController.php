@@ -10,6 +10,7 @@ use App\Repository\ParticipationRepository;
 use App\Repository\ConcoursRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\OeuvreRepository;
+use App\Repository\VoteRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -22,11 +23,21 @@ final class ParticipationController extends AbstractController
     #[Route(name: 'app_participation_index', methods: ['GET'])]
     public function index(
         ParticipationRepository $participationRepository,
-        ConcoursRepository $concoursRepository
+        ConcoursRepository $concoursRepository,
+        VoteRepository $voteRepository
     ): Response {
+        $participations = $participationRepository->findAll();
+        
+        // Compter les votes pour chaque participation depuis la base de données
+        $votesCount = [];
+        foreach ($participations as $participation) {
+            $votesCount[$participation->getId()] = $voteRepository->countVotesForParticipation($participation);
+        }
+        
         return $this->render('participation/index.html.twig', [
-            'participations' => $participationRepository->findAll(),
+            'participations' => $participations,
             'concoursList' => $concoursRepository->findAll(),
+            'votesCount' => $votesCount,
         ]);
     }
 
@@ -95,10 +106,16 @@ final class ParticipationController extends AbstractController
     }
 
     #[Route('/{id<\d+>}', name: 'app_participation_show', methods: ['GET'])]
-    public function show(Participation $participation): Response
-    {
+    public function show(
+        Participation $participation,
+        VoteRepository $voteRepository
+    ): Response {
+        // Compter les votes pour cette participation depuis la base de données
+        $votesCount = $voteRepository->countVotesForParticipation($participation);
+        
         return $this->render('participation/show.html.twig', [
             'participation' => $participation,
+            'votesCount' => $votesCount,
         ]);
     }
 
@@ -193,7 +210,8 @@ final class ParticipationController extends AbstractController
 public function myParticipations(
     Request $request,
     ParticipationRepository $participationRepository,
-    UtilisateurRepository $userRepository
+    UtilisateurRepository $userRepository,
+    VoteRepository $voteRepository
 ): Response {
     // Vérifier la session
     $session = $request->getSession();
@@ -218,8 +236,15 @@ public function myParticipations(
     // 🔥 Récupérer les participations via l'œuvre de l'artiste
     $participations = $participationRepository->findByArtiste($artiste);
 
+    // Compter les votes pour chaque participation depuis la base de données
+    $votesCount = [];
+    foreach ($participations as $participation) {
+        $votesCount[$participation->getId()] = $voteRepository->countVotesForParticipation($participation);
+    }
+
     return $this->render('participation/my.html.twig', [
         'participations' => $participations,
+        'votesCount' => $votesCount,
     ]);
 }
 

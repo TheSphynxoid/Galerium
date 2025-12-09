@@ -20,8 +20,40 @@
                 <td>{{ participation.statut }}</td>
             </tr>
             <tr>
-                <th>Votepublic</th>
-                <td>{{ participation.votepublic }}</td>
+                <th>Oeuvre</th>
+                <td>
+                    {% if participation.oeuvre %}
+                        <div class="d-flex align-items-center">
+                            {% if participation.oeuvre.imagePath %}
+                                <img src="{{ vich_uploader_asset(participation.oeuvre, 'imageFile') }}" 
+                                     alt="{{ participation.oeuvre.title }}" 
+                                     class="img-thumbnail me-2" 
+                                     style="max-width: 100px; max-height: 100px; object-fit: cover;">
+                            {% endif %}
+                            <div>
+                                <strong>{{ participation.oeuvre.title }}</strong>
+                            </div>
+                        </div>
+                    {% else %}
+                        <span class="text-muted">Aucune œuvre</span>
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <th>Nombre de votes</th>
+                <td>
+                    <span class="badge bg-success">
+                        <i class="bi bi-heart-fill"></i> {{ votesCount ?? 0 }} vote(s)
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <th>Vote public activé</th>
+                <td>
+                    <span class="badge {{ participation.votepublic ? 'bg-success' : 'bg-secondary' }}">
+                        {{ participation.votepublic ? 'Oui' : 'Non' }}
+                    </span>
+                </td>
             </tr>
             <tr>
                 <th>Description</th>

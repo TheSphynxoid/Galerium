@@ -183,14 +183,10 @@ public function visiteurOeuvres(
         }
     }
 
-    // Compter les votes pour chaque participation (utiliser le compteur de l'œuvre)
+    // Compter les votes pour chaque participation depuis la base de données
     $votesCount = [];
     foreach ($participations as $participation) {
-        if ($participation->getOeuvre()) {
-            $votesCount[$participation->getId()] = $participation->getOeuvre()->getVotesCount() ?? 0;
-        } else {
-            $votesCount[$participation->getId()] = 0;
-        }
+        $votesCount[$participation->getId()] = $voteRepository->countVotesForParticipation($participation);
     }
 
     return $this->render('concours/visiteur_oeuvres.html.twig', [
@@ -267,14 +263,19 @@ public function voter(
     $vote->setDateVote(new \DateTime());
 
     $entityManager->persist($vote);
+    $entityManager->flush();
 
-    // Incrémenter le compteur de votes de l'œuvre
+    // Synchroniser le compteur de votes de l'œuvre avec le nombre réel de votes
     $oeuvre = $participation->getOeuvre();
     if ($oeuvre) {
-        $oeuvre->setVotesCount($oeuvre->getVotesCount() + 1);
+        // Compter tous les votes pour cette œuvre (toutes participations confondues)
+        $totalVotes = 0;
+        foreach ($oeuvre->getParticipations() as $part) {
+            $totalVotes += $voteRepository->countVotesForParticipation($part);
+        }
+        $oeuvre->setVotesCount($totalVotes);
+        $entityManager->flush();
     }
-
-    $entityManager->flush();
 
     $this->addFlash('success', 'Votre vote a été enregistré avec succès !');
     return $this->redirectToRoute('app_concours_visiteur_oeuvres', ['id' => $concours->getId()]);
