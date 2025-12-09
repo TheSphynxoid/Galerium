@@ -1,0 +1,100 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Oeuvres du concours - {{ concours.titre }}{% endblock %}
+
+{% block body %}
+<section class="py-5 my-5">
+    <div class="container">
+        <div class="mb-4">
+            <a href="{{ path('app_concours_visiteur_index') }}" class="btn btn-secondary mb-3">
+                ← Retour aux concours
+            </a>
+            <h1 class="h3 text-danger mb-2">{{ concours.titre }}</h1>
+            <p class="text-muted">{{ concours.description }}</p>
+        </div>
+
+        {% if hasVoted %}
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i> Vous avez déjà voté pour ce concours.
+                {% if votedParticipation and votedParticipation.oeuvre %}
+                    Vous avez voté pour : <strong>{{ votedParticipation.oeuvre.title }}</strong>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        {% if participations is empty %}
+            <div class="alert alert-warning text-center">
+                Aucune œuvre n'a été ajoutée à ce concours pour le moment.
+            </div>
+        {% else %}
+            <div class="row g-4">
+                {% for participation in participations %}
+                    {% if participation.oeuvre %}
+                        <div class="col-12 col-md-6 col-lg-4">
+                            <div class="card shadow-sm h-100">
+                                {% if participation.oeuvre.imagePath %}
+                                    <img src="{{ vich_uploader_asset(participation.oeuvre, 'imageFile') }}" 
+                                         alt="{{ participation.oeuvre.title }}" 
+                                         class="card-img-top" 
+                                         style="height: 250px; object-fit: cover;">
+                                {% else %}
+                                    <div class="bg-secondary text-white d-flex align-items-center justify-content-center" 
+                                         style="height: 250px;">
+                                        <small>Pas d'image</small>
+                                    </div>
+                                {% endif %}
+                                <div class="card-body d-flex flex-column">
+                                    <h5 class="card-title">{{ participation.oeuvre.title }}</h5>
+                                    <p class="card-text flex-grow-1">
+                                        <small class="text-muted">{{ participation.description|slice(0, 100) }}{% if participation.description|length > 100 %}...{% endif %}</small>
+                                    </p>
+                                    <div class="mt-auto">
+                                        <div class="mb-2">
+                                            <span class="badge bg-primary">
+                                                <i class="bi bi-heart-fill"></i> {{ votesCount[participation.id] ?? 0 }} vote(s)
+                                            </span>
+                                        </div>
+                                        {% if not isConnected %}
+                                            <a href="{{ path('app_login') }}" class="btn btn-warning w-100">
+                                                <i class="bi bi-box-arrow-in-right"></i> Connectez-vous pour voter
+                                            </a>
+                                        {% elseif not hasVoted %}
+                                            <form method="post" action="{{ path('app_concours_visiteur_voter', {'id': concours.id, 'participationId': participation.id}) }}" 
+                                                  onsubmit="return confirm('Êtes-vous sûr de vouloir voter pour cette œuvre ?');">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('vote_' ~ participation.id) }}">
+                                                <button type="submit" class="btn btn-success w-100">
+                                                    <i class="bi bi-hand-thumbs-up"></i> Voter
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                            <button type="button" class="btn btn-secondary w-100" disabled>
+                                                {% if votedParticipation and votedParticipation.id == participation.id %}
+                                                    <i class="bi bi-check-circle"></i> Vous avez voté
+                                                {% else %}
+                                                    <i class="bi bi-lock"></i> Vote déjà effectué
+                                                {% endif %}
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<style>
+    .card {
+        border: 2px solid #e0e0e0;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+</style>
+{% endblock %}
+

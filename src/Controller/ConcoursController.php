@@ -3,8 +3,12 @@
 namespace App\Controller;
 
 use App\Entity\Concours;
+use App\Entity\Vote;
 use App\Form\ConcoursType;
 use App\Repository\ConcoursRepository;
+use App\Repository\ParticipationRepository;
+use App\Repository\VoteRepository;
+use App\Repository\UtilisateurRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -136,6 +140,144 @@ public function visiteur(Request $request, ConcoursRepository $concoursRepositor
         'concours' => $concours,
         'title' => $title,
     ]);
+}
+
+#[Route('/visiteur/{id<\d+>}/oeuvres', name: 'app_concours_visiteur_oeuvres', methods: ['GET'])]
+public function visiteurOeuvres(
+    Concours $concours,
+    Request $request,
+    ParticipationRepository $participationRepository,
+    VoteRepository $voteRepository,
+    UtilisateurRepository $userRepository
+): Response {
+    // Récupérer toutes les participations de ce concours
+    $participations = $participationRepository->createQueryBuilder('p')
+        ->innerJoin('p.concours', 'c')
+        ->where('c.id = :concoursId')
+        ->setParameter('concoursId', $concours->getId())
+        ->getQuery()
+        ->getResult();
+
+    // Vérifier si l'utilisateur a déjà voté
+    $hasVoted = false;
+    $votedParticipation = null;
+    $isConnected = false;
+    $session = $request->getSession();
+    if ($session->has('user_id')) {
+        $user = $userRepository->find($session->get('user_id'));
+        if ($user) {
+            $isConnected = true;
+            $hasVoted = $voteRepository->hasVoted($user, $concours);
+            if ($hasVoted) {
+                $vote = $voteRepository->createQueryBuilder('v')
+                    ->where('v.visiteur = :visiteur')
+                    ->andWhere('v.concours = :concours')
+                    ->setParameter('visiteur', $user)
+                    ->setParameter('concours', $concours)
+                    ->getQuery()
+                    ->getOneOrNullResult();
+                if ($vote) {
+                    $votedParticipation = $vote->getParticipation();
+                }
+            }
+        }
+    }
+
+    // Compter les votes pour chaque participation (utiliser le compteur de l'œuvre)
+    $votesCount = [];
+    foreach ($participations as $participation) {
+        if ($participation->getOeuvre()) {
+            $votesCount[$participation->getId()] = $participation->getOeuvre()->getVotesCount() ?? 0;
+        } else {
+            $votesCount[$participation->getId()] = 0;
+        }
+    }
+
+    return $this->render('concours/visiteur_oeuvres.html.twig', [
+        'concours' => $concours,
+        'participations' => $participations,
+        'hasVoted' => $hasVoted,
+        'votedParticipation' => $votedParticipation,
+        'votesCount' => $votesCount,
+        'isConnected' => $isConnected,
+    ]);
+}
+
+#[Route('/visiteur/{id<\d+>}/voter/{participationId<\d+>}', name: 'app_concours_visiteur_voter', methods: ['POST'])]
+public function voter(
+    Concours $concours,
+    int $participationId,
+    Request $request,
+    ParticipationRepository $participationRepository,
+    VoteRepository $voteRepository,
+    UtilisateurRepository $userRepository,
+    EntityManagerInterface $entityManager
+): Response {
+    // Vérifier la session
+    $session = $request->getSession();
+    if (!$session->has('user_id')) {
+        $this->addFlash('error', 'Vous devez être connecté pour voter.');
+        return $this->redirectToRoute('app_concours_visiteur_oeuvres', ['id' => $concours->getId()]);
+    }
+
+    $user = $userRepository->find($session->get('user_id'));
+    if (!$user) {
+        $this->addFlash('error', 'Utilisateur introuvable.');
+        return $this->redirectToRoute('app_concours_visiteur_oeuvres', ['id' => $concours->getId()]);
+    }
+
+    // Vérifier que l'utilisateur est un visiteur
+    if (!in_array('ROLE_VISITEUR', $user->getRoles())) {
+        $this->addFlash('error', 'Seuls les visiteurs peuvent voter.');
+        return $this->redirectToRoute('app_concours_visiteur_oeuvres', ['id' => $concours->getId()]);
+    }
+
+    // Vérifier si l'utilisateur a déjà voté pour ce concours
+    if ($voteRepository->hasVoted($user, $concours)) {
+        $this->addFlash('error', 'Vous avez déjà voté pour ce concours.');
+        return $this->redirectToRoute('app_concours_visiteur_oeuvres', ['id' => $concours->getId()]);
+    }
+
+    // Récupérer la participation
+    $participation = $participationRepository->find($participationId);
+    if (!$participation) {
+        $this->addFlash('error', 'Participation introuvable.');
+        return $this->redirectToRoute('app_concours_visiteur_oeuvres', ['id' => $concours->getId()]);
+    }
+
+    // Vérifier que la participation appartient au concours
+    $participationConcours = $participation->getConcours();
+    if (!$participationConcours->contains($concours)) {
+        $this->addFlash('error', 'Cette participation n\'appartient pas à ce concours.');
+        return $this->redirectToRoute('app_concours_visiteur_oeuvres', ['id' => $concours->getId()]);
+    }
+
+    // Vérifier le token CSRF
+    $token = $request->request->get('_token');
+    if (!$this->isCsrfTokenValid('vote_' . $participationId, $token)) {
+        $this->addFlash('error', 'Token de sécurité invalide.');
+        return $this->redirectToRoute('app_concours_visiteur_oeuvres', ['id' => $concours->getId()]);
+    }
+
+    // Créer le vote
+    $vote = new Vote();
+    $vote->setVisiteur($user);
+    $vote->setParticipation($participation);
+    $vote->setConcours($concours);
+    $vote->setDateVote(new \DateTime());
+
+    $entityManager->persist($vote);
+
+    // Incrémenter le compteur de votes de l'œuvre
+    $oeuvre = $participation->getOeuvre();
+    if ($oeuvre) {
+        $oeuvre->setVotesCount($oeuvre->getVotesCount() + 1);
+    }
+
+    $entityManager->flush();
+
+    $this->addFlash('success', 'Votre vote a été enregistré avec succès !');
+    return $this->redirectToRoute('app_concours_visiteur_oeuvres', ['id' => $concours->getId()]);
 }
 
 
