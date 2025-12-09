@@ -36,6 +36,11 @@ class UtilisateurType extends AbstractType
             ->add('prenom', TextType::class, [
                 'label' => 'Prénom'
             ])
+
+            ->add('telephone', TextType::class, [
+                'label' => 'Téléphone'
+            ]) 
+
             ->add('role', ChoiceType::class, [
                 'label' => 'Rôle',
                 'choices' => [
