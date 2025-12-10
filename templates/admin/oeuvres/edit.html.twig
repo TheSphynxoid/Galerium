@@ -1,0 +1,39 @@
+{% extends 'backoffice.html.twig' %}
+
+{% block title %}Modifier l'œuvre{% endblock %}
+
+{% block page_title %}Modifier l'œuvre : {{ oeuvre.title }}{% endblock %}
+
+{% block body %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body">
+                {{ form_start(form) }}
+                
+                <div class="row g-3">
+                    <div class="col-12 text-center mb-4">
+                        {% if oeuvre.imagePath %}
+                            <img src="{{ vich_uploader_asset(oeuvre, 'imageFile') }}" 
+                                 alt="{{ oeuvre.title }}" 
+                                 class="img-fluid rounded shadow-sm"
+                                 style="max-height: 200px;">
+                        {% endif %}
+                    </div>
+
+                    <div class="col-12">
+                        {{ form_widget(form) }}
+                    </div>
+
+                    <div class="col-12 d-flex justify-content-end gap-2 mt-4">
+                        <a href="{{ path('app_admin_oeuvre_list') }}" class="btn btn-secondary">Annuler</a>
+                        <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+                    </div>
+                </div>
+
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

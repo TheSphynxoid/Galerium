@@ -57,6 +57,10 @@ class Artiste
     #[ORM\Column(length: 255, nullable: true)]
     #[Assert\NotBlank(message: "Le site web est obligatoire")]
     #[Assert\Url(message: "Veuillez saisir une URL valide pour le site web")]
+    #[Assert\Regex(
+        pattern: '/^https?:\/\/.+/',
+        message: "L'URL doit commencer par http:// ou https://"
+    )]
     #[Assert\Length(
         max: 255,
         maxMessage: "L'URL du site ne peut pas dépasser {{ limit }} caractères"
@@ -91,12 +95,24 @@ class Artiste
 
     // Réseaux sociaux (facultatif mais validé en URL)
     #[Assert\Url(message: "Veuillez saisir une URL valide pour Facebook")]
+    #[Assert\Regex(
+        pattern: '/^https?:\/\/.+/',
+        message: "L'URL Facebook doit commencer par http:// ou https://"
+    )]
     private ?string $facebook = null;
 
     #[Assert\Url(message: "Veuillez saisir une URL valide pour Instagram")]
+    #[Assert\Regex(
+        pattern: '/^https?:\/\/.+/',
+        message: "L'URL Instagram doit commencer par http:// ou https://"
+    )]
     private ?string $instagram = null;
 
     #[Assert\Url(message: "Veuillez saisir une URL valide pour Behance")]
+    #[Assert\Regex(
+        pattern: '/^https?:\/\/.+/',
+        message: "L'URL Behance doit commencer par http:// ou https://"
+    )]
     private ?string $behance = null;
 
     public function __construct()
@@ -249,4 +265,16 @@ class Artiste
     public function getBehance(): ?string { return $this->behance ?? ($this->socialLinks['behance'] ?? null); }
 
     public function setBehance(?string $behance): static { $this->behance = $behance; return $this; }
+    #[ORM\Column(options: ['default' => 0])]
+    private int $viewsCount = 0;
+
+    public function getViewsCount(): int { return $this->viewsCount; }
+
+    public function setViewsCount(int $viewsCount): static { $this->viewsCount = $viewsCount; return $this; }
+
+    public function incrementViews(): static
+    {
+        $this->viewsCount++;
+        return $this;
+    }
 }

@@ -1,90 +1,102 @@
-{% extends 'admin/base.html.twig' %}
+{% extends 'backoffice.html.twig' %}
 
-{% block page_title %}Modération des Œuvres{% endblock %}
+{% block title %}Gestion des Œuvres{% endblock %}
+
+{% block page_title %}Gestion des Œuvres{% endblock %}
 
 {% block body %}
-<div class="d-flex justify-content-between mb-4">
-    <h2>Liste des Œuvres</h2>
+<div class="mb-4">
+    <form method="get" class="row g-3">
+        <div class="col-md-10">
+            <input type="text" name="search" class="form-control" placeholder="Rechercher une œuvre..." value="{{ app.request.get('search') }}">
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search"></i> Rechercher</button>
+        </div>
+    </form>
 </div>
 
-<form method="GET" class="mb-4">
-    <div class="input-group">
-        <select name="statut" class="form-select">
-            <option value="">Tous les statuts</option>
-            <option value="en_attente" {% if statut == 'en_attente' %}selected{% endif %}>En attente</option>
-            <option value="publiee" {% if statut == 'publiee' %}selected{% endif %}>Publiée</option>
-            <option value="refusee" {% if statut == 'refusee' %}selected{% endif %}>Refusée</option>
-            <option value="masquee" {% if statut == 'masquee' %}selected{% endif %}>Masquée</option>
-        </select>
-        <button class="btn btn-outline-secondary" type="submit">
-            <i class="bi bi-filter"></i> Filtrer
-        </button>
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Liste des Œuvres ({{ oeuvres|length }})</h5>
     </div>
-</form>
-
-<div class="table-responsive">
-    <table class="table table-striped table-hover">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Titre</th>
-                <th>Artiste</th>
-                <th>Catégorie</th>
-                <th>Statut</th>
-                <th>Votes</th>
-                <th>Commentaires</th>
-                <th>Date</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for oeuvre in oeuvres %}
-            <tr>
-                <td>{{ oeuvre.id }}</td>
-                <td>{{ oeuvre.titre }}</td>
-                <td><a href="{{ path('admin_artistes_show', {id: oeuvre.artiste.id}) }}">{{ oeuvre.artiste.getFullName }}</a></td>
-                <td>{{ oeuvre.categorie ?? '-' }}</td>
-                <td>
-                    <span class="badge bg-{{ oeuvre.statut == 'publiee' ? 'success' : (oeuvre.statut == 'refusee' ? 'danger' : (oeuvre.statut == 'masquee' ? 'secondary' : 'warning')) }}">
-                        {{ oeuvre.statut }}
-                    </span>
-                </td>
-                <td>{{ oeuvre.nbVotes }}</td>
-                <td>{{ oeuvre.nbCommentaires }}</td>
-                <td>{{ oeuvre.createdAt|date('d/m/Y') }}</td>
-                <td>
-                    <div class="btn-group" role="group">
-                        <a href="{{ path('admin_oeuvres_show', {id: oeuvre.id}) }}" class="btn btn-sm btn-info">
-                            <i class="bi bi-eye"></i>
-                        </a>
-                        {% if oeuvre.statut != 'publiee' %}
-                            <form method="POST" action="{{ path('admin_oeuvres_validate', {id: oeuvre.id}) }}" class="d-inline">
-                                <input type="hidden" name="_token" value="{{ csrf_token('validate_oeuvre' ~ oeuvre.id) }}">
-                                <button type="submit" class="btn btn-sm btn-success">
-                                    <i class="bi bi-check-circle"></i>
-                                </button>
-                            </form>
-                        {% endif %}
-                        {% if oeuvre.statut != 'refusee' %}
-                            <form method="POST" action="{{ path('admin_oeuvres_reject', {id: oeuvre.id}) }}" class="d-inline">
-                                <input type="hidden" name="_token" value="{{ csrf_token('reject_oeuvre' ~ oeuvre.id) }}">
-                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir refuser cette œuvre ?')">
-                                    <i class="bi bi-x-circle"></i>
-                                </button>
-                            </form>
-                        {% endif %}
-                    </div>
-                </td>
-            </tr>
-            {% else %}
-            <tr>
-                <td colspan="9" class="text-center">Aucune œuvre trouvée</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="card-body">
+        {% if oeuvres is empty %}
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i> Aucune œuvre trouvée.
+            </div>
+        {% else %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Image</th>
+                            <th>Titre</th>
+                            <th>Artiste</th>
+                            <th>Prix</th>
+                            <th>Statut</th>
+                            <th>Date création</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for oeuvre in oeuvres %}
+                            <tr>
+                                <td>{{ oeuvre.id }}</td>
+                                <td>
+                                    {% if oeuvre.imagePath %}
+                                        <img src="{{ vich_uploader_asset(oeuvre, 'imageFile') }}" 
+                                             alt="{{ oeuvre.title }}" 
+                                             class="img-thumbnail"
+                                             style="width: 50px; height: 50px; object-fit: cover;">
+                                    {% else %}
+                                        <span class="badge bg-secondary">No img</span>
+                                    {% endif %}
+                                </td>
+                                <td><strong>{{ oeuvre.title }}</strong></td>
+                                <td>
+                                    {% if oeuvre.artiste %}
+                                        <a href="{{ path('app_admin_artiste_show', {id: oeuvre.artiste.id}) }}">
+                                            {{ oeuvre.artiste.displayName }}
+                                        </a>
+                                    {% else %}
+                                        <span class="text-muted">Inconnu</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ oeuvre.price }} €</td>
+                                <td>
+                                    {% if oeuvre.status == 'PUBLIC' %}
+                                        <span class="badge bg-success">Public</span>
+                                    {% elseif oeuvre.status == 'ARCHIVED' %}
+                                        <span class="badge bg-warning">Archivé</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ oeuvre.status }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ oeuvre.createdAt|date('d/m/Y') }}</td>
+                                <td class="text-end">
+                                    <a href="{{ path('app_admin_oeuvre_edit', {id: oeuvre.id}) }}" 
+                                       class="btn btn-sm btn-warning" 
+                                       title="Modifier">
+                                        <i class="bi bi-pencil"></i> Modifier
+                                    </a>
+                                    <form method="post" 
+                                          action="{{ path('app_admin_oeuvre_delete', {id: oeuvre.id}) }}" 
+                                          style="display: inline;"
+                                          onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette œuvre ?');">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ oeuvre.id) }}">
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Supprimer">
+                                            <i class="bi bi-trash"></i> Supprimer
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}
-
-
-

@@ -89,16 +89,15 @@
             <li class="nav-item"><a class="nav-link" href="base/tooltips.html"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Tooltips</a></li>
           </ul>
         </li>
-        <li class="nav-group"><a class="nav-link nav-group-toggle" href="#">
+        <li class="nav-title">Administration</li>
+        <li class="nav-item"><a class="nav-link" href="{{ path('app_admin_artiste_list') }}">
             <svg class="nav-icon">
-              <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-star"></use>
-            </svg> Icons</a>
-          <ul class="nav-group-items compact">
-            <li class="nav-item"><a class="nav-link" href="icons/coreui-icons-free.html"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> CoreUI Icons<span class="badge badge-sm bg-success ms-auto">Free</span></a></li>
-            <li class="nav-item"><a class="nav-link" href="icons/coreui-icons-brand.html"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> CoreUI Icons - Brand</a></li>
-            <li class="nav-item"><a class="nav-link" href="icons/coreui-icons-flag.html"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> CoreUI Icons - Flag</a></li>
-          </ul>
-        </li>
+              <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-people"></use>
+            </svg> Gérer Artistes</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ path('app_admin_oeuvre_list') }}">
+            <svg class="nav-icon">
+              <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-paint"></use>
+            </svg> Gérer Œuvres</a></li>
         <li class="nav-divider"></li>
         <li class="nav-title">Extras</li>
         <li class="nav-group"><a class="nav-link nav-group-toggle" href="#">

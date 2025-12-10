@@ -7,7 +7,6 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
-use Symfony\Component\Form\Extension\Core\Type\UrlType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\File;
@@ -32,25 +31,37 @@ class ArtisteProfileFormType extends AbstractType
                 'required' => false,
                 'attr' => ['class' => 'form-control', 'rows' => 5]
             ])
-            ->add('website', UrlType::class, [
+            ->add('website', TextType::class, [
                 'label' => 'Site web',
                 'required' => false,
-                'attr' => ['class' => 'form-control']
+                'attr' => [
+                    'class' => 'form-control',
+                    'placeholder' => 'https://exemple.com'
+                ]
             ])
-            ->add('facebook', UrlType::class, [
+            ->add('facebook', TextType::class, [
                 'label' => 'Facebook',
                 'required' => false,
-                'attr' => ['class' => 'form-control']
+                'attr' => [
+                    'class' => 'form-control',
+                    'placeholder' => 'https://facebook.com/...'
+                ]
             ])
-            ->add('instagram', UrlType::class, [
+            ->add('instagram', TextType::class, [
                 'label' => 'Instagram',
                 'required' => false,
-                'attr' => ['class' => 'form-control']
+                'attr' => [
+                    'class' => 'form-control',
+                    'placeholder' => 'https://instagram.com/...'
+                ]
             ])
-            ->add('behance', UrlType::class, [
+            ->add('behance', TextType::class, [
                 'label' => 'Behance',
                 'required' => false,
-                'attr' => ['class' => 'form-control']
+                'attr' => [
+                    'class' => 'form-control',
+                    'placeholder' => 'https://behance.net/...'
+                ]
             ])
             ->add('imageFile', \Vich\UploaderBundle\Form\Type\VichImageType::class, [
                 'label' => 'Photo de profil',

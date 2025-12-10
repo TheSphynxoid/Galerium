@@ -16,7 +16,7 @@ class ForumType extends AbstractType
             ->add('description')
             ->add('dateCreation')
             ->add('statut')
-            ->add('categorie')
+           // ->add('categorie')
         ;
     }
 

@@ -1,0 +1,25 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Paiement Réussi{% endblock %}
+
+{% block body %}
+<div class="container py-5 text-center">
+    <div class="card shadow border-0 d-inline-block p-5">
+        <div class="mb-4 text-success">
+            <i class="bi bi-check-circle-fill display-1"></i>
+        </div>
+        <h1 class="mb-3">Merci pour votre achat !</h1>
+        <p class="lead mb-4">L'acquisition de l'œuvre <strong>{{ oeuvre.title }}</strong> a été confirmée.</p>
+        
+        <div class="alert alert-light border d-inline-block text-start">
+            <p class="mb-1"><strong>Montant payé :</strong> {{ (oeuvre.price)|number_format(2, ',', ' ') }} TND</p>
+            <p class="mb-1 text-muted"><strong>Dont Commission Plateforme (20%) :</strong> {{ commission.montant|number_format(2, ',', ' ') }} TND</p>
+            <p class="mb-0"><strong>Numéro de transaction :</strong> #{{ commission.id }}</p>
+        </div>
+
+        <div class="mt-5">
+            <a href="{{ path('app_oeuvre_gallery') }}" class="btn btn-primary">Retour à la galerie</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

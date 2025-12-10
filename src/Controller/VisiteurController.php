@@ -12,6 +12,6 @@ class VisiteurController extends AbstractController
     #[Route('', name: 'app_visiteur')]
     public function index(): Response
     {
-        return $this->render('visiteur/index.html.twig');
+        return $this->redirectToRoute('app_oeuvre_gallery');
     }
 }

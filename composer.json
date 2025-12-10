@@ -21,6 +21,7 @@
         "phpstan/phpdoc-parser": "^2.3",
         "predis/predis": "^3.2",
         "snc/redis-bundle": "^4.10",
+        "stripe/stripe-php": "*",
         "symfony/asset": "6.4.*",
         "symfony/asset-mapper": "6.4.*",
         "symfony/console": "6.4.*",

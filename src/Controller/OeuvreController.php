@@ -242,11 +242,29 @@ class OeuvreController extends AbstractController
             );
         }
 
+        if ($request->isXmlHttpRequest() || $request->query->get('ajax')) {
+            $data = [];
+            foreach ($oeuvres as $oeuvre) {
+                $data[] = [
+                    'id' => $oeuvre->getId(),
+                    'title' => $oeuvre->getTitle(),
+                    'price' => $oeuvre->getPrice(),
+                    'imagePath' => $oeuvre->getImagePath() ? $oeuvre->getImagePath() : null,
+                    'artiste' => $oeuvre->getArtiste()->getDisplayName(),
+                    'views' => $oeuvre->getViewsCount(),
+                    'votes' => $oeuvre->getVotesCount()
+                ];
+            }
+            return $this->json($data);
+        }
+
         return $this->render('oeuvre/gallery.html.twig', [
             'oeuvres' => $oeuvres,
         ]);
     }
 }
+
+
 
 
 

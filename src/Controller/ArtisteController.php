@@ -122,7 +122,12 @@ class ArtisteController extends AbstractController
     public function show(
         Artiste $artiste,
         OeuvreRepository $oeuvreRepository,
+        EntityManagerInterface $entityManager
     ): Response {
+        // Increment views
+        $artiste->incrementViews();
+        $entityManager->flush();
+
         return $this->render('artiste/show.html.twig', [
             'artiste' => $artiste,
             'oeuvres' => $oeuvreRepository->findBy([
@@ -132,3 +137,4 @@ class ArtisteController extends AbstractController
         ]);
     }
 }
+

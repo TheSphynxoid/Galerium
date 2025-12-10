@@ -5,6 +5,13 @@
 {% block body %}
 <section id="galerie" class="py-5 bg-light">
     <div class="container">
+        <div class="row mb-4">
+            <div class="col-12">
+                <a href="{{ path('app_artiste_dashboard') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Retour au Dashboard
+                </a>
+            </div>
+        </div>
         <div class="row mb-5">
             <div class="col-12 text-center">
                 <h2 class="section-title display-4 fw-bold mb-3">Galerie d'Art</h2>
@@ -39,18 +46,20 @@
                     <div class="col-md-6 col-lg-4">
                         <div class="card border-0 shadow-sm h-100 overflow-hidden" style="transition: transform 0.3s ease, box-shadow 0.3s ease;">
                             <div class="position-relative overflow-hidden" style="height: 300px;">
-                                <img src="{{ vich_uploader_asset(oeuvre, 'imageFile') }}" 
-                                     class="w-100 h-100" 
-                                     alt="{{ oeuvre.title }}" 
-                                     style="object-fit: cover; transition: transform 0.3s ease;"
-                                     onmouseover="this.style.transform='scale(1.05)'"
-                                     onmouseout="this.style.transform='scale(1)'">
+                                <a href="{{ path('app_artiste_show', {id: oeuvre.artiste.id}) }}" class="d-block w-100 h-100">
+                                    <img src="{{ vich_uploader_asset(oeuvre, 'imageFile') }}" 
+                                         class="w-100 h-100" 
+                                         alt="{{ oeuvre.title }}" 
+                                         style="object-fit: cover; transition: transform 0.3s ease;"
+                                         onmouseover="this.style.transform='scale(1.05)'"
+                                         onmouseout="this.style.transform='scale(1)'">
+                                </a>
                                 <div class="position-absolute top-0 start-0 w-100 h-100" 
                                      style="background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.7) 100%);"></div>
                                 <div class="position-absolute bottom-0 start-0 p-3 text-white w-100">
                                     <h5 class="mb-1 fw-bold">{{ oeuvre.title }}</h5>
                                     <p class="mb-0 small opacity-75">
-                                        Par {{ oeuvre.artiste.displayName }}
+                                        Par <a href="{{ path('app_artiste_show', {id: oeuvre.artiste.id}) }}" class="text-white text-decoration-none hover-underline">{{ oeuvre.artiste.displayName }}</a>
                                     </p>
                                     {% if oeuvre.price %}
                                         <p class="mb-0 mt-1 fw-bold text-success" style="text-shadow: 0 1px 2px rgba(0,0,0,0.5);">
@@ -62,7 +71,11 @@
                             <div class="card-body">
                                 <p class="card-text text-muted small mb-2">
                                     <i class="bi bi-eye"></i> {{ oeuvre.viewsCount }} vues
-                                    <i class="bi bi-hand-thumbs-up ms-2"></i> {{ oeuvre.votesCount }} votes
+                                    <div class="mt-2">
+                                        <a href="{{ path('app_vente', {id: oeuvre.id}) }}" class="btn btn-sm btn-outline-success w-100">
+                                            <i class="bi bi-cart"></i> Acheter
+                                        </a>
+                                    </div>
                                 </p>
                             </div>
                         </div>
@@ -132,4 +145,3 @@
 }
 </style>
 {% endblock %}
-
