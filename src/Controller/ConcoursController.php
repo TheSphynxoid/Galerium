@@ -16,6 +16,11 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Dompdf\Dompdf;
 use Dompdf\Options;
+use Endroid\QrCode\Encoding\Encoding;
+use Endroid\QrCode\ErrorCorrectionLevel;
+use Endroid\QrCode\QrCode;
+use Endroid\QrCode\Writer\PngWriter;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 #[Route('/concours')]
 final class ConcoursController extends AbstractController
@@ -358,6 +363,48 @@ public function pdf(ConcoursRepository $concoursRepository): Response
         ]
     );
 }
+
+
+
+
+
+#[Route('/qrcode/liste', name: 'app_concours_qrcode_liste')]
+public function qrcodeListe(): Response
+{
+    // URL ABSOLUE
+    $url = $this->generateUrl('app_concours_visiteur_index', [], UrlGeneratorInterface::ABSOLUTE_URL);
+
+    // Génération QRCode (version Endroid 6.x)
+    $qrCode = new QrCode(
+        data: $url,
+        encoding: new Encoding('UTF-8'),
+        errorCorrectionLevel: ErrorCorrectionLevel::High,
+        size: 300,
+        margin: 20
+    );
+    
+    $writer = new PngWriter();
+    $result = $writer->write($qrCode);
+
+    return new Response(
+        $result->getString(),
+        200,
+        [
+            'Content-Type' => $result->getMimeType(),
+            'Cache-Control' => 'no-cache, no-store, must-revalidate'
+        ]
+    );
+}
+
+
+
+
+
+
+
+
+
+
 
 
 
