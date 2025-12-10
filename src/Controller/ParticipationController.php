@@ -11,6 +11,7 @@ use App\Repository\ConcoursRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\OeuvreRepository;
 use App\Repository\VoteRepository;
+use App\Service\MqttService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -48,7 +49,8 @@ final class ParticipationController extends AbstractController
         EntityManagerInterface $entityManager,
         ConcoursRepository $concoursRepository,
         UtilisateurRepository $userRepository,
-        OeuvreRepository $oeuvreRepository
+        OeuvreRepository $oeuvreRepository,
+        MqttService $mqttService
     ): Response {
         // Vérifier que l'utilisateur est connecté
         $session = $request->getSession();
@@ -89,6 +91,16 @@ final class ParticipationController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($participation);
             $entityManager->flush();
+
+            // Send MQTT message
+            $userPhone = $user->getTelephone();
+            if ($userPhone) {
+                $message = sprintf(
+                    "Votre participation au concours '%s' a été enregistrée avec succès. Merci pour votre participation !",
+                    $concours->getTitre()
+                );
+                $mqttService->sendSms($userPhone, $message);
+            }
 
             $this->addFlash("success", "Participation envoyée avec succès !");
             return $this->redirectToRoute('app_concours_artistev_index');
