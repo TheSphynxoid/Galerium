@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\ParticipationRepository;
+use App\Validator\Constraints\BadWords as BadWordsConstraint;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -34,6 +35,7 @@ class Participation
         max: 1000,
         maxMessage: "La description ne peut pas dépasser {{ limit }} caractères."
     )]
+    #[BadWordsConstraint]
     private ?string $description = null;
 
     /**
