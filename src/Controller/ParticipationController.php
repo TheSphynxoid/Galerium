@@ -213,7 +213,7 @@ final class ParticipationController extends AbstractController
             $entityManager->flush();
         }
 
-        return $this->redirectToRoute('app_participation_index');
+        return $this->redirectToRoute('app_participation_my');
     }
 
 
