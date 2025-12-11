@@ -131,11 +131,13 @@ public function visiteurOeuvres(
     VoteRepository $voteRepository,
     UtilisateurRepository $userRepository
 ): Response {
-    // Récupérer toutes les participations de ce concours
+    // Récupérer uniquement les participations acceptées de ce concours
     $participations = $participationRepository->createQueryBuilder('p')
         ->innerJoin('p.concours', 'c')
         ->where('c.id = :concoursId')
+        ->andWhere('p.statut = :statut')
         ->setParameter('concoursId', $concours->getId())
+        ->setParameter('statut', 'accepte')
         ->getQuery()
         ->getResult();
 
@@ -226,6 +228,12 @@ public function voter(
     $participationConcours = $participation->getConcours();
     if (!$participationConcours->contains($concours)) {
         $this->addFlash('error', 'Cette participation n\'appartient pas à ce concours.');
+        return $this->redirectToRoute('app_concours_visiteur_oeuvres', ['id' => $concours->getId()]);
+    }
+
+    // Vérifier que la participation est acceptée
+    if ($participation->getStatut() !== 'accepte') {
+        $this->addFlash('error', 'Seules les participations acceptées peuvent recevoir des votes.');
         return $this->redirectToRoute('app_concours_visiteur_oeuvres', ['id' => $concours->getId()]);
     }
 
