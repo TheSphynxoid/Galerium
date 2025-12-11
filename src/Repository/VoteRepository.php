@@ -48,5 +48,19 @@ class VoteRepository extends ServiceEntityRepository
         
         return (int) $result;
     }
+
+    /**
+     * Récupère le vote d'un visiteur pour un concours
+     */
+    public function findVoteByVisiteurAndConcours(Utilisateur $visiteur, Concours $concours): ?Vote
+    {
+        return $this->createQueryBuilder('v')
+            ->where('v.visiteur = :visiteur')
+            ->andWhere('v.concours = :concours')
+            ->setParameter('visiteur', $visiteur)
+            ->setParameter('concours', $concours)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }
 

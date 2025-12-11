@@ -13,11 +13,17 @@
             <p class="text-muted">{{ concours.description }}</p>
         </div>
 
+        {% if not concours.isVotePublic %}
+            <div class="alert alert-danger">
+                <i class="bi bi-lock-fill"></i> Vote concours fermé.
+            </div>
+        {% endif %}
+
         {% if hasVoted %}
             <div class="alert alert-info">
-                <i class="bi bi-info-circle"></i> Vous avez déjà voté pour ce concours.
+                <i class="bi bi-info-circle"></i> Vous avez déjà voté pour ce concours. Vous pouvez modifier votre vote.
                 {% if votedParticipation and votedParticipation.oeuvre %}
-                    Vous avez voté pour : <strong>{{ votedParticipation.oeuvre.title }}</strong>
+                    Vous avez actuellement voté pour : <strong>{{ votedParticipation.oeuvre.title }}</strong>
                 {% endif %}
             </div>
         {% endif %}
@@ -54,7 +60,11 @@
                                                 <i class="bi bi-heart-fill"></i> {{ votesCount[participation.id] ?? 0 }} vote(s)
                                             </span>
                                         </div>
-                                        {% if not isConnected %}
+                                        {% if not concours.isVotePublic %}
+                                            <button type="button" class="btn btn-danger w-100" disabled>
+                                                <i class="bi bi-lock-fill"></i> Vote concours fermé
+                                            </button>
+                                        {% elseif not isConnected %}
                                             <a href="{{ path('app_login') }}" class="btn btn-warning w-100">
                                                 <i class="bi bi-box-arrow-in-right"></i> Connectez-vous pour voter
                                             </a>
@@ -67,13 +77,19 @@
                                                 </button>
                                             </form>
                                         {% else %}
-                                            <button type="button" class="btn btn-secondary w-100" disabled>
-                                                {% if votedParticipation and votedParticipation.id == participation.id %}
-                                                    <i class="bi bi-check-circle"></i> Vous avez voté
-                                                {% else %}
-                                                    <i class="bi bi-lock"></i> Vote déjà effectué
-                                                {% endif %}
-                                            </button>
+                                            {% if votedParticipation and votedParticipation.id == participation.id %}
+                                                <button type="button" class="btn btn-primary w-100" disabled>
+                                                    <i class="bi bi-check-circle"></i> Votre vote actuel
+                                                </button>
+                                            {% else %}
+                                                <form method="post" action="{{ path('app_concours_visiteur_voter', {'id': concours.id, 'participationId': participation.id}) }}" 
+                                                      onsubmit="return confirm('Êtes-vous sûr de vouloir modifier votre vote pour cette œuvre ?');">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('vote_' ~ participation.id) }}">
+                                                    <button type="submit" class="btn btn-warning w-100">
+                                                        <i class="bi bi-pencil-square"></i> Modifier mon vote
+                                                    </button>
+                                                </form>
+                                            {% endif %}
                                         {% endif %}
                                     </div>
                                 </div>

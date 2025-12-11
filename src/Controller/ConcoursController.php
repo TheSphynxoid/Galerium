@@ -29,37 +29,37 @@ final class ConcoursController extends AbstractController
     public function index(Request $request, ConcoursRepository $concoursRepository): Response
     {
         $title = $request->query->get('title');
-        $statut = $request->query->get('statut');
+    $statut = $request->query->get('statut');
 
-        $qb = $concoursRepository->createQueryBuilder('c');
+    $qb = $concoursRepository->createQueryBuilder('c');
 
-        if ($title) {
-            $qb->andWhere('c.titre LIKE :t')
-               ->setParameter('t', '%' . $title . '%');
-        }
+    if ($title) {
+        $qb->andWhere('c.titre LIKE :t')
+           ->setParameter('t', '%' . $title . '%');
+    }
 
-        if ($statut) {
-            $qb->andWhere('c.statut = :s')
-               ->setParameter('s', $statut);
-        }
+    if ($statut) {
+        $qb->andWhere('c.statut = :s')
+           ->setParameter('s', $statut);
+    }
 
-        $concours = $qb->getQuery()->getResult();
+    $concours = $qb->getQuery()->getResult();
 
-        // Si c'est une requête AJAX, retourner uniquement les résultats
-        if ($request->isXmlHttpRequest() || $request->query->get('ajax')) {
-            return $this->render('concours/index.html.twig', [
-                'concours' => $concours,
-                'title' => $title,
-                'statut' => $statut,
-            ]);
-        }
-
+    // Si c'est une requête AJAX, retourner uniquement les résultats
+    if ($request->isXmlHttpRequest() || $request->query->get('ajax')) {
         return $this->render('concours/index.html.twig', [
             'concours' => $concours,
             'title' => $title,
             'statut' => $statut,
         ]);
     }
+
+    return $this->render('concours/index.html.twig', [
+        'concours' => $concours,
+        'title' => $title,
+        'statut' => $statut,
+    ]);
+}
 
     #[Route('/new', name: 'app_concours_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
@@ -233,9 +233,9 @@ public function voter(
         return $this->redirectToRoute('app_concours_visiteur_oeuvres', ['id' => $concours->getId()]);
     }
 
-    // Vérifier si l'utilisateur a déjà voté pour ce concours
-    if ($voteRepository->hasVoted($user, $concours)) {
-        $this->addFlash('error', 'Vous avez déjà voté pour ce concours.');
+    // Vérifier si le vote public est activé pour ce concours
+    if (!$concours->isVotePublic()) {
+        $this->addFlash('error', 'Vote concours fermé.');
         return $this->redirectToRoute('app_concours_visiteur_oeuvres', ['id' => $concours->getId()]);
     }
 
@@ -260,15 +260,30 @@ public function voter(
         return $this->redirectToRoute('app_concours_visiteur_oeuvres', ['id' => $concours->getId()]);
     }
 
-    // Créer le vote
-    $vote = new Vote();
-    $vote->setVisiteur($user);
-    $vote->setParticipation($participation);
-    $vote->setConcours($concours);
-    $vote->setDateVote(new \DateTime());
+    // Vérifier si l'utilisateur a déjà voté pour ce concours
+    $existingVote = $voteRepository->findVoteByVisiteurAndConcours($user, $concours);
+    $oldParticipation = null;
+    
+    if ($existingVote) {
+        // Modifier le vote existant
+        $oldParticipation = $existingVote->getParticipation();
+        $existingVote->setParticipation($participation);
+        $existingVote->setDateVote(new \DateTime());
+        
+        $entityManager->flush();
+        $this->addFlash('success', 'Votre vote a été modifié avec succès !');
+    } else {
+        // Créer un nouveau vote
+        $vote = new Vote();
+        $vote->setVisiteur($user);
+        $vote->setParticipation($participation);
+        $vote->setConcours($concours);
+        $vote->setDateVote(new \DateTime());
 
-    $entityManager->persist($vote);
-    $entityManager->flush();
+        $entityManager->persist($vote);
+        $entityManager->flush();
+        $this->addFlash('success', 'Votre vote a été enregistré avec succès !');
+    }
 
     // Synchroniser le compteur de votes de l'œuvre avec le nombre réel de votes
     $oeuvre = $participation->getOeuvre();
@@ -282,7 +297,17 @@ public function voter(
         $entityManager->flush();
     }
 
-    $this->addFlash('success', 'Votre vote a été enregistré avec succès !');
+    // Si le vote a été modifié, mettre à jour aussi l'ancienne œuvre
+    if ($oldParticipation && $oldParticipation->getOeuvre()) {
+        $oldOeuvre = $oldParticipation->getOeuvre();
+        $totalVotes = 0;
+        foreach ($oldOeuvre->getParticipations() as $part) {
+            $totalVotes += $voteRepository->countVotesForParticipation($part);
+        }
+        $oldOeuvre->setVotesCount($totalVotes);
+        $entityManager->flush();
+    }
+
     return $this->redirectToRoute('app_concours_visiteur_oeuvres', ['id' => $concours->getId()]);
 }
 
