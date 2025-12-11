@@ -8,8 +8,8 @@
     <table class="table">
         <tbody>
             <tr>
-                <th>Id</th>
-                <td>{{ participation.id }}</td>
+                <th>NomArtiste </th>
+                <td>{{ participation.oeuvre.artiste.displayName}}</td>
             </tr>
             <tr>
                 <th>Dateparticipation</th>
@@ -47,14 +47,7 @@
                     </span>
                 </td>
             </tr>
-            <tr>
-                <th>Vote public activé</th>
-                <td>
-                    <span class="badge {{ participation.votepublic ? 'bg-success' : 'bg-secondary' }}">
-                        {{ participation.votepublic ? 'Oui' : 'Non' }}
-                    </span>
-                </td>
-            </tr>
+            
             <tr>
                 <th>Description</th>
                 <td>{{ participation.description }}</td>
@@ -62,9 +55,15 @@
         </tbody>
     </table>
 
-    <a href="{{ path('app_participation_index') }}">back to list</a>
+    <div class="d-flex gap-2">
+    <a href="{{ path('app_participation_index') }}" class="btn btn-primary d-flex align-items-center">
+        <i class="bi bi-arrow-left me-1"></i> Back to list
+    </a>
 
-    <a href="{{ path('app_participation_edit', {'id': participation.id}) }}">edit</a>
-
-    {{ include('participation/_delete_form.html.twig') }}
+    <form method="post" action="{{ path('app_participation_delete', {'id': participation.id}) }}" onsubmit="return confirm('Are you sure?');">
+        <button class="btn btn-danger d-flex align-items-center">
+            <i class="bi bi-trash me-1"></i> Delete
+        </button>
+    </form>
+</div>
 {% endblock %}

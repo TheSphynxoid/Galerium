@@ -7,6 +7,7 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 
 class ConcoursType extends AbstractType
 {
@@ -32,7 +33,17 @@ class ConcoursType extends AbstractType
                 ],
                 'html5' => true,
             ])
-            ->add('statut')
+            ->add('statut', ChoiceType::class, [
+                'choices'  => [
+                    'Actif' => 'actif',
+                    'cloturé' => 'cloture',
+                ],
+                'expanded' => false,
+                'multiple' => false,
+                'label' => 'Statut',
+                'required' => true,
+                // 'placeholder' => 'Sélectionner un statut', // optionnel
+            ])
             ->add('regles')
             ->add('votePublic')
             ->add('dateDebutVote', DateType::class, [

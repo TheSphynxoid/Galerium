@@ -50,6 +50,7 @@ final class ParticipationController extends AbstractController
         ConcoursRepository $concoursRepository,
         UtilisateurRepository $userRepository,
         OeuvreRepository $oeuvreRepository,
+        ParticipationRepository $participationRepository,
         MqttService $mqttService
     ): Response {
         // Vérifier que l'utilisateur est connecté
@@ -73,6 +74,12 @@ final class ParticipationController extends AbstractController
         $concours = $concoursRepository->find($concoursId);
         if (!$concours) {
             throw $this->createNotFoundException("Concours introuvable !");
+        }
+
+        // Vérifier si l'artiste a déjà participé à ce concours
+        if ($participationRepository->hasArtisteParticipatedInConcours($artiste, $concours)) {
+            $this->addFlash("error", "Vous avez déjà participé au concours '{$concours->getTitre()}'. ");
+            return $this->redirectToRoute('app_concours_artistev_index');
         }
 
         $participation = new Participation();

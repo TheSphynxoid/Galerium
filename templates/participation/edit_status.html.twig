@@ -4,7 +4,7 @@
 
 {% block body %}
     <div class="container">
-        <h1 class="mb-4">Modifier le statut de la participation #{{ participation.id }}</h1>
+        <h1 class="mb-4">Modifier le statut de la participation #{{ participation.oeuvre.artiste.displayName}}</h1>
 
         <div class="card">
             <div class="card-body">
@@ -41,4 +41,5 @@
         </div>
     </div>
 {% endblock %}
+
 

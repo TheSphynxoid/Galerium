@@ -26,40 +26,16 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 final class ConcoursController extends AbstractController
 {
     #[Route(name: 'app_concours_index', methods: ['GET'])]
-    public function index(Request $request, ConcoursRepository $concoursRepository): Response
+    public function index(ConcoursRepository $concoursRepository): Response
     {
-        $title = $request->query->get('title');
-    $statut = $request->query->get('statut');
+        // On récupère simplement tous les concours sans filtre
+        $concours = $concoursRepository->findAll();
 
-    $qb = $concoursRepository->createQueryBuilder('c');
-
-    if ($title) {
-        $qb->andWhere('c.titre LIKE :t')
-           ->setParameter('t', '%' . $title . '%');
-    }
-
-    if ($statut) {
-        $qb->andWhere('c.statut = :s')
-           ->setParameter('s', $statut);
-    }
-
-    $concours = $qb->getQuery()->getResult();
-
-    // Si c'est une requête AJAX, retourner uniquement les résultats
-    if ($request->isXmlHttpRequest() || $request->query->get('ajax')) {
         return $this->render('concours/index.html.twig', [
             'concours' => $concours,
-            'title' => $title,
-            'statut' => $statut,
         ]);
     }
 
-    return $this->render('concours/index.html.twig', [
-        'concours' => $concours,
-        'title' => $title,
-        'statut' => $statut,
-    ]);
-}
 
     #[Route('/new', name: 'app_concours_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager): Response

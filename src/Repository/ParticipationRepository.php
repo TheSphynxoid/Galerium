@@ -58,4 +58,26 @@ class ParticipationRepository extends ServiceEntityRepository
         
         return $qb->getQuery()->getResult();
     }
+
+    /**
+     * Vérifie si un artiste a déjà une participation pour un concours donné
+     * @param $artiste
+     * @param $concours
+     * @return bool
+     */
+    public function hasArtisteParticipatedInConcours($artiste, $concours): bool
+    {
+        $qb = $this->createQueryBuilder('p')
+            ->select('COUNT(p.id)')
+            ->innerJoin('p.oeuvre', 'o')
+            ->innerJoin('p.concours', 'c')
+            ->where('o.artiste = :artiste')
+            ->andWhere('c.id = :concoursId')
+            ->setParameter('artiste', $artiste)
+            ->setParameter('concoursId', $concours->getId());
+        
+        $count = $qb->getQuery()->getSingleScalarResult();
+        
+        return $count > 0;
+    }
 }

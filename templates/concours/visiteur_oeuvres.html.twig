@@ -19,14 +19,7 @@
             </div>
         {% endif %}
 
-        {% if hasVoted %}
-            <div class="alert alert-info">
-                <i class="bi bi-info-circle"></i> Vous avez déjà voté pour ce concours. Vous pouvez modifier votre vote.
-                {% if votedParticipation and votedParticipation.oeuvre %}
-                    Vous avez actuellement voté pour : <strong>{{ votedParticipation.oeuvre.title }}</strong>
-                {% endif %}
-            </div>
-        {% endif %}
+        
 
         {% if participations is empty %}
             <div class="alert alert-warning text-center">

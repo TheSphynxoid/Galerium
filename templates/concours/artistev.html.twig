@@ -6,18 +6,35 @@
 <section class="py-5 my-5">
     <div class="container">
 
+        {# Flash Messages #}
+        {% for message in app.flashes('error') %}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <strong>⚠️ Attention !</strong> {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+        {% for message in app.flashes('success') %}
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <strong>✅ Succès !</strong> {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+
         <h1 class="h3 text-danger mb-4 text-center">Les concours disponibles</h1>
         <div class="text-end mb-3">
             <a href="{{ path('app_concours_pdf') }}" class="btn btn-danger">
                 Télécharger PDF
             </a>
         </div>
-         <div class="text-center mt-3">
-    <a href="{{ path('app_participation_my') }}" class="btn btn-primary">
-        Mes participations aux concours
-    </a>
-</div>
-<br>
+
+        <div class="text-center mt-3">
+            <a href="{{ path('app_participation_my') }}" class="btn btn-primary">
+                Mes participations aux concours
+            </a>
+        </div>
+
+        <br>
+
         <form id="search-form-artistev" method="get" class="mb-3" data-ajax-url="{{ path('app_concours_artistev_index') }}">
             <div class="row g-3">
                 <div class="col-md-6">
@@ -48,6 +65,7 @@
                                 <h4 class="fw-bold text-center mb-3" style="color: #0428B5;">
                                     {{ concoursItem.titre }}
                                 </h4>
+
                                 <p class="mb-1">
                                     <strong>Statut :</strong>
                                     {% set badgeClass =
@@ -58,24 +76,38 @@
                                         {{ concoursItem.statut }}
                                     </span>
                                 </p>
+
                                 <p class="mb-1"><strong>Description :</strong> {{ concoursItem.description }}</p>
                                 <p class="mb-1"><strong>Date Début :</strong> {{ concoursItem.dateDebut ? concoursItem.dateDebut|date('d/m/Y') : '—' }}</p>
                                 <p class="mb-1"><strong>Date Fin :</strong> {{ concoursItem.dateFin ? concoursItem.dateFin|date('d/m/Y') : '—' }}</p>
                                 <p class="mb-1"><strong>Règles :</strong> {{ concoursItem.regles ?: '—' }}</p>
+
                                 <p class="mb-0">
                                     <strong>Vote public :</strong>
                                     <span class="badge {{ concoursItem.votePublic ? 'bg-success' : 'bg-danger' }}">
                                         {{ concoursItem.votePublic ? 'Oui' : 'Non' }}
                                     </span>
                                 </p>
-                                <p class="mb-1"><strong>Date Debut Vote :</strong> {{ concoursItem.dateDebutVote ? concoursItem.dateDebutVote|date('d/m/Y') : '—' }}</p> 
-                                <p class="mb-1"><strong>Date Fin Vote :</strong> {{ concoursItem.dateFinVote ? concoursItem.dateFinVote|date('d/m/Y') : '—' }}</p> 
+
+                                <p class="mb-1"><strong>Date Début Vote :</strong> {{ concoursItem.dateDebutVote ? concoursItem.dateDebutVote|date('d/m/Y') : '—' }}</p>
+                                <p class="mb-1"><strong>Date Fin Vote :</strong> {{ concoursItem.dateFinVote ? concoursItem.dateFinVote|date('d/m/Y') : '—' }}</p>
+
                                 <div class="text-center mt-3">
-                                    <a href="{{ path('app_participation_new', { concoursId: concoursItem.id }) }}" 
-                                       class="btn btn-primary">
-                                        Participation au concours
-                                    </a>
+                                    {% if concoursItem.statut == 'cloturé' %}
+                                        <div class="alert alert-warning p-2">
+                                            ⚠️ Ce concours est fermé, vous ne pouvez plus participer.
+                                        </div>
+                                        <button class="btn btn-secondary w-100" disabled>
+                                            Participation impossible
+                                        </button>
+                                    {% else %}
+                                        <a href="{{ path('app_participation_new', { concoursId: concoursItem.id }) }}" 
+                                           class="btn btn-primary w-100">
+                                            Participer au concours
+                                        </a>
+                                    {% endif %}
                                 </div>
+
                             </div>
                         </div>
                     {% endfor %}

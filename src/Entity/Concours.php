@@ -51,10 +51,7 @@ class Concours
 
     #[ORM\Column(type: Types::STRING, length: 50)]
     #[Assert\NotBlank(message: "Le statut est obligatoire.")]
-    #[Assert\Choice(
-        choices: ['Actif', 'cloturé'],
-        message: "Le statut doit être Actif ou cloturé "
-    )]
+    
     private ?string $statut = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
