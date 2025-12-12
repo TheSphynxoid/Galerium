@@ -1,0 +1,189 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Enchere index
+{% endblock %}
+
+{% block body %}
+	<div class="mb-4 d-flex justify-content-between align-items-center">
+		<h3 class="mb-0">Enchères</h3>
+	</div>
+
+	<div class="mb-4">
+		<div class="input-group" style="max-width: 500px;">
+			<span class="input-group-text bg-white border-0">
+				<i class="bi bi-search text-secondary" style="font-size: 1.25rem;"></i>
+			</span>
+			<input type="text" 
+			       class="form-control border-0 ps-2" 
+			       id="searchEncheres" 
+			       placeholder="Rechercher par nom d'oeuvre..."
+			       style="box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-radius: 0.5rem; font-size: 1rem;">
+			<button class="btn btn-sm btn-light border-0" 
+			        type="button" 
+			        id="clearSearch" 
+			        style="display: none; color: #6c757d; border-radius: 0 0.5rem 0.5rem 0;">
+				<i class="bi bi-x-circle" style="font-size: 1.1rem;"></i>
+			</button>
+		</div>
+	</div>
+
+	{% if encheres|length > 0 %}
+		<div class="row g-4">
+			{% for enchere in encheres %}
+				<div class="col-md-6 col-lg-4">
+					<div class="card h-100 shadow-sm hover-shadow" style="transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: pointer;">
+						<div class="position-relative overflow-hidden" style="height: 300px;">
+							<img src="{{ vich_uploader_asset(enchere.oeuvre, 'imageFile') }}" alt="{{ enchere.oeuvre.title }}" class="card-img-top" style="width:100%;height:100%;object-fit:cover;">
+							<div class="position-absolute top-0 end-0 m-2">
+								<span class="badge bg-{% if enchere.Statut.value == 'En cours' %}warning{% elseif enchere.Statut.value == 'Terminée' %}danger{% else %}success{% endif %}">
+									{{ enchere.Statut.value }}
+								</span>
+							</div>
+						</div>
+						<div class="card-body">
+							<h5 class="card-title">{{ enchere.oeuvre.title }}</h5>
+							<div class="mb-3">
+								<div class="mb-2">
+									<small class="text-muted">Prix de base</small>
+									<div class="text-muted">{{ enchere.prixDeBase }} TND</div>
+								</div>
+								<div class="mb-2">
+									<small class="text-muted">Prix actuel</small>
+									<div class="fs-5 fw-bold text-primary">{{ enchere.prixActuel }} TND</div>
+								</div>
+							</div>
+							<div class="mb-3 small">
+								<div class="mb-1">
+									<strong>Début:</strong> {{ enchere.dateDebut ? enchere.dateDebut|date('d/m/Y H:i') : 'N/A' }}
+								</div>
+								<div>
+									<strong>Fin:</strong> {{ enchere.dateFin ? enchere.dateFin|date('d/m/Y H:i') : 'N/A' }}
+								</div>
+							</div>
+							<a class="btn btn-sm btn-outline-secondary w-100" href="{{ path('app_enchere_show', {'id': enchere.id}) }}">View Details</a>
+						</div>
+					</div>
+				</div>
+			{% endfor %}
+		</div>
+	{% else %}
+		<div class="alert alert-info text-center" role="alert">
+			<strong>No auctions found</strong><br>
+			There are no auctions available at the moment.
+		</div>
+	{% endif %}
+
+	<script>
+		document.addEventListener('DOMContentLoaded', function() {
+			const searchInput = document.getElementById('searchEncheres');
+			const clearBtn = document.getElementById('clearSearch');
+			const encheresGrid = document.querySelector('.row.g-4');
+			
+			if (!searchInput || !encheresGrid) return;
+
+			let searchTimeout;
+
+			searchInput.addEventListener('input', function() {
+				const searchValue = this.value.trim();
+				clearBtn.style.display = searchValue ? 'block' : 'none';
+
+				// Clear previous timeout
+				clearTimeout(searchTimeout);
+
+				// Debounce the search (wait 300ms before making request)
+				searchTimeout = setTimeout(() => {
+					performSearch(searchValue);
+				}, 300);
+			});
+
+			clearBtn.addEventListener('click', function() {
+				searchInput.value = '';
+				clearBtn.style.display = 'none';
+				performSearch('');
+				searchInput.focus();
+			});
+
+			function performSearch(query) {
+				// Show loading state
+				encheresGrid.style.opacity = '0.6';
+
+				fetch(`{{ path('app_enchere_search') }}?q=${encodeURIComponent(query)}`)
+					.then(response => response.json())
+					.then(data => {
+						renderEncheres(data);
+						encheresGrid.style.opacity = '1';
+					})
+					.catch(error => {
+						console.error('Search error:', error);
+						encheresGrid.style.opacity = '1';
+					});
+			}
+
+			function renderEncheres(encheres) {
+				// Clear existing cards and messages
+				const existingCards = encheresGrid.querySelectorAll('.col-md-6');
+				existingCards.forEach(card => card.remove());
+				
+				// Remove any "no results" message
+				const noResultsMsg = encheresGrid.querySelector('.col-12');
+				if (noResultsMsg) {
+					noResultsMsg.remove();
+				}
+
+				if (encheres.length === 0) {
+					const newNoResultsMsg = document.createElement('div');
+					newNoResultsMsg.className = 'col-12';
+					newNoResultsMsg.innerHTML = '<div class="alert alert-warning text-center">Aucune enchère ne correspond à votre recherche.</div>';
+					encheresGrid.appendChild(newNoResultsMsg);
+					return;
+				}
+
+				encheres.forEach(enchere => {
+					const statusColor = enchere.statut === 'En cours' ? 'warning' : 
+										   enchere.statut === 'Terminée' ? 'danger' : 'success';
+
+					const cardHTML = `
+						<div class="col-md-6 col-lg-4">
+							<div class="card h-100 shadow-sm hover-shadow" style="transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: pointer;">
+								<div class="position-relative overflow-hidden" style="height: 300px;">
+									<img src="${enchere.imageUrl}" alt="${enchere.oeuvreTitle}" class="card-img-top" style="width:100%;height:100%;object-fit:cover;">
+									<div class="position-absolute top-0 end-0 m-2">
+										<span class="badge bg-${statusColor}">
+											${enchere.statut}
+										</span>
+									</div>
+								</div>
+								<div class="card-body">
+									<h5 class="card-title">${enchere.oeuvreTitle}</h5>
+									<div class="mb-3">
+										<div class="mb-2">
+											<small class="text-muted">Prix de base</small>
+											<div class="text-muted">${enchere.prixDeBase} TND</div>
+										</div>
+										<div class="mb-2">
+											<small class="text-muted">Prix actuel</small>
+											<div class="fs-5 fw-bold text-primary">${enchere.prixActuel} TND</div>
+										</div>
+									</div>
+									<div class="mb-3 small">
+										<div class="mb-1">
+											<strong>Début:</strong> ${enchere.dateDebut || 'N/A'}
+										</div>
+										<div>
+											<strong>Fin:</strong> ${enchere.dateFin || 'N/A'}
+										</div>
+									</div>
+									<a class="btn btn-sm btn-outline-secondary w-100" href="${enchere.showUrl}">View Details</a>
+								</div>
+							</div>
+						</div>
+					`;
+
+					const tempDiv = document.createElement('div');
+					tempDiv.innerHTML = cardHTML;
+					encheresGrid.appendChild(tempDiv.firstElementChild);
+				});
+			}
+		});
+	</script>
+{% endblock %}

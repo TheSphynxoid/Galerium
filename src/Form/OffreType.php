@@ -15,11 +15,6 @@ class OffreType extends AbstractType
     {
         $builder
             ->add('montant')
-            ->add('dateOffre')
-            ->add('echere', EntityType::class, [
-                'class' => Enchere::class,
-                'choice_label' => 'id',
-            ])
         ;
     }
 

@@ -1,19 +1,25 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}New Offre{% endblock %}
+{% block title %}New Offre
+{% endblock %}
 
 {% block body %}
-    <article class="mx-auto my-4" style="max-width:640px;">
-        <div class="bg-white rounded shadow-sm p-4">
-            <header class="mb-3 text-center">
-                <h2 style="font-family: Georgia, 'Times New Roman', serif;">Create new Offre</h2>
-            </header>
+	<article class="mx-auto my-4" style="max-width:640px;">
+		<div class="bg-white rounded shadow-sm p-4">
+			<header class="mb-3 text-center">
+				<h2 style="font-family: Georgia, 'Times New Roman', serif;">Create new Offre</h2>
+			</header>
 
-            {{ include('offre/_form.html.twig') }}
+            <h3 class="mt-3 text-center">{{ enchere.oeuvre.title }}</h3>
+            <div class="d-flex justify-content-center my-3">
+			    <img src="{{ vich_uploader_asset(enchere.oeuvre, 'imageFile') }}" alt="{{ enchere.oeuvre.title }}" style="width:250px;height:250px;object-fit:cover;" class="rounded">
+            </div>  
+                <a>Offre Gagnante: {{ enchere.prixActuel}}DT</a>
+			{{ include('offre/_form.html.twig') }}
 
-            <div class="mt-3 text-center">
-                <a class="btn btn-link" href="{{ path('app_offre_index') }}">Back to list</a>
-            </div>
-        </div>
-    </article>
+			<div class="mt-3 text-center">
+				<a class="btn btn-link" href="{{ path('app_offre_index') }}">Back to list</a>
+			</div>
+		</div>
+	</article>
 {% endblock %}

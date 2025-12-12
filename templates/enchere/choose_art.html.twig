@@ -1,0 +1,76 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Choix Oeuvres
+{% endblock %}
+
+{% block body %}
+	<section id="dashboard" class="py-5">
+		<div class="container">
+			<div class="row mb-4">
+				<div class="col-12 d-flex justify-content-between align-items-center">
+					<div>
+						<h2>Choisissez Une Oeuvre</h2>
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-12">
+					<h3 class="mb-4">Mes œuvres</h3>
+					{% if oeuvres|length > 0 %}
+						<div class="table-responsive">
+							<table class="table table-hover">
+								<thead>
+									<tr>
+										<th>Image</th>
+										<th>Titre</th>
+										<th>Statut</th>
+										<th>Vues</th>
+										<th>Votes</th>
+										<th>Actions</th>
+									</tr>
+								</thead>
+								<tbody>
+									{% for oeuvre in oeuvres %}
+										<tr>
+											<td>
+												<img src="{{ vich_uploader_asset(oeuvre, 'imageFile') }}" alt="{{ oeuvre.title }}" style="width:60px;height:60px;object-fit:cover;" class="rounded">
+											</td>
+											<td>{{ oeuvre.title }}</td>
+											<td>
+												{% if oeuvre.status == 'public' %}
+													<span class="badge bg-success">Publiée</span>
+												{% elseif oeuvre.status == 'draft' %}
+													<span class="badge bg-secondary">Brouillon</span>
+												{% elseif oeuvre.status == 'private' %}
+													<span class="badge bg-warning text-dark">Privée</span>
+												{% else %}
+													<span class="badge bg-dark">Archivée</span>
+												{% endif %}
+											</td>
+											<td>{{ oeuvre.viewsCount }}</td>
+											<td>{{ oeuvre.votesCount }}</td>
+											<td>
+												<a href="#" onclick="event.preventDefault(); document.getElementById('post-form-{{ oeuvre.id }}').submit();">
+													Selectioner
+												</a>
+												<form id="post-form-{{ oeuvre.id }}" action="{{ path('app_enchere_new') }}" method="post" style="display: none;">
+													<input type="hidden" name="oeuvre_id" value="{{ oeuvre.id }}">
+													<input type="hidden" name="_token" value="{{ csrf_token('post_action') }}">
+												</form>
+											</td>
+										</tr>
+									{% endfor %}
+								</tbody>
+							</table>
+						</div>
+					{% else %}
+						<div class="text-center py-5">
+							<p class="text-muted">Vous n'avez pas encore publié d'œuvre.</p>
+							<a href="{{ path('app_oeuvre_new') }}" class="btn btn-primary">Ajouter votre première œuvre</a>
+						</div>
+					{% endif %}
+				</div>
+			</div>
+		</div>
+	</section>
+{% endblock %}

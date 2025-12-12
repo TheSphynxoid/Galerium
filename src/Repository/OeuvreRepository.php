@@ -44,6 +44,17 @@ class OeuvreRepository extends ServiceEntityRepository
 
         return $qb->getQuery()->getSingleResult();
     }
+
+    /**
+     * Find oeuvres not in any enchere
+     */
+    public function findNotInEnchere()
+    {
+        return $this->createQueryBuilder('o')
+            ->leftJoin('App\Entity\Enchere', 'e', 'WITH', 'e.oeuvre = o.id')
+            ->where('e.id IS NULL')
+            ->orderBy('o.createdAt', 'DESC');
+    }
 }
 
 
