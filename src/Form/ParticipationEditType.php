@@ -28,7 +28,7 @@ class ParticipationEditType extends AbstractType
                     return $er->createQueryBuilder('o')
                         ->where('o.artiste = :artiste')
                         ->setParameter('artiste', $artiste)
-                        ->orderBy('o.title', 'ASC');
+                        ->orderBy('o.title', 'ASC');  // ASC : trie les œuvres par titre par ordre alphabétique croissant.
                 },
                 'attr' => [
                     'class' => 'form-select'
@@ -40,7 +40,7 @@ class ParticipationEditType extends AbstractType
                 'required' => true,
                 'attr' => [
                     'placeholder' => 'Entrez votre description (au moins 10 caractères)...',
-                    'rows' => 5
+                    'rows' => 5 //attribut html pour  hauteur du textarea
                 ],
             ]);
     }
@@ -50,6 +50,7 @@ class ParticipationEditType extends AbstractType
         $resolver->setDefaults([
             'data_class' => Participation::class,
             'artiste' => null,
+            'attr'=>array('novalidate'=>'novalidate'),
         ]);
     }
 }

@@ -32,9 +32,6 @@
 
 
 
-
-
-
                <!-- TITRE -->
              <div class="row">
              <div class="col-md-12 mb-3">
@@ -120,6 +117,7 @@
 
     <div class="row">
     <!-- Statut -->
+    
     <div class="col-md-6 mb-3">
         {{ form_label(form.statut, 'Statut <span class="text-danger">*</span>', {
             'label_attr': {'class': 'form-label'},
@@ -133,18 +131,12 @@
 
  <!-- Vote Public -->
 <div class="col-md-6 d-flex align-items-center mb-3">
-    <div class="form-check form-switch w-100">
-        {{ form_label(form.votePublic, 'Vote public <span class="text-danger">*</span>', {
-            'label_attr': {'class': 'form-check-label'},
-            'label_html': true
-        }) }}
-        {{ form_widget(form.votePublic, {
-            'attr': {'class': 'form-check-input ms-2'},
-            'checked_value': 'oui',
-            'uncheck_value': 'non'
-        }) }}
-        {{ form_errors(form.votePublic) }}
-    </div>
+    {{ form_label(form.votePublic, 'Vote public <span class="text-danger">*</span>', {
+        'label_attr': {'class': 'form-label'},
+        'label_html': true
+    }) }}
+    {{ form_widget(form.votePublic, {'attr': {'class': 'form-select'}}) }}
+    {{ form_errors(form.votePublic) }}
 </div>
 
 

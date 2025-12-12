@@ -33,19 +33,33 @@ class ConcoursType extends AbstractType
                 ],
                 'html5' => true,
             ])
-            ->add('statut', ChoiceType::class, [
-                'choices'  => [
-                    'Actif' => 'actif',
-                    'cloturé' => 'cloture',
-                ],
-                'expanded' => false,
-                'multiple' => false,
-                'label' => 'Statut',
-                'required' => true,
-                // 'placeholder' => 'Sélectionner un statut', // optionnel
-            ])
+           ->add('statut', ChoiceType::class, [
+           'choices'  => [
+           'Actif' => 'actif',
+           'Clôturé' => 'cloture',
+            ],
+            'expanded' => false,
+            'multiple' => false,
+            'label' => 'Statut',
+            'required' => true,
+            'placeholder' => 'Sélectionnez un statut',
+])
+
+                
             ->add('regles')
-            ->add('votePublic')
+            
+        ->add('votePublic', ChoiceType::class, [
+    'choices' => [
+        'Oui' => true,
+        'Non' => false,
+    ],
+    'expanded' => false,
+    'multiple' => false,
+    'label' => 'Vote public',
+    'required' => true,
+    'placeholder' => 'Sélectionnez vote public',
+])
+            
             ->add('dateDebutVote', DateType::class, [
                 'widget' => 'single_text',
                 'attr' => [
@@ -69,6 +83,7 @@ class ConcoursType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Concours::class,
+            'attr'=>array('novalidate'=>'novalidate'),
         ]);
     }
 }

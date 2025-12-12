@@ -33,7 +33,7 @@ class ParticipationType extends AbstractType
                 'disabled' => true,
                 'required' => true,
             ])
-            // Vote public (affichage 👍 0, disabled)
+            // Vote public 
             ->add('votepublic', TextType::class, [
                 'label' => 'Vote public',
                 'data' => '👍 0',
@@ -56,9 +56,9 @@ class ParticipationType extends AbstractType
                     'class' => 'form-select'
                 ],
             ])
-            // Description (textarea avec validation)
+            // Description 
             ->add('description', TextareaType::class, [
-                'label' => 'Description',
+                'label' => 'Description *',
                 'required' => true,
                 'attr' => [
                     'placeholder' => 'Entrez votre description (au moins 10 caractères)...'
@@ -71,6 +71,7 @@ class ParticipationType extends AbstractType
         $resolver->setDefaults([
             'data_class' => Participation::class,
             'artiste' => null,
+            'attr'=>array('novalidate'=>'novalidate'),
         ]);
     }
 }

@@ -84,10 +84,10 @@ final class ParticipationController extends AbstractController
 
         $participation = new Participation();
 
-        // ✅ Initialise les champs pour éviter NOT NULL
+        //  Initialise les champs pour éviter NOT NULL
         $participation->setDateparticipation(new \DateTime());
         $participation->setStatut('en_cours');
-        $participation->setVotepublic(false); // valeur réelle en base
+        $participation->setVotepublic(false); 
         $participation->addConcour($concours);
 
         $form = $this->createForm(ParticipationType::class, $participation, [
@@ -164,7 +164,7 @@ final class ParticipationController extends AbstractController
             return $this->redirectToRoute('app_participation_my');
         }
 
-        // Vérifier que la participation appartient à l'artiste
+        // Vérifier que la participation appartient à l'artiste wala le
         if (!$participation->getOeuvre() || $participation->getOeuvre()->getArtiste() !== $artiste) {
             $this->addFlash("error", "Vous n'avez pas le droit de modifier cette participation.");
             return $this->redirectToRoute('app_participation_my');

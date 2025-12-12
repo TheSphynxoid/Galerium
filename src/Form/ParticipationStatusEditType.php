@@ -32,7 +32,9 @@ class ParticipationStatusEditType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Participation::class,
+            'attr'=>array('novalidate'=>'novalidate'),
         ]);
     }
 }
+
 

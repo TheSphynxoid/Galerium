@@ -42,3 +42,4 @@ class BadWordsValidator extends ConstraintValidator
     }
 }
 
+

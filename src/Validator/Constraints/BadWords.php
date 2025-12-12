@@ -18,3 +18,4 @@ class BadWords extends Constraint
     }
 }
 
+

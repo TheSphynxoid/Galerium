@@ -28,7 +28,7 @@ final class ConcoursController extends AbstractController
     #[Route(name: 'app_concours_index', methods: ['GET'])]
     public function index(ConcoursRepository $concoursRepository): Response
     {
-        // On récupère simplement tous les concours sans filtre
+        
         $concours = $concoursRepository->findAll();
 
         return $this->render('concours/index.html.twig', [
@@ -57,6 +57,7 @@ final class ConcoursController extends AbstractController
         ]);
     }
 
+    
     #[Route('/{id<\d+>}', name: 'app_concours_show', methods: ['GET'])]
     public function show(Concours $concour): Response
     {
@@ -339,9 +340,9 @@ public function artistev(Request $request, ConcoursRepository $concoursRepositor
 
 
 
-    // ------------------------------------
-    // 🔵 GÉNÉRATION DU PDF
-    // ------------------------------------
+    
+    //  PDF (composer require dompdf/dompdf)
+    
    #[Route('/pdf', name: 'app_concours_pdf', methods: ['GET'])]
 public function pdf(ConcoursRepository $concoursRepository): Response
 {
