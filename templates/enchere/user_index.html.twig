@@ -35,8 +35,8 @@
 						<div class="position-relative overflow-hidden" style="height: 300px;">
 							<img src="{{ vich_uploader_asset(enchere.oeuvre, 'imageFile') }}" alt="{{ enchere.oeuvre.title }}" class="card-img-top" style="width:100%;height:100%;object-fit:cover;">
 							<div class="position-absolute top-0 end-0 m-2">
-								<span class="badge bg-{% if enchere.Statut.value == 'En cours' %}warning{% elseif enchere.Statut.value == 'Terminée' %}danger{% else %}success{% endif %}">
-									{{ enchere.Statut.value }}
+								<span class="badge bg-{% if enchere.Statut == 'active' %}success{% elseif enchere.Statut == 'terminee' %}danger{% endif %}">
+									{{ enchere.Statut }}
 								</span>
 							</div>
 						</div>
@@ -139,8 +139,11 @@
 				}
 
 				encheres.forEach(enchere => {
-					const statusColor = enchere.statut === 'En cours' ? 'warning' : 
-										   enchere.statut === 'Terminée' ? 'danger' : 'success';
+					const statusColor = enchere.statut === 'active' ? 'success' : 'danger';
+					
+					const ButtonHTML = enchere.statut === 'active' ?  `
+						<a class="btn btn-sm btn-outline-secondary w-100" href="${enchere.showUrl}">View Details</a>
+					` : "";
 
 					const cardHTML = `
 						<div class="col-md-6 col-lg-4">
@@ -172,8 +175,8 @@
 										<div>
 											<strong>Fin:</strong> ${enchere.dateFin || 'N/A'}
 										</div>
-									</div>
-									<a class="btn btn-sm btn-outline-secondary w-100" href="${enchere.showUrl}">View Details</a>
+									</div>` +
+									ButtonHTML + `
 								</div>
 							</div>
 						</div>

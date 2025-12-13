@@ -29,7 +29,7 @@
                 <td>{{ enchere.prixActuel }}</td>
                 <td>{{ enchere.dateDebut ? enchere.dateDebut|date('Y-m-d H:i:s') : '' }}</td>
                 <td>{{ enchere.dateFin ? enchere.dateFin|date('Y-m-d H:i:s') : '' }}</td>
-                <td>{{ enchere.Statut.value }}</td>
+                <td>{{ enchere.Statut }}</td>
                 <td>
                     <a class="btn btn-sm btn-outline-secondary" href="{{ path('app_enchere_show', {'id': enchere.id}) }}">Show</a>
                 </td>

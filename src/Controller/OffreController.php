@@ -72,7 +72,7 @@ final class OffreController extends AbstractController
                         'dateOffre' => $offre->getDateOffre()?->format('d/m/Y H:i'),
                         'oeuvreTitle' => $oeuvre->getTitle(),
                         'prixActuel' => $offre->getEchere()->getPrixActuel(),
-                        'statut' => $offre->getEchere()->getStatut()->value,
+                        'statut' => $offre->getEchere()->getStatut(),
                         'dateFin' => $offre->getEchere()->getDateFin()?->format('d/m/Y H:i'),
                         'imageUrl' => $imageUrl,
                         'showUrl' => $this->generateUrl('app_offre_show', ['id' => $offre->getId()]),
@@ -86,114 +86,6 @@ final class OffreController extends AbstractController
             return new JsonResponse(['error' => $e->getMessage()], 500);
         }
     }
-
-
-    #[Route('/testoffer', name: 'app_offre_test', methods: ['GET'])]
-    public function testoffer(RedisService $redisService)
-    {
-        $client = RedisService::GetClient();
-        $client->set('test_offer', 'This is a test offer value', 'EX', 60); // Expires in 1 min
-
-        return new Response($client->get('test_offer'));
-    }
-
-    #[Route('/api/bid', name: 'app_offre_api_bid', methods: ['POST'])]
-    public function apiBid(
-        Request $request,
-        UtilisateurRepository $userRepo,
-        BiddingService $biddingService
-    ): JsonResponse {
-        try {
-            $data = json_decode($request->getContent(), true);
-            
-            if (!$data || !isset($data['auctionId']) || !isset($data['amount'])) {
-                return new JsonResponse([
-                    'success' => false,
-                    'message' => 'Missing required fields: auctionId and amount',
-                    'code' => 'INVALID_REQUEST'
-                ], Response::HTTP_BAD_REQUEST);
-            }
-
-            $user = $userRepo->find($request->getSession()->get('user_id'));
-            if (!$user instanceof Utilisateur) {
-                return new JsonResponse([
-                    'success' => false,
-                    'message' => 'Not logged in',
-                    'code' => 'NOT_AUTHENTICATED'
-                ], Response::HTTP_FORBIDDEN);
-            }
-
-            // Get the auction
-            $enchere = $this->getDoctrine()->getRepository(Enchere::class)->find($data['auctionId']);
-            if (!$enchere) {
-                return new JsonResponse([
-                    'success' => false,
-                    'message' => 'Auction not found',
-                    'code' => 'AUCTION_NOT_FOUND'
-                ], Response::HTTP_NOT_FOUND);
-            }
-
-            // Place the bid
-            $bidResult = $biddingService->placeBid(
-                $enchere,
-                $user,
-                (float) $data['amount'],
-                (float) ($data['minimumIncrease'] ?? 0)
-            );
-
-            return $biddingService->bidResultToJsonResponse($bidResult);
-        } catch (\Exception $e) {
-            return new JsonResponse([
-                'success' => false,
-                'message' => 'An error occurred: ' . $e->getMessage(),
-                'code' => 'SERVER_ERROR'
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    #[Route('/api/auction/{id<\d+>}/stats', name: 'app_offre_api_stats', methods: ['GET'])]
-    public function apiAuctionStats(
-        Enchere $enchere,
-        BiddingService $biddingService
-    ): JsonResponse {
-        try {
-            $stats = $biddingService->getBidStats($enchere);
-            
-            return new JsonResponse([
-                'success' => true,
-                'data' => $stats
-            ]);
-        } catch (\Exception $e) {
-            return new JsonResponse([
-                'success' => false,
-                'message' => 'Failed to fetch stats: ' . $e->getMessage(),
-                'code' => 'SERVER_ERROR'
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    #[Route('/api/auction/{id<\d+>}/bids', name: 'app_offre_api_get_bids', methods: ['GET'])]
-    public function apiGetBids(
-        Enchere $enchere,
-        BiddingService $biddingService
-    ): JsonResponse {
-        try {
-            $bids = $biddingService->getAllBids($enchere);
-            
-            return new JsonResponse([
-                'success' => true,
-                'data' => $bids,
-                'count' => count($bids)
-            ]);
-        } catch (\Exception $e) {
-            return new JsonResponse([
-                'success' => false,
-                'message' => 'Failed to fetch bids: ' . $e->getMessage(),
-                'code' => 'SERVER_ERROR'
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
-    }
-
     #[Route('/push', name: 'app_offre_push', methods: ['POST'])]
     public function PushOffer(Offre $offre)
     {
@@ -206,9 +98,10 @@ final class OffreController extends AbstractController
         Request $request,
         Enchere $enchere,
         UtilisateurRepository $userRepo,
-        BiddingService $biddingService
+        EntityManagerInterface $entityManager
     ): Response {
         $user = $userRepo->find($request->getSession()->get('user_id'));
+
 
         if (!$user instanceof Utilisateur) {
             // not logged in
@@ -229,15 +122,13 @@ final class OffreController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted()) {
-            // Use BiddingService for concurrent-safe bid processing
-            $bidResult = $biddingService->placeBid($enchere, $user, $offre->getMontant());
-            
-            if ($bidResult['success']) {
-                // Bid was successful
+            $entityManager->persist($offre);
+            $this->ValidateOffer($form, $offre);
+            if ($form->isValid()) {
+                $enchere->setPrixActuel($offre->getMontant());
+                $entityManager->flush();
+
                 return $this->redirectToRoute('app_enchere_index', [], Response::HTTP_SEE_OTHER);
-            } else {
-                // Add error message to form
-                $form->addError(new FormError($bidResult['message']));
             }
         }
 

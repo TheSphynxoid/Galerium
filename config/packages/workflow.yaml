@@ -1,0 +1,24 @@
+framework:
+  workflows:
+    enchere:
+      type: state_machine
+      supports:
+        - App\Entity\Enchere
+      marking_store:
+        type: method
+        property: statut
+      places:
+        - draft
+        - active
+        - terminee
+        - annulee
+      transitions:
+        publish:
+          from: draft
+          to: active
+        finish:
+          from: active
+          to: terminee
+        cancel:
+          from: active
+          to: annulee

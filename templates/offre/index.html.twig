@@ -36,8 +36,8 @@
                             <div class="position-relative overflow-hidden" style="height: 300px;">
                                 <img src="{{ vich_uploader_asset(offre.echere.oeuvre, 'imageFile') }}" alt="{{ offre.echere.oeuvre.title }}" class="card-img-top" style="width:100%;height:100%;object-fit:cover;">
                                 <div class="position-absolute top-0 end-0 m-2">
-                                    <span class="badge bg-{% if offre.echere.Statut.value == 'En cours' %}warning{% elseif offre.echere.Statut.value == 'Terminée' %}danger{% else %}success{% endif %}">
-                                        {{ offre.echere.Statut.value }}
+                                    <span class="badge bg-{% if offre.echere.Statut == 'En cours' %}warning{% elseif offre.echere.Statut == 'Terminée' %}danger{% else %}success{% endif %}">
+                                        {{ offre.echere.Statut }}
                                     </span>
                                 </div>
                             </div>

@@ -15,28 +15,34 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class EnchereType extends AbstractType
 {
-    public function __construct(private OeuvreRepository $oeuvreRepository)
-    {
-    }
+    public function __construct(private OeuvreRepository $oeuvreRepository) {}
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        $enchereId = $options['enchere_id'];
+
         $builder
-            ->add('Oeuvre', EntityType::class, [
+            ->add('oeuvre', EntityType::class, [
                 'class' => Oeuvre::class,
                 'choice_label' => 'title',
-                'query_builder' => fn() => $this->oeuvreRepository->findNotInEnchere(),
+                'query_builder' => function () use ($enchereId) {
+                    return $this->oeuvreRepository->findAvailableForEnchere($enchereId);
+                },
             ])
-            ->add('prixDeBase',NumberType::class, [
-                "required" => false,
+            ->add('prixDeBase', NumberType::class, [
+                'required' => false,
             ])
             ->add('dateFin');
     }
+
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
             'data_class' => Enchere::class,
+            'enchere_id' => null,
         ]);
+
+        $resolver->setAllowedTypes('enchere_id', ['null', 'int']);
     }
 }

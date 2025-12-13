@@ -35,8 +35,8 @@ class Enchere
     )]
     private ?\DateTime $dateFin = null;
 
-    #[ORM\Column(enumType: EnchereStatut::class)]
-    private ?EnchereStatut $Statut = null;
+    #[ORM\Column]
+    private ?string $Statut = null;
 
     /**
      * @var Collection<int, Offre>
@@ -107,12 +107,12 @@ class Enchere
         return $this;
     }
 
-    public function getStatut(): ?EnchereStatut
+    public function getStatut(): ?string
     {
         return $this->Statut;
     }
 
-    public function setStatut(EnchereStatut $Statut): static
+    public function setStatut(string $Statut): static
     {
         $this->Statut = $Statut;
 

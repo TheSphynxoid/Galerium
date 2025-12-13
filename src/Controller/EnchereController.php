@@ -20,6 +20,8 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Workflow\WorkflowInterface;
+use Symfony\Component\Workflow\Registry;
 
 #[Route('/enchere')]
 final class EnchereController extends AbstractController
@@ -63,31 +65,44 @@ final class EnchereController extends AbstractController
         ]);
     }
 
+    public function searchByOeuvreTitle(string $q, EnchereRepository $enchereRepository): array
+    {
+        return $enchereRepository->createQueryBuilder('e')
+            ->join('e.oeuvre', 'o')
+            ->where('LOWER(o.title) LIKE :q')
+            ->setParameter('q', '%' . strtolower($q) . '%')
+            ->getQuery()
+            ->getResult();
+    }
+
+
     #[Route('/search', name: 'app_enchere_search', methods: ['GET'])]
     public function search(Request $request, EnchereRepository $enchereRepository): JsonResponse
     {
         try {
-            $query = $request->query->get('q', '');
-            
+
             // Get all encheres and filter by artwork title
-            $allEncheres = $enchereRepository->findAll();
+            $allEncheres = $this->searchByOeuvreTitle(
+                $request->query->get('q', ''),
+                $enchereRepository
+            );
             $filteredEncheres = [];
-            
+
             foreach ($allEncheres as $enchere) {
                 // Check if all relationships exist
                 if (!$enchere->getOeuvre()) {
                     continue;
                 }
-                
+
                 $oeuvre = $enchere->getOeuvre();
                 $title = strtolower($oeuvre->getTitle());
-                
+
                 // Only add if matches search query
                 if (empty($query) || strpos($title, strtolower($query)) !== false) {
                     // Get image path
                     $imagePath = $oeuvre->getImagePath();
                     $imageUrl = $imagePath ? '/uploads/oeuvres/' . $imagePath : '/assets/img/placeholder.jpg';
-                    
+
                     $filteredEncheres[] = [
                         'id' => $enchere->getId(),
                         'prixDeBase' => $enchere->getPrixDeBase(),
@@ -95,24 +110,25 @@ final class EnchereController extends AbstractController
                         'dateDebut' => $enchere->getDateDebut()?->format('d/m/Y H:i'),
                         'dateFin' => $enchere->getDateFin()?->format('d/m/Y H:i'),
                         'oeuvreTitle' => $oeuvre->getTitle(),
-                        'statut' => $enchere->getStatut()->value,
+                        'statut' => $enchere->getStatut(),
                         'imageUrl' => $imageUrl,
                         'showUrl' => $this->generateUrl('app_enchere_show', ['id' => $enchere->getId()]),
                     ];
                 }
             }
-            
+
             return new JsonResponse($filteredEncheres);
         } catch (\Exception $e) {
             return new JsonResponse(['error' => $e->getMessage()], 500);
         }
     }
-    
+
     #[Route('/new/choose_art', name: 'app_enchere_choose_art')]
-    public function chooseArt(Request $request,
-        ArtisteRepository $artisteRepository, 
-        OeuvreRepository $oeuvreRepository): Response
-    {
+    public function chooseArt(
+        Request $request,
+        ArtisteRepository $artisteRepository,
+        OeuvreRepository $oeuvreRepository
+    ): Response {
         $artiste = $artisteRepository->findOneBy(['user' => $request->getSession()->get('user_id')]);
         $oeuvres = $oeuvreRepository->findNotInEnchere()
             ->andWhere('o.artiste = :artiste')
@@ -126,22 +142,28 @@ final class EnchereController extends AbstractController
     }
 
     #[Route('/new', name: 'app_enchere_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    public function new(Request $request, Registry $registry, EntityManagerInterface $entityManager): Response
     {
         $enchere = new Enchere();
+
+        $workflow = $registry->get($enchere, 'enchere');
+        $enchere->setStatut(EnchereStatut::DRAFT->value);
         $form = $this->createForm(EnchereType::class, $enchere);
         $enchere->setDateDebut(new \DateTime());
-        $enchere->setStatut(EnchereStatut::ACTIVE);
         $form->handleRequest($request);
 
         if ($form->isSubmitted()) {
             $entityManager->persist($enchere);
             $enchere->setPrixActuel($enchere->getPrixDeBase());
             if ($form->isValid()) {
+
+                if ($workflow->can($enchere, 'publish')) {
+                    $workflow->apply($enchere, 'publish');
+                }
+
                 $entityManager->flush();
                 return $this->redirectToRoute('app_enchere_index', [], Response::HTTP_SEE_OTHER);
             }
-
         }
 
         return $this->render('enchere/new.html.twig', [
@@ -159,10 +181,12 @@ final class EnchereController extends AbstractController
             // not logged in
             return new JsonResponse(['message' => 'Not logged in'], Response::HTTP_FORBIDDEN);
         }
-        if($user->getRole() === 'VISITEUR'){
-            return $this->redirectToRoute('app_offre_new', 
-            $req->query->all() + ['id' => $enchere->getId()]);
-        }else if ($user->getRole() === 'ARTISTE'){
+        if ($user->getRole() === 'VISITEUR') {
+            return $this->redirectToRoute(
+                'app_offre_new',
+                $req->query->all() + ['id' => $enchere->getId()]
+            );
+        } else if ($user->getRole() === 'ARTISTE') {
             return $this->render('enchere/show_front.html.twig', [
                 'enchere' => $enchere,
             ]);
@@ -173,17 +197,23 @@ final class EnchereController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_enchere_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Enchere $enchere, EntityManagerInterface $entityManager,
-     UtilisateurRepository $userRepo): Response
-    {
+    public function edit(
+        Request $request,
+        Enchere $enchere,
+        EntityManagerInterface $entityManager,
+        UtilisateurRepository $userRepo
+    ): Response {
         $user = $userRepo->find($request->getSession()->get('user_id'));
 
         if (!$user instanceof Utilisateur) {
             // not logged in
             return new JsonResponse(['message' => 'Not logged in'], Response::HTTP_FORBIDDEN);
         }
-        $form = $this->createForm(EnchereType::class, $enchere);
         
+        $form = $this->createForm(EnchereType::class, $enchere, [
+            'enchere_id' => $enchere->getId(),
+        ]);
+
         $form->handleRequest($request);
 
         if ($form->isSubmitted()) {

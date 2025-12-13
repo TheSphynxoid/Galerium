@@ -55,11 +55,20 @@ class OeuvreRepository extends ServiceEntityRepository
             ->where('e.id IS NULL')
             ->orderBy('o.createdAt', 'DESC');
     }
+
+    public function findAvailableForEnchere(?int $enchereId = null)
+    {
+        $qb = $this->createQueryBuilder('o')
+            ->leftJoin('App\Entity\Enchere', 'e', 'WITH', 'e.oeuvre = o')
+            ->orderBy('o.createdAt', 'DESC');
+
+        if ($enchereId !== null) {
+            $qb->andWhere('e.id IS NULL OR e.id = :enchereId')
+                ->setParameter('enchereId', $enchereId);
+        } else {
+            $qb->andWhere('e.id IS NULL');
+        }
+
+        return $qb;
+    }
 }
-
-
-
-
-
-
-
