@@ -11,6 +11,7 @@ use App\Repository\OffreRepository;
 use App\Repository\UtilisateurRepository;
 use App\Service\RedisService;
 use App\Service\AuctionUtils;
+use App\Service\BiddingService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormInterface;
@@ -96,6 +97,102 @@ final class OffreController extends AbstractController
         return new Response($client->get('test_offer'));
     }
 
+    #[Route('/api/bid', name: 'app_offre_api_bid', methods: ['POST'])]
+    public function apiBid(
+        Request $request,
+        UtilisateurRepository $userRepo,
+        BiddingService $biddingService
+    ): JsonResponse {
+        try {
+            $data = json_decode($request->getContent(), true);
+            
+            if (!$data || !isset($data['auctionId']) || !isset($data['amount'])) {
+                return new JsonResponse([
+                    'success' => false,
+                    'message' => 'Missing required fields: auctionId and amount',
+                    'code' => 'INVALID_REQUEST'
+                ], Response::HTTP_BAD_REQUEST);
+            }
+
+            $user = $userRepo->find($request->getSession()->get('user_id'));
+            if (!$user instanceof Utilisateur) {
+                return new JsonResponse([
+                    'success' => false,
+                    'message' => 'Not logged in',
+                    'code' => 'NOT_AUTHENTICATED'
+                ], Response::HTTP_FORBIDDEN);
+            }
+
+            // Get the auction
+            $enchere = $this->getDoctrine()->getRepository(Enchere::class)->find($data['auctionId']);
+            if (!$enchere) {
+                return new JsonResponse([
+                    'success' => false,
+                    'message' => 'Auction not found',
+                    'code' => 'AUCTION_NOT_FOUND'
+                ], Response::HTTP_NOT_FOUND);
+            }
+
+            // Place the bid
+            $bidResult = $biddingService->placeBid(
+                $enchere,
+                $user,
+                (float) $data['amount'],
+                (float) ($data['minimumIncrease'] ?? 0)
+            );
+
+            return $biddingService->bidResultToJsonResponse($bidResult);
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'success' => false,
+                'message' => 'An error occurred: ' . $e->getMessage(),
+                'code' => 'SERVER_ERROR'
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    #[Route('/api/auction/{id<\d+>}/stats', name: 'app_offre_api_stats', methods: ['GET'])]
+    public function apiAuctionStats(
+        Enchere $enchere,
+        BiddingService $biddingService
+    ): JsonResponse {
+        try {
+            $stats = $biddingService->getBidStats($enchere);
+            
+            return new JsonResponse([
+                'success' => true,
+                'data' => $stats
+            ]);
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'success' => false,
+                'message' => 'Failed to fetch stats: ' . $e->getMessage(),
+                'code' => 'SERVER_ERROR'
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    #[Route('/api/auction/{id<\d+>}/bids', name: 'app_offre_api_get_bids', methods: ['GET'])]
+    public function apiGetBids(
+        Enchere $enchere,
+        BiddingService $biddingService
+    ): JsonResponse {
+        try {
+            $bids = $biddingService->getAllBids($enchere);
+            
+            return new JsonResponse([
+                'success' => true,
+                'data' => $bids,
+                'count' => count($bids)
+            ]);
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'success' => false,
+                'message' => 'Failed to fetch bids: ' . $e->getMessage(),
+                'code' => 'SERVER_ERROR'
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
 
     #[Route('/push', name: 'app_offre_push', methods: ['POST'])]
     public function PushOffer(Offre $offre)
@@ -109,10 +206,9 @@ final class OffreController extends AbstractController
         Request $request,
         Enchere $enchere,
         UtilisateurRepository $userRepo,
-        EntityManagerInterface $entityManager
+        BiddingService $biddingService
     ): Response {
         $user = $userRepo->find($request->getSession()->get('user_id'));
-
 
         if (!$user instanceof Utilisateur) {
             // not logged in
@@ -133,13 +229,15 @@ final class OffreController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted()) {
-            $entityManager->persist($offre);
-            $this->ValidateOffer($form, $offre);
-            if ($form->isValid()) {
-                $enchere->setPrixActuel($offre->getMontant());
-                $entityManager->flush();
-
+            // Use BiddingService for concurrent-safe bid processing
+            $bidResult = $biddingService->placeBid($enchere, $user, $offre->getMontant());
+            
+            if ($bidResult['success']) {
+                // Bid was successful
                 return $this->redirectToRoute('app_enchere_index', [], Response::HTTP_SEE_OTHER);
+            } else {
+                // Add error message to form
+                $form->addError(new FormError($bidResult['message']));
             }
         }
 
