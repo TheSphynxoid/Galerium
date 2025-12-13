@@ -20,6 +20,7 @@
                 <th>Oeuvre présentée</th>
                 <th>Votes</th>
                 <th>Description</th>
+                <th>QR Code</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -64,6 +65,13 @@
                     <div style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
                         {{ p.description|slice(0, 100) }}{% if p.description|length > 100 %}...{% endif %}
                     </div>
+                </td>
+                <td class="text-center">
+                    <img src="{{ path('app_participation_qrcode_generate', {'id': p.id}) }}?t={{ 'now'|date('U') }}" 
+                         alt="QR Code" 
+                         style="max-width: 120px; max-height: 120px; display: block; margin: 0 auto; border: 1px solid #ddd;"
+                         title="Scannez ce QR code pour voir les détails de cette participation"
+                         loading="lazy">
                 </td>
                 <td>
                     <div class="btn-group" role="group">

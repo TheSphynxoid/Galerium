@@ -17,6 +17,10 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Endroid\QrCode\Encoding\Encoding;
+use Endroid\QrCode\ErrorCorrectionLevel;
+use Endroid\QrCode\QrCode;
+use Endroid\QrCode\Writer\SvgWriter;
 
 #[Route('/participation')]
 final class ParticipationController extends AbstractController
@@ -265,6 +269,180 @@ public function myParticipations(
         'participations' => $participations,
         'votesCount' => $votesCount,
     ]);
+}
+
+
+
+#[Route('/qrcode/{id<\d+>}', name: 'app_participation_qrcode_single', methods: ['GET'])]
+public function qrcodeSingle(
+    Participation $participation,
+    Request $request,
+    UtilisateurRepository $userRepository,
+    VoteRepository $voteRepository
+): Response {
+    // Vérifier la session
+    $session = $request->getSession();
+    if (!$session->has('user_id')) {
+        return $this->render('participation/qrcode_single.html.twig', [
+            'participation' => null,
+            'votesCount' => 0,
+            'error' => 'Vous devez être connecté pour voir cette participation.',
+        ]);
+    }
+
+    // Récupérer utilisateur connecté
+    $user = $userRepository->find($session->get('user_id'));
+
+    if (!$user || !in_array('ROLE_ARTISTE', $user->getRoles())) {
+        return $this->render('participation/qrcode_single.html.twig', [
+            'participation' => null,
+            'votesCount' => 0,
+            'error' => 'Vous devez être artiste pour voir cette participation.',
+        ]);
+    }
+
+    $artiste = $user->getArtiste();
+    if (!$artiste) {
+        return $this->render('participation/qrcode_single.html.twig', [
+            'participation' => null,
+            'votesCount' => 0,
+            'error' => 'Profil artiste introuvable.',
+        ]);
+    }
+
+    // Vérifier que la participation appartient à l'artiste
+    if (!$participation->getOeuvre() || $participation->getOeuvre()->getArtiste() !== $artiste) {
+        return $this->render('participation/qrcode_single.html.twig', [
+            'participation' => null,
+            'votesCount' => 0,
+            'error' => 'Vous n\'avez pas accès à cette participation.',
+        ]);
+    }
+
+    // Compter les votes pour cette participation
+    $votesCount = $voteRepository->countVotesForParticipation($participation);
+
+    return $this->render('participation/qrcode_single.html.twig', [
+        'participation' => $participation,
+        'votesCount' => $votesCount,
+        'error' => null,
+    ]);
+}
+
+#[Route('/qrcode/{id<\d+>}/generate', name: 'app_participation_qrcode_generate', methods: ['GET'])]
+public function qrcodeGenerate(
+    Participation $participation,
+    Request $request,
+    UtilisateurRepository $userRepository,
+    VoteRepository $voteRepository
+): Response {
+    try {
+        // Vérifier la session
+        $session = $request->getSession();
+        if (!$session->has('user_id')) {
+            return new Response('Unauthorized', 401);
+        }
+
+        // Récupérer utilisateur connecté
+        $user = $userRepository->find($session->get('user_id'));
+
+        if (!$user || !in_array('ROLE_ARTISTE', $user->getRoles())) {
+            return new Response('Unauthorized', 401); //Non autorisé
+
+        }
+
+        $artiste = $user->getArtiste();
+        if (!$artiste) {
+            return new Response('Unauthorized', 401);
+        }
+
+        // Vérifier que la participation appartient à l'artiste
+        if (!$participation->getOeuvre() || $participation->getOeuvre()->getArtiste() !== $artiste) {
+            return new Response('Unauthorized', 401);
+        }
+
+        // Compter les votes pour cette participation
+        $votesCount = $voteRepository->countVotesForParticipation($participation);
+
+        // Créer le contenu texte à encoder dans le QR
+        $data = "CONFIRMATION DE PARTICIPATION\n\n";
+        $data .= "=== PARTICIPATION ===\n";
+        $data .= "ID: " . $participation->getId() . "\n";
+        $data .= "Date participation: " . ($participation->getDateparticipation() ? $participation->getDateparticipation()->format('d/m/Y H:i') : '-') . "\n";
+        $data .= "Statut: " . $participation->getStatut() . "\n";
+        $data .= "Votes: " . $votesCount . " vote(s)\n";
+        $data .= "Description: " . substr($participation->getDescription(), 0, 200) . "\n";
+
+        // Informations sur le concours
+        $concoursList = $participation->getConcours();
+        if (!$concoursList->isEmpty()) {
+            $data .= "\n=== CONCOURS ===\n";
+            $concoursArray = $concoursList->toArray();
+            foreach ($concoursArray as $index => $concours) {
+                $data .= "Titre: " . $concours->getTitre() . "\n";
+                if ($concours->getDescription()) {
+                    $data .= "Description: " . $concours->getDescription() . "\n";
+                }
+                if ($concours->getDateDebut()) {
+                    $data .= "Date début: " . $concours->getDateDebut()->format('d/m/Y H:i') . "\n";
+                }
+                if ($concours->getDateFin()) {
+                    $data .= "Date fin: " . $concours->getDateFin()->format('d/m/Y H:i') . "\n";
+                }
+                if ($index < count($concoursArray) - 1) {
+                    $data .= "---\n";
+                }
+            }
+        }
+
+        // Informations sur l'œuvre
+        $oeuvre = $participation->getOeuvre();
+        if ($oeuvre) {
+            $data .= "\n=== ŒUVRE PRÉSENTÉE ===\n";
+            $data .= "Titre: " . $oeuvre->getTitle() . "\n";
+            if ($oeuvre->getDescription()) {
+                $data .= "Description: " . $oeuvre->getDescription() . "\n";
+            }
+            if ($oeuvre->getArtiste()) {
+                $artisteOeuvre = $oeuvre->getArtiste();
+                if ($artisteOeuvre->getUser()) {
+                    $utilisateurOeuvre = $artisteOeuvre->getUser();
+                    $data .= "Artiste: " . $utilisateurOeuvre->getNom() . " " . $utilisateurOeuvre->getPrenom() . "\n";
+                    if ($utilisateurOeuvre->getEmail()) {
+                        $data .= "Email: " . $utilisateurOeuvre->getEmail() . "\n";
+                    }
+                    if ($utilisateurOeuvre->getTelephone()) {
+                        $data .= "Téléphone: " . $utilisateurOeuvre->getTelephone() . "\n";
+                    }
+                }
+            }
+        }
+
+        // Génération QRCode (version Endroid 6.x)
+        $qrCode = new QrCode(
+            data: $data,
+            encoding: new Encoding('UTF-8'),
+            errorCorrectionLevel: ErrorCorrectionLevel::High,
+            size: 300,
+            margin: 10
+        );
+        
+        $writer = new SvgWriter();    // pour générer le QR code au format SVG.
+        $result = $writer->write($qrCode);
+        
+        $svgContent = $result->getString();
+        
+        // Retourner le QR code comme réponse HTTP
+        return new Response($svgContent, 200, [
+            'Content-Type' => 'image/svg+xml; charset=utf-8',
+            'Content-Disposition' => 'inline; filename="qrcode.svg"',
+            'Cache-Control' => 'no-cache, no-store, must-revalidate',
+            'Pragma' => 'no-cache',
+            'Expires' => '0'
+        ]);
+    } catch (\Exception $e) {
+        return new Response('Erreur lors de la génération du QR code: ' . $e->getMessage(), 500);
+    }
 }
 
 

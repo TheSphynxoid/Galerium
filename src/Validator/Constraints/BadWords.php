@@ -7,7 +7,9 @@ use Symfony\Component\Validator\Constraint;
 /**
  * @Annotation
  */
-#[\Attribute(\Attribute::TARGET_PROPERTY | \Attribute::TARGET_METHOD | \Attribute::IS_REPEATABLE)]
+
+//   tu peux l’utiliser sur une propriété  //ou une méthode // tu peux répéter plusieurs fois la contrainte si nécessaire
+#[\Attribute(\Attribute::TARGET_PROPERTY | \Attribute::TARGET_METHOD | \Attribute::IS_REPEATABLE)] 
 class BadWords extends Constraint
 {
     public string $message = 'Le texte contient des mots inappropriés : {{ words }}. Veuillez modifier votre description.';

@@ -361,7 +361,7 @@ public function pdf(ConcoursRepository $concoursRepository): Response
     $dompdf->setPaper('A4', 'portrait');
     $dompdf->render();
 
-    // ❗ LA PARTIE IMPORTANTE : récupérer le PDF dans une variable
+    //  récupérer le PDF dans une variable
     $output = $dompdf->output();
 
     return new Response(
@@ -369,7 +369,7 @@ public function pdf(ConcoursRepository $concoursRepository): Response
         200,
         [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="liste_concours.pdf"'
+            'Content-Disposition' => 'attachment; filename="liste_concours.pdf"'  //force le navigateur à télécharger le PDF avec ce nom.
         ]
     );
 }
@@ -378,33 +378,6 @@ public function pdf(ConcoursRepository $concoursRepository): Response
 
 
 
-#[Route('/qrcode/liste', name: 'app_concours_qrcode_liste')]
-public function qrcodeListe(): Response
-{
-    // URL ABSOLUE
-    $url = $this->generateUrl('app_concours_visiteur_index', [], UrlGeneratorInterface::ABSOLUTE_URL);
-
-    // Génération QRCode (version Endroid 6.x)
-    $qrCode = new QrCode(
-        data: $url,
-        encoding: new Encoding('UTF-8'),
-        errorCorrectionLevel: ErrorCorrectionLevel::High,
-        size: 300,
-        margin: 20
-    );
-    
-    $writer = new PngWriter();
-    $result = $writer->write($qrCode);
-
-    return new Response(
-        $result->getString(),
-        200,
-        [
-            'Content-Type' => $result->getMimeType(),
-            'Cache-Control' => 'no-cache, no-store, must-revalidate'
-        ]
-    );
-}
 
 
 

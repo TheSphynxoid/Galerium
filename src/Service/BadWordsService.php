@@ -25,7 +25,7 @@ class BadWordsService
         'tg',
         'ntm',
         'ptn',
-        // Ajoutez d'autres mots selon vos besoins
+        
     ];
 
     /**
