@@ -162,6 +162,10 @@ final class EnchereController extends AbstractController
         if($user->getRole() === 'VISITEUR'){
             return $this->redirectToRoute('app_offre_new', 
             $req->query->all() + ['id' => $enchere->getId()]);
+        }else if ($user->getRole() === 'ARTISTE'){
+            return $this->render('enchere/show_front.html.twig', [
+                'enchere' => $enchere,
+            ]);
         }
         return $this->render('enchere/show.html.twig', [
             'enchere' => $enchere,
@@ -169,9 +173,17 @@ final class EnchereController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_enchere_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Enchere $enchere, EntityManagerInterface $entityManager): Response
+    public function edit(Request $request, Enchere $enchere, EntityManagerInterface $entityManager,
+     UtilisateurRepository $userRepo): Response
     {
+        $user = $userRepo->find($request->getSession()->get('user_id'));
+
+        if (!$user instanceof Utilisateur) {
+            // not logged in
+            return new JsonResponse(['message' => 'Not logged in'], Response::HTTP_FORBIDDEN);
+        }
         $form = $this->createForm(EnchereType::class, $enchere);
+        
         $form->handleRequest($request);
 
         if ($form->isSubmitted()) {
