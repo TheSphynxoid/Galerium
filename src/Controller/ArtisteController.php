@@ -56,7 +56,6 @@ class ArtisteController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            // VichUploader handles the file automatically
             $artisteService->save($artiste);
             
             $this->addFlash('success', 'Profil mis à jour avec succès!');

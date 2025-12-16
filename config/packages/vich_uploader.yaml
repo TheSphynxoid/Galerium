@@ -11,3 +11,7 @@ vich_uploader:
             uri_prefix: /uploads/oeuvres
             upload_destination: '%kernel.project_dir%/public/uploads/oeuvres'
             namer: Vich\UploaderBundle\Naming\SmartUniqueNamer
+
+
+
+

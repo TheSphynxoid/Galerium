@@ -54,7 +54,7 @@
                 {% for oeuvre in oeuvres %}
                     <div class="col-md-6 col-lg-4">
                         <div class="card border-0 shadow-sm h-100">
-                            <a href="{{ path('app_oeuvre_show', {slug: oeuvre.slug}) }}" class="text-decoration-none">
+                            <a href="{{ path('app_oeuvre_details', {id: oeuvre.id}) }}" class="text-decoration-none">
                                 <img src="{{ vich_uploader_asset(oeuvre, 'imageFile') }}" 
                                      class="card-img-top" 
                                      alt="{{ oeuvre.title }}" 

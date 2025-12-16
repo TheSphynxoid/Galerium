@@ -43,6 +43,9 @@
                             <a href="{{ path('app_oeuvre_show', {'id': oeuvre.id}) }}" class="btn btn-sm btn-outline-primary">
                                 <i class="bi bi-eye"></i> Voir
                             </a>
+                            <a href="{{ path('app_oeuvre_download', {'id': oeuvre.id}) }}" class="btn btn-sm btn-outline-secondary" title="Télécharger">
+                                <i class="bi bi-download"></i> Télécharger
+                            </a>
                             <a href="{{ path('app_oeuvre_edit', {'id': oeuvre.id}) }}" class="btn btn-sm btn-outline-secondary">
                                 <i class="bi bi-pencil"></i> Modifier
                             </a>

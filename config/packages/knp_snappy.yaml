@@ -1,0 +1,14 @@
+knp_snappy:
+    pdf:
+        enabled:    true
+        # Using verified absolute path provided by user
+        binary:     "C:\\Users\\HP\\Galerium\\wkhtmltopdf\\bin\\wkhtmltopdf.exe"
+        options:    
+            enable-local-file-access: true
+            disable-smart-shrinking: true
+            no-stop-slow-scripts: true
+    image:
+        enabled:    true
+        # Using verified absolute path provided by user - assuming image binary is in same folder
+        binary:     "C:\\Users\\HP\\Galerium\\wkhtmltopdf\\bin\\wkhtmltoimage.exe"
+        options:    []

@@ -51,7 +51,7 @@ class VenteController extends AbstractController
                     'quantity' => 1,
                 ]],
                 'mode' => 'payment',
-                'success_url' => $this->generateUrl('app_vente_success', ['id' => $oeuvre->getId()], UrlGeneratorInterface::ABSOLUTE_URL),
+                'success_url' => $this->generateUrl('app_vente_success', ['id' => $oeuvre->getId()], UrlGeneratorInterface::ABSOLUTE_URL) . '?session_id={CHECKOUT_SESSION_ID}',
                 'cancel_url' => $this->generateUrl('app_vente_cancel', ['id' => $oeuvre->getId()], UrlGeneratorInterface::ABSOLUTE_URL),
             ]);
 
@@ -68,10 +68,13 @@ class VenteController extends AbstractController
     public function success(
         Oeuvre $oeuvre,
         CommissionCalculator $calculator,
-        EntityManagerInterface $em
+        EntityManagerInterface $em,
+        \Symfony\Component\Mailer\MailerInterface $mailer,
+        Request $request,
+        #[Autowire('%env(STRIPE_SECRET_KEY)%')] string $stripeSecretKey
     ): Response {
         // 1️⃣ Calcul commission
-        $commissionMontant = $calculator->calculerCommission($oeuvre);
+        $commissionMontant = $calculator->calculerCommission($oeuvre); //appel service
 
         // 2️⃣ Création entity Commission
         $commission = new Commission();
@@ -82,16 +85,41 @@ class VenteController extends AbstractController
 
         // 3️⃣ Sauvegarde
         $em->persist($commission);
-        
-        // Mark artwork as sold? Assuming logic is required but not provided in snippets. 
-        // Using "ARCHIVED" as a proxy for Sold based on status choices, or maybe just keep PUBLIC but sold.
-        // User didn't ask to change status, just record "Une vente".
-        
-        $em->flush();
+        $em->flush(); // Save first to ensure transaction is committed before sending email
 
-        $this->addFlash('success', 'Paiement réussi ! Vente enregistrée et commission calculée.');
+        // 4️⃣ Envoi de l'email
+        try {
+            $customerEmail = 'wajdimejbri631@gmail.com'; // Fallback email
+            
+            $sessionId = $request->query->get('session_id');
+            if ($sessionId) {
+                Stripe::setApiKey($stripeSecretKey);
+                try {
+                    $session = Session::retrieve($sessionId);
+                    if ($session->customer_details && $session->customer_details->email) {
+                        $customerEmail = $session->customer_details->email;
+                    }
+                } catch (\Exception $e) {
+                    
+                    // Log error but continue
+                }
+            }
 
-        // Redirect to gallery or dashboard
+            $email = (new \Symfony\Bridge\Twig\Mime\TemplatedEmail())
+                ->from('no-reply@galerium.com') // Sender should be consistent
+                ->to($customerEmail) // Send to the actual buyer
+                ->subject('Confirmation d\'achat - ' . $oeuvre->getTitle())
+                ->htmlTemplate('emails/purchase_confirmation.html.twig')
+                ->context([
+                    'oeuvre' => $oeuvre,
+                ]);
+
+            $mailer->send($email);
+            $this->addFlash('success', 'Paiement réussi ! Un email de confirmation a été envoyé à ' . $customerEmail);
+        } catch (\Symfony\Component\Mailer\Exception\TransportExceptionInterface $e) {
+            $this->addFlash('warning', 'Paiement réussi, mais l\'envoi de l\'email a échoué : ' . $e->getMessage());
+        }
+
         return $this->render('vente/success.html.twig', [
             'oeuvre' => $oeuvre,
             'commission' => $commission

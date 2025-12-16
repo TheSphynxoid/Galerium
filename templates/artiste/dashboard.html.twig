@@ -6,6 +6,17 @@
 <section id="dashboard" class="py-5">
     <div class="container">
         <div class="row mb-4">
+            <div class="col-12">
+                {% if not artiste.avatarPath %}
+                    <div class="alert alert-danger d-flex align-items-center" role="alert">
+                        <div>
+                            <strong>Attention !</strong> Vous n'avez pas ajouté d'image à votre profil. 
+                            <a href="{{ path('app_artiste_profile') }}" class="alert-link">Veuillez en ajouter une ici</a>.
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+            
             <div class="col-12 d-flex justify-content-between align-items-center">
                 <div>
                     <h2>Bienvenue, {{ artiste.displayName }}</h2>

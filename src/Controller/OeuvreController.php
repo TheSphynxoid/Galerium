@@ -13,9 +13,37 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\String\Slugger\SluggerInterface;
+use Knp\Snappy\Pdf;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 class OeuvreController extends AbstractController
 {
+    #[Route('/oeuvre/{id}/download', name: 'app_oeuvre_download', requirements: ['id' => '\d+'])]
+    public function download(
+        Oeuvre $oeuvre, 
+        Pdf $knpSnappyPdf,
+        #[Autowire('%kernel.project_dir%')] string $projectDir
+    ): Response {
+        $imagePath = null;
+        if ($oeuvre->getImagePath()) {
+            $imagePath = $projectDir . '/public/uploads/oeuvres/' . $oeuvre->getImagePath();
+        }
+
+        $html = $this->renderView('oeuvre/pdf.html.twig', [
+            'oeuvre' => $oeuvre,
+            'imagePath' => $imagePath
+        ]);
+
+        return new Response(
+            $knpSnappyPdf->getOutputFromHtml($html),
+            200,
+            [
+                'Content-Type'        => 'application/pdf',
+                'Content-Disposition' => sprintf('attachment; filename="%s.pdf"', $oeuvre->getSlug()),
+            ]
+        );
+    }
+
     #[Route('/artiste/oeuvres', name: 'app_oeuvre_index')]
     public function index(
         OeuvreRepository $oeuvreRepository,
@@ -66,13 +94,13 @@ class OeuvreController extends AbstractController
         }
 
         $oeuvre = new Oeuvre();
-        $oeuvre->setArtiste($artiste);
+        $oeuvre->setArtiste($artiste);   
 
         $form = $this->createForm(OeuvreFormType::class, $oeuvre);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            // VichUploader handles the image automatically
+// 
             $entityManager->persist($oeuvre);
             $entityManager->flush();
 
@@ -113,7 +141,7 @@ class OeuvreController extends AbstractController
     public function edit(
         Request $request,
         Oeuvre $oeuvre,
-        EntityManagerInterface $entityManager,
+        EntityManagerInterface $entityManager, //sauvgarder les mod
         UtilisateurRepository $userRepository
     ): Response {
         $session = $request->getSession();
@@ -131,7 +159,6 @@ class OeuvreController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            // VichUploader handles updates automatically
             $entityManager->flush();
 
             $this->addFlash('success', 'Œuvre modifiée avec succès !');
@@ -164,7 +191,6 @@ class OeuvreController extends AbstractController
         }
 
         if ($this->isCsrfTokenValid('delete' . $oeuvre->getId(), $request->request->get('_token'))) {
-            // VichUploader handles file deletion on remove
             $entityManager->remove($oeuvre);
             $entityManager->flush();
 
@@ -174,23 +200,23 @@ class OeuvreController extends AbstractController
         return $this->redirectToRoute('app_oeuvre_index');
     }
 
-     // ... keep updateVote ...
-    #[Route('/oeuvre/{id}/vote', name: 'app_oeuvre_increment_vote', requirements: ['id' => '\d+'], methods: ['POST'])]
-     public function incrementVote(
-         Request $request,
-         Oeuvre $oeuvre,
-         EntityManagerInterface $entityManager
-     ): Response {
-         // Endpoint public simplifié pour incrémenter les votes (ex: depuis la page publique)
-         if (!$this->isCsrfTokenValid('vote' . $oeuvre->getId(), $request->request->get('_token'))) {
-             return $this->json(['success' => false, 'message' => 'Token invalide'], 400);
-         }
+    //  // ... keep updateVote ...
+    // #[Route('/oeuvre/{id}/vote', name: 'app_oeuvre_increment_vote', requirements: ['id' => '\d+'], methods: ['POST'])]
+    //  public function incrementVote(
+    //      Request $request,
+    //      Oeuvre $oeuvre,
+    //      EntityManagerInterface $entityManager
+    //  ): Response {
+    //      // Endpoint public simplifié pour incrémenter les votes (ex: depuis la page publique)
+    //      if (!$this->isCsrfTokenValid('vote' . $oeuvre->getId(), $request->request->get('_token'))) {
+    //          return $this->json(['success' => false, 'message' => 'Token invalide'], 400);
+    //      }
  
-         $oeuvre->incrementVotes();
-         $entityManager->flush();
+    //      $oeuvre->incrementVotes();
+    //      $entityManager->flush();
  
-         return $this->json(['success' => true, 'votes' => $oeuvre->getNbVotes()]);
-     }
+    //      return $this->json(['success' => true, 'votes' => $oeuvre->getNbVotes()]);
+    //  }
 
     #[Route('/artiste/oeuvres/statistiques', name: 'app_oeuvre_statistics')]
     public function statistics(
@@ -221,48 +247,38 @@ class OeuvreController extends AbstractController
     #[Route('/galerie', name: 'app_oeuvre_gallery')]
     public function gallery(OeuvreRepository $oeuvreRepository, Request $request): Response
     {
-        $artisteName = $request->query->get('artiste');
-        
-        if ($artisteName) {
-            // Filter by artist name if provided
-            $oeuvres = $oeuvreRepository->createQueryBuilder('o')
-                ->join('o.artiste', 'a')
-                ->where('o.status = :status')
-                ->andWhere('a.displayName LIKE :name')
-                ->setParameter('status', Oeuvre::STATUS_PUBLIC)
-                ->setParameter('name', '%' . $artisteName . '%')
-                ->orderBy('o.createdAt', 'DESC')
-                ->getQuery()
-                ->getResult();
-        } else {
-            // Get all public artworks from all artists, ordered by newest first
-            $oeuvres = $oeuvreRepository->findBy(
-                ['status' => Oeuvre::STATUS_PUBLIC],
-                ['createdAt' => 'DESC']
-            );
-        }
+        $query = $request->query->get('q') ?? $request->query->get('artiste'); // Support both parameters
+        $isAjax = $request->isXmlHttpRequest() || $request->query->get('ajax');
 
-        if ($request->isXmlHttpRequest() || $request->query->get('ajax')) {
-            $data = [];
-            foreach ($oeuvres as $oeuvre) {
-                $data[] = [
-                    'id' => $oeuvre->getId(),
-                    'title' => $oeuvre->getTitle(),
-                    'price' => $oeuvre->getPrice(),
-                    'imagePath' => $oeuvre->getImagePath() ? $oeuvre->getImagePath() : null,
-                    'artiste' => $oeuvre->getArtiste()->getDisplayName(),
-                    'views' => $oeuvre->getViewsCount(),
-                    'votes' => $oeuvre->getVotesCount()
-                ];
-            }
-            return $this->json($data);
+        $oeuvres = $oeuvreRepository->findPublicBySearch($query);
+
+        if ($isAjax) {
+            return $this->render('oeuvre/_gallery_content.html.twig', [
+                'oeuvres' => $oeuvres,
+            ]);
         }
 
         return $this->render('oeuvre/gallery.html.twig', [
             'oeuvres' => $oeuvres,
+            'searchQuery' => $query
+        ]);
+    }
+
+    #[Route('/oeuvre/{id}/details', name: 'app_oeuvre_details', requirements: ['id' => '\d+'])]
+    public function publicShow(
+        Oeuvre $oeuvre, 
+        EntityManagerInterface $entityManager
+    ): Response {
+        // Increment view count
+        $oeuvre->incrementViews();
+        $entityManager->flush();
+
+        return $this->render('oeuvre/public_show.html.twig', [
+            'oeuvre' => $oeuvre,
         ]);
     }
 }
+
 
 
 

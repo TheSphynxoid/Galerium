@@ -16,7 +16,7 @@ use Vich\UploaderBundle\Mapping\Annotation as Vich;
 #[Vich\Uploadable]
 class Oeuvre
 {
-    public const STATUS_DRAFT = 'draft';
+   public const STATUS_DRAFT = 'draft';
     public const STATUS_PRIVATE = 'private';
     public const STATUS_PUBLIC = 'public';
     public const STATUS_ARCHIVED = 'archived';
@@ -182,7 +182,7 @@ class Oeuvre
         return $this->imagePath;
     }
 
-    public function setImagePath(string $imagePath): static
+    public function setImagePath(?string $imagePath): static
     {
         $this->imagePath = $imagePath;
         return $this;

@@ -277,4 +277,18 @@ class Artiste
         $this->viewsCount++;
         return $this;
     }
+
+
+
+    
+
+    #[Assert\Callback]
+    public function validate(\Symfony\Component\Validator\Context\ExecutionContextInterface $context, $payload): void
+    {
+        if (null === $this->imageFile && null === $this->avatarPath) {
+            $context->buildViolation("Veuillez ajouter une image de profil.")
+                ->atPath('imageFile')
+                ->addViolation();
+        }
+    }
 }

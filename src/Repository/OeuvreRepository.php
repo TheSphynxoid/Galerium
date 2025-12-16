@@ -44,6 +44,25 @@ class OeuvreRepository extends ServiceEntityRepository
 
         return $qb->getQuery()->getSingleResult();
     }
+
+    /**
+     * Find public artworks by search query (title or artist name)
+     */
+    public function findPublicBySearch(?string $query): array
+    {
+        $qb = $this->createQueryBuilder('o')
+            ->join('o.artiste', 'a')
+            ->andWhere('o.status = :status')
+            ->setParameter('status', Oeuvre::STATUS_PUBLIC)
+            ->orderBy('o.createdAt', 'DESC');
+
+        if ($query) {
+            $qb->andWhere('o.title LIKE :query OR a.displayName LIKE :query')
+               ->setParameter('query', '%' . $query . '%');
+        }
+
+        return $qb->getQuery()->getResult();
+    }
 }
 
 
