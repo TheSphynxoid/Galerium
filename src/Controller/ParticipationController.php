@@ -107,7 +107,7 @@ final class ParticipationController extends AbstractController
             $userPhone = $user->getTelephone();
             if ($userPhone) {
                 $message = sprintf(
-                    "Votre participation au concours '%s' a été enregistrée avec succès. Merci pour votre participation !",
+                    "Votre participation au concours '%s' a ete enregistree avec succes. Merci pour votre participation !",
                     $concours->getTitre()
                 );
                 $mqttService->sendSms($userPhone, $message);

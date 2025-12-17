@@ -307,7 +307,7 @@ public function artistev(Request $request, ConcoursRepository $concoursRepositor
     $title = $request->query->get('title');
     $statut = $request->query->get('statut');
 
-    $qb = $concoursRepository->createQueryBuilder('c');
+    $qb = $concoursRepository->createQueryBuilder('c'); //construire une requête SQL dynamiquement
 
     if ($title) {
         $qb->andWhere('c.titre LIKE :t')
