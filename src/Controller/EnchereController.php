@@ -58,7 +58,7 @@ final class EnchereController extends AbstractController
         }
         // regular user
         $openBets = $enchereRepository->findBy(
-            ['Statut' => EnchereStatut::ACTIVE]
+            ['Statut' => EnchereStatut::ACTIVE->value]
         );
         return $this->render('enchere/user_index.html.twig', [
             'encheres' => $openBets,
@@ -209,7 +209,7 @@ final class EnchereController extends AbstractController
             // not logged in
             return new JsonResponse(['message' => 'Not logged in'], Response::HTTP_FORBIDDEN);
         }
-        
+
         $form = $this->createForm(EnchereType::class, $enchere, [
             'enchere_id' => $enchere->getId(),
         ]);

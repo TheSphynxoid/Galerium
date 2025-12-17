@@ -86,12 +86,6 @@ final class OffreController extends AbstractController
             return new JsonResponse(['error' => $e->getMessage()], 500);
         }
     }
-    #[Route('/push', name: 'app_offre_push', methods: ['POST'])]
-    public function PushOffer(Offre $offre)
-    {
-        $enchere = $offre->getEchere();
-
-    }
 
     #[Route('/new/{id<\d+>}', name: 'app_offre_new', methods: ['GET', 'POST'])]
     public function new(
@@ -108,7 +102,7 @@ final class OffreController extends AbstractController
             return new JsonResponse(['message' => 'Not logged in'], Response::HTTP_FORBIDDEN);
         }
 
-        if ($enchere->getStatut() !== EnchereStatut::ACTIVE) {
+        if ($enchere->getStatut() !== EnchereStatut::ACTIVE->value) {
             return new Response('Cette enchère est terminée.', Response::HTTP_FORBIDDEN);
         }
 
@@ -180,7 +174,7 @@ final class OffreController extends AbstractController
 
     private function ValidateOffer(FormInterface $form, Offre $offre)
     {
-        if ($offre->getEchere()->getStatut() !== EnchereStatut::ACTIVE) {
+        if ($offre->getEchere()->getStatut() !== EnchereStatut::ACTIVE->value) {
             $form->addError(new FormError('Vous ne pouvez pas faire une offre sur une enchère qui n\'est pas en cours.'));
             return false;
         }
