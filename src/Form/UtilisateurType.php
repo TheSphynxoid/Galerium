@@ -10,6 +10,7 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Validator\Constraints as Assert;
 
 class UtilisateurType extends AbstractType
 {
@@ -19,7 +20,12 @@ class UtilisateurType extends AbstractType
         
         $builder
             ->add('email', TextType::class, [
-                'label' => 'Email'
+                'label' => 'Email',
+                'attr' => [
+                    'placeholder' => 'exemple@domaine.com',
+                    'pattern' => '.*\\.com$',
+                    'title' => 'L\'email doit se terminer par .com'
+                ]
             ])
             ->add('password', PasswordType::class, [
                 'label' => 'Mot de passe',
@@ -28,20 +34,33 @@ class UtilisateurType extends AbstractType
                 'attr' => [
                     'autocomplete' => 'new-password',
                     'placeholder' => $isEdit ? 'Laisser vide pour ne pas modifier' : ''
+                ],
+                'constraints' => $isEdit ? [] : [
+                    new Assert\NotBlank(['message' => "Le mot de passe est obligatoire."]),
+                    new Assert\Length([
+                        'min' => 8,
+                        'minMessage' => "Le mot de passe doit contenir au moins 8 caractères."
+                    ])
                 ]
             ])
             ->add('nom', TextType::class, [
-                'label' => 'Nom'
+                'label' => 'Nom',
+                'attr' => [
+                    'maxlength' => 20,
+                    'placeholder' => 'Nom (max 20)'
+                ]
             ])
             ->add('prenom', TextType::class, [
-                'label' => 'Prénom'
+                'label' => 'Prénom',
+                'attr' => [
+                    'maxlength' => 20,
+                    'placeholder' => 'Prénom (max 20)'
+                ]
             ])
             ->add('role', ChoiceType::class, [
                 'label' => 'Rôle',
                 'choices' => [
-                    'Admin' => 'ADMIN',
                     'Artiste' => 'ARTISTE',
-                    'Jury' => 'JURY',
                     'Visiteur' => 'VISITEUR',
                 ],
                 'expanded' => false,

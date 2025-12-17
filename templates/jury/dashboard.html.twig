@@ -3,11 +3,24 @@
 {% block title %}Jury Dashboard{% endblock %}
 
 {% block body %}
-<div class="dashboard">
-    <h2>Jury Dashboard</h2>
-    <p>Welcome to the jury panel, {{ user_name }}!</p>
-    <div class="stats">
-        <p>Evaluate and rate submissions.</p>
+<div style="max-width: 700px; margin: 40px auto; padding: 20px; border-radius: 10px; background: #f8f9fa; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+    <h2 style="margin-bottom: 10px;">Jury Dashboard</h2>
+
+    <p style="font-size: 18px;">
+        Welcome, <strong>{{ user.prenom }} {{ user.nom }}</strong> <br>
+        <small>Email: {{ user.email }}</small> <br>
+        <small>Role: {{ user.role }}</small>
+    </p>
+
+    <hr>
+
+    <p>Review artworks and participate in judging.</p>
+
+    <div style="margin-top: 20px;">
+        <a href="{{ path('app_logout') }}" 
+           style="padding: 10px 20px; background: #dc3545; color: white; border-radius: 6px; text-decoration: none;">
+           Logout
+        </a>
     </div>
 </div>
 {% endblock %}

@@ -3,11 +3,29 @@
 {% block title %}Visitor Dashboard{% endblock %}
 
 {% block body %}
-<div class="dashboard">
+<div class="dashboard" style="
+    max-width: 700px;
+    margin: 40px auto;
+    padding: 20px;
+    border-radius: 10px;
+    background: #f8f9fa;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+">
     <h2>Visitor Dashboard</h2>
-    <p>Welcome, {{ user_name }}!</p>
-    <div class="stats">
-        <p>Browse and discover amazing artworks.</p>
+
+    <p><strong>Name:</strong> {{ user_name }}</p>
+    <p><strong>Email:</strong> {{ user_email }}</p>
+    <p><strong>Role:</strong> {{ user_role }}</p>
+
+    <hr>
+
+    <p>Browse and discover amazing artworks.</p>
+
+    <div style="margin-top: 20px;">
+        <a href="{{ path('app_logout') }}"
+           style="padding: 10px 20px; background: #dc3545; color: white; border-radius: 6px; text-decoration: none;">
+           Logout
+        </a>
     </div>
 </div>
 {% endblock %}

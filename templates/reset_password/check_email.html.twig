@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}E-mail envoyé{% endblock %}
+
+{% block body %}
+    <p>
+        Si un compte correspondant à votre e-mail existe, un e-mail contenant un code à 5 chiffres a été envoyé.
+        Le code expirera dans {{ resetToken.expirationMessageKey|trans(resetToken.expirationMessageData, 'ResetPasswordBundle') }}.
+    </p>
+    <p>Si vous ne recevez pas l'email, vérifiez votre dossier spam ou <a href="{{ path('app_forgot_password_request') }}">réessayez</a>.</p>
+{% endblock %}

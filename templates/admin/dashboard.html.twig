@@ -1,0 +1,59 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block body %}
+<div style="max-width: 900px; margin: 40px auto; padding: 20px; background: #f8f9fa; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+
+    <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2>Admin Dashboard</h2>
+        <a href="{{ path('app_logout') }}" style="padding: 8px 15px; background:#dc3545; color:white; border-radius:6px; text-decoration:none;">Déconnexion</a>
+    </div>
+
+    {% if user %}
+        <p><strong>Nom:</strong> {{ user.nom }} | <strong>Prénom:</strong> {{ user.prenom }} | <strong>Email:</strong> {{ user.email }}</p>
+    {% endif %}
+
+    <a href="{{ path('admin_reports_list') }}" style="padding: 10px 20px; background: #28a745; color: white; border-radius: 6px; text-decoration: none; margin-bottom: 20px; display:inline-block;">
+        Voir les signalements
+    </a>
+
+    <h3 style="margin-top: 30px;">Liste des utilisateurs</h3>
+    <table style="width:100%; border-collapse: collapse; margin-top: 10px;">
+        <thead>
+            <tr style="background: #007bff; color: white;">
+                <th style="padding:10px; border:1px solid #dee2e6;">Nom</th>
+                <th style="padding:10px; border:1px solid #dee2e6;">Prénom</th>
+                <th style="padding:10px; border:1px solid #dee2e6;">Email</th>
+                <th style="padding:10px; border:1px solid #dee2e6;">Rôle</th>
+                <th style="padding:10px; border:1px solid #dee2e6;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if users is not empty %}
+                {% for u in users %}
+                    <tr>
+                        <td style="padding:10px; border:1px solid #dee2e6;">{{ u.nom }}</td>
+                        <td style="padding:10px; border:1px solid #dee2e6;">{{ u.prenom }}</td>
+                        <td style="padding:10px; border:1px solid #dee2e6;">{{ u.email }}</td>
+                        <td style="padding:10px; border:1px solid #dee2e6;">{{ u.role }}</td>
+                        <td style="padding:10px; border:1px solid #dee2e6;">
+                            {% if u.id != user.id %}
+                                <a href="{{ path('admin_report_user', {id: u.id}) }}" 
+                                   style="padding:5px 10px; background:#dc3545; color:white; border-radius:4px; text-decoration:none; margin-right:5px;">
+                                   Signaler
+                                </a>
+                                
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="5" style="padding:10px; border:1px solid #dee2e6; text-align:center;">Aucun utilisateur trouvé.</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

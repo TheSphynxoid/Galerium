@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20251127170041 extends AbstractMigration
+final class Version20251212191852 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -20,16 +20,12 @@ final class Version20251127170041 extends AbstractMigration
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
-        $this->addSql('ALTER TABLE enchere ADD oeuvre_id INT NOT NULL');
-        $this->addSql('ALTER TABLE enchere ADD CONSTRAINT FK_38D1870F88194DE8 FOREIGN KEY (oeuvre_id) REFERENCES `oeuvre` (id)');
-        $this->addSql('CREATE UNIQUE INDEX UNIQ_38D1870F88194DE8 ON enchere (oeuvre_id)');
+        $this->addSql('ALTER TABLE utilisateur ADD must_change_password TINYINT(1) NOT NULL');
     }
 
     public function down(Schema $schema): void
     {
         // this down() migration is auto-generated, please modify it to your needs
-        $this->addSql('ALTER TABLE enchere DROP FOREIGN KEY FK_38D1870F88194DE8');
-        $this->addSql('DROP INDEX UNIQ_38D1870F88194DE8 ON enchere');
-        $this->addSql('ALTER TABLE enchere DROP oeuvre_id');
+        $this->addSql('ALTER TABLE utilisateur DROP must_change_password');
     }
 }

@@ -1,0 +1,19 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Envoyer un email de test{% endblock %}
+
+{% block body %}
+    <h1>Envoyer un email de test</h1>
+
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }}">{{ message }}</div>
+        {% endfor %}
+    {% endfor %}
+
+    {{ form_start(form) }}
+        {{ form_row(form.email) }}
+        {{ form_row(form.send) }}
+    {{ form_end(form) }}
+
+{% endblock %}

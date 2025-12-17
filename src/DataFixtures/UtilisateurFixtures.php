@@ -6,7 +6,6 @@ use App\Entity\Utilisateur;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use Symfony\Component\Security\Core\User\UserInterface;
 
 class UtilisateurFixtures extends Fixture
 {
@@ -19,35 +18,27 @@ class UtilisateurFixtures extends Fixture
 
     public function load(ObjectManager $manager): void
     {
-        // ============================
-        //   1) CRÉATION ADMIN
-        // ============================
+        // 1) CRÉATION ADMIN
         $admin = new Utilisateur();
-        $admin->setEmail('admin@example.com');
         $admin->setNom('Admin');
         $admin->setPrenom('Super');
+        $admin->setEmail('admin@example.com');
+        $admin->setPassword($this->passwordHasher->hashPassword($admin, 'admin123'));
         $admin->setRole('ADMIN');
         $admin->setDateInscription(new \DateTime());
-
-        $hashedPassword = $this->passwordHasher->hashPassword($admin, 'admin123');
-        $admin->setPassword($hashedPassword);
-
+        $admin->setIsVerified(true);
         $manager->persist($admin);
 
-        // ============================
-        //   2) CRÉATION 5 JURY
-        // ============================
+        // 2) CRÉATION 5 JURYS
         for ($i = 1; $i <= 5; $i++) {
             $jury = new Utilisateur();
+            $jury->setNom("Jury$i");
+            $jury->setPrenom("Member$i");
             $jury->setEmail("jury$i@example.com");
-            $jury->setNom("JuryNom$i");
-            $jury->setPrenom("JuryPrenom$i");
+            $jury->setPassword($this->passwordHasher->hashPassword($jury, 'jury123'));
             $jury->setRole('JURY');
             $jury->setDateInscription(new \DateTime());
-
-            $hashedPassword = $this->passwordHasher->hashPassword($jury, 'jury123');
-            $jury->setPassword($hashedPassword);
-
+            $jury->setIsVerified(true);
             $manager->persist($jury);
         }
 

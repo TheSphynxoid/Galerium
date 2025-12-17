@@ -12,9 +12,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-
-
 
 class AuthController extends AbstractController
 {
@@ -61,7 +58,11 @@ class AuthController extends AbstractController
             $prenom = trim($request->request->get('prenom', ''));
             $email = strtolower(trim($request->request->get('email', '')));
             $password = trim($request->request->get('password', ''));
-            $role = 'VISITEUR';
+            $role = strtoupper(trim($request->request->get('role', 'VISITEUR')));
+
+            if (!in_array($role, ['VISITEUR', 'ARTISTE', 'JURY'])) {
+                $role = 'VISITEUR';
+            }
 
             if (empty($nom) || empty($prenom) || empty($email) || empty($password)) {
                 $error = 'Tous les champs sont obligatoires.';
@@ -75,6 +76,7 @@ class AuthController extends AbstractController
                 $user->setPassword($this->passwordHasher->hashPassword($user, $password));
                 $user->setRole($role);
                 $user->setDateInscription(new \DateTime());
+                $user->setIsActive(true); // par défaut actif
 
                 $this->em->persist($user);
                 $this->em->flush();
@@ -96,20 +98,31 @@ class AuthController extends AbstractController
             return $this->redirectToRoleRoute($session->get('user_role'));
         }
 
-        if ($request->isMethod('POST') && 
+        $error = null;
+        $email = '';
+
+        // LOGIN JSON / API
+        if ($request->isMethod('POST') &&
             ($request->getContentTypeFormat() === 'json' || str_contains($request->headers->get('Content-Type', ''), 'application/json'))) {
+
             $data = json_decode($request->getContent(), true);
             $email = strtolower(trim($data['email'] ?? ''));
             $password = $data['password'] ?? '';
 
             $user = $this->userRepository->findOneBy(['email' => $email]);
-            
+
             if (!$user || !$this->passwordHasher->isPasswordValid($user, $password)) {
-                return new JsonResponse(['error' => 'Invalid credentials'], Response::HTTP_UNAUTHORIZED);
+                return new JsonResponse(['error' => 'Email ou mot de passe invalide'], Response::HTTP_UNAUTHORIZED);
+            }
+
+            if ($user->isSignaled()) {
+                return new JsonResponse([
+                    'error' => 'Votre compte a été signalé et vous ne pouvez pas vous connecter'
+                ], Response::HTTP_FORBIDDEN);
             }
 
             $token = $this->jwtManager->create($user);
-            
+
             return new JsonResponse([
                 'token' => $token,
                 'user' => [
@@ -120,9 +133,7 @@ class AuthController extends AbstractController
             ]);
         }
 
-        $error = null;
-        $email = '';
-
+        // LOGIN FORM
         if ($request->isMethod('POST')) {
             $email = strtolower(trim($request->request->get('email', '')));
             $password = trim($request->request->get('password', ''));
@@ -133,6 +144,8 @@ class AuthController extends AbstractController
                 $user = $this->userRepository->findOneBy(['email' => $email]);
                 if (!$user || !$this->passwordHasher->isPasswordValid($user, $password)) {
                     $error = 'Email ou mot de passe invalide.';
+                } elseif ($user->isSignaled()) {
+                    $error = 'Votre compte a été signalé et vous ne pouvez pas vous connecter.';
                 } else {
                     $token = $this->jwtManager->create($user);
                     $session->set('user_id', $user->getId());
@@ -155,9 +168,7 @@ class AuthController extends AbstractController
     #[Route('/auth/logout', name: 'app_logout')]
     public function logout(Request $request): Response
     {
-        $session = $request->getSession();
-        $session->clear();
-        
+        $request->getSession()->clear();
         return $this->redirectToRoute('app_login');
     }
 
@@ -180,6 +191,7 @@ class AuthController extends AbstractController
             'nom' => $user->getNom(),
             'prenom' => $user->getPrenom(),
             'role' => $user->getRole(),
+            'isSignaled' => $user->isSignaled()
         ]);
     }
 
@@ -189,7 +201,7 @@ class AuthController extends AbstractController
             'JURY' => $this->redirectToRoute('app_jury'),
             'ARTISTE' => $this->redirectToRoute('app_artiste_profile'),
             'VISITEUR' => $this->redirectToRoute('app_visiteur'),
-            'ADMIN' => $this->redirectToRoute('app_admin'),
+            'ADMIN', 'ROLE_ADMIN' => $this->redirectToRoute('app_admin'),
             default => $this->redirectToRoute('app_login'),
         };
     }
@@ -201,13 +213,34 @@ class AuthController extends AbstractController
         $user->setNom('Doe');
         $user->setPrenom('John');
         $user->setEmail('admin@example.com');
-        $user->setPassword('admin123');
-        $user->setRole('ADMIN');
+        $user->setPassword($this->passwordHasher->hashPassword($user, 'admin123'));
+        $user->setRole('ROLE_ADMIN');
+        $user->setIsActive(true);
         $user->setDateInscription(new \DateTime());
 
         $this->em->persist($user);
         $this->em->flush();
 
-        return new Response('Utilisateur test créé : admin@example.com / admin123 (Role: ADMIN)');
+        return new Response('Utilisateur test créé : admin@example.com / admin123 (Role: ROLE_ADMIN)');
+    }
+
+    // Route admin pour signaler un utilisateur
+    #[Route('/admin/signal-user/{id}', name: 'app_signal_user')]
+    public function signalUser(Utilisateur $user): Response
+    {
+        $user->setIsSignaled(true);
+        $this->em->flush();
+
+        return new Response("Utilisateur {$user->getEmail()} signalé avec succès.");
+    }
+
+    // Route admin pour désignaler un utilisateur
+    #[Route('/admin/un-signal-user/{id}', name: 'app_unsignal_user')]
+    public function unsignalUser(Utilisateur $user): Response
+    {
+        $user->setIsSignaled(false);
+        $this->em->flush();
+
+        return new Response("Utilisateur {$user->getEmail()} réactivé avec succès.");
     }
 }

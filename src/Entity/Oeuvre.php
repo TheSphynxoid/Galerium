@@ -106,11 +106,15 @@ class Oeuvre
     #[ORM\Column(options: ['default' => 0])]
     private int $favoritesCount = 0;
 
+    #[ORM\OneToMany(mappedBy: 'oeuvre', targetEntity: Commentaire::class, orphanRemoval: true)]
+    private Collection $commentaires;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
         $this->categories = new ArrayCollection();
+        $this->commentaires = new ArrayCollection();
     }
 
     #[ORM\PreUpdate]

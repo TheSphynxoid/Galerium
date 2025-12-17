@@ -39,6 +39,7 @@
                                 <th class="bg-body-secondary">Date Fin</th>
                                 <th class="bg-body-secondary text-center">Statut</th>
                                 <th class="bg-body-secondary">Règles</th>
+                                <th class="bg-body-secondary">Jurys</th>
                                 <th class="bg-body-secondary text-center">Vote Public</th>
                                 <th class="bg-body-secondary">Début Vote</th>
                                 <th class="bg-body-secondary">Fin Vote</th>
@@ -108,9 +109,21 @@
                                     {% endif %}
                                 </td>
 
-
-
-
+                                <!-- Jurys -->
+                                <td>
+                                    {% if c.jurys|length > 0 %}
+                                        <div class="d-flex flex-wrap gap-1">
+                                            {% for jury in c.jurys|slice(0, 3) %}
+                                                <span class="badge text-bg-info text-dark">{{ jury.fullName }}</span>
+                                            {% endfor %}
+                                            {% if c.jurys|length > 3 %}
+                                                <span class="badge text-bg-secondary">+{{ c.jurys|length - 3 }}</span>
+                                            {% endif %}
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
 
                                 <!-- Vote Public -->
                                 <td class="text-center">
@@ -145,6 +158,12 @@
                                         <a href="{{ path('app_concours_edit', {id: c.id}) }}" class="btn btn-sm btn-warning" title="Modifier">
                                             <svg class="icon">
                                                 <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-pencil"></use>
+                                            </svg>
+                                        </a>
+
+                                        <a href="{{ path('admin_concours_jurys', {id: c.id}) }}" class="btn btn-sm btn-primary" title="Associer des jurys">
+                                            <svg class="icon">
+                                                <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-people"></use>
                                             </svg>
                                         </a>
 

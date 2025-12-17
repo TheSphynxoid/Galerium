@@ -1,0 +1,26 @@
+{% extends 'backoffice.html.twig' %}
+
+{% block title %}Associer des jurys{% endblock %}
+
+{% block body %}
+<div class="body flex-grow-1">
+    <div class="container-lg px-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="mb-0">Associer des jurys au concours « {{ concours.titre }} »</h1>
+            <a href="{{ path('app_concours_show', {id: concours.id}) }}" class="btn btn-secondary">
+                Retour au concours
+            </a>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                {{ form_start(form) }}
+                    {{ form_row(form.jurys) }}
+                    <button class="btn btn-primary" type="submit">Enregistrer</button>
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20251203152918 extends AbstractMigration
+final class Version20251212220221 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -20,14 +20,12 @@ final class Version20251203152918 extends AbstractMigration
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
-        $this->addSql('ALTER TABLE utilisateur ADD google_id VARCHAR(255) DEFAULT NULL, ADD avatar_url VARCHAR(500) DEFAULT NULL, CHANGE password password VARCHAR(255) DEFAULT NULL');
-        $this->addSql('CREATE UNIQUE INDEX UNIQ_1D1C63B376F5C865 ON utilisateur (google_id)');
+        $this->addSql('ALTER TABLE utilisateur ADD verification_code VARCHAR(5) DEFAULT NULL, ADD verification_code_expires_at DATETIME DEFAULT NULL, ADD is_verified TINYINT(1) DEFAULT 0 NOT NULL');
     }
 
     public function down(Schema $schema): void
     {
         // this down() migration is auto-generated, please modify it to your needs
-        $this->addSql('DROP INDEX UNIQ_1D1C63B376F5C865 ON utilisateur');
-        $this->addSql('ALTER TABLE utilisateur DROP google_id, DROP avatar_url, CHANGE password password VARCHAR(30) NOT NULL');
+        $this->addSql('ALTER TABLE utilisateur DROP verification_code, DROP verification_code_expires_at, DROP is_verified');
     }
 }
