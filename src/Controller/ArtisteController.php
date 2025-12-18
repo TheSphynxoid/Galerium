@@ -14,9 +14,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use App\Repository\UtilisateurRepository;
 
-#[Route('/artiste')]
 #[Route('/artiste')]
 class ArtisteController extends AbstractController
 {
@@ -76,7 +74,6 @@ class ArtisteController extends AbstractController
         EntityManagerInterface $entityManager,
         UtilisateurRepository $userRepository
     ): Response {
-        // Utiliser la même authentification que profile()
         $session = $request->getSession();
 
         if (!$session->has('user_id')) {
@@ -86,35 +83,7 @@ class ArtisteController extends AbstractController
         $user = $userRepository->find($session->get('user_id'));
 
         if (!$user) {
-
-        if (!$session->has('user_id')) {
             return $this->redirectToRoute('app_login');
-        }
-
-        $user = $userRepository->find($session->get('user_id'));
-
-        if (!$user) {
-            return $this->redirectToRoute('app_login');
-        }
-
-        $artiste = $user->getArtiste();
-
-        if (!$artiste) {
-            return $this->redirectToRoute('app_artiste_profile');
-        }
-
-        $entityManager->refresh($artiste);
-
-        $oeuvres = $oeuvreRepository->findByArtiste($artiste);
-
-        $totalViews = 0;
-        $totalVotes = 0;
-        $totalFavorites = 0;
-
-        foreach ($oeuvres as $oeuvre) {
-            $totalViews += $oeuvre->getViewsCount();
-            $totalVotes += $oeuvre->getVotesCount();
-            $totalFavorites += $oeuvre->getFavoritesCount();
         }
 
         $artiste = $user->getArtiste();

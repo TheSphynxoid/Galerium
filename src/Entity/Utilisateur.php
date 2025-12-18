@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Entity\Concours;
+use App\Repository\UtilisateurRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;

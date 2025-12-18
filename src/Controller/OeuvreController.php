@@ -144,8 +144,7 @@ class OeuvreController extends AbstractController
     public function edit(
         #[MapEntity(mapping: ['slug' => 'slug'])] Oeuvre $oeuvre,
         Request $request,
-        Oeuvre $oeuvre,
-        EntityManagerInterface $entityManager, //sauvgarder les mod
+        EntityManagerInterface $entityManager,
         UtilisateurRepository $userRepository
     ): Response {
         $session = $request->getSession();

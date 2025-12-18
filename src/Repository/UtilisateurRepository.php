@@ -10,6 +10,7 @@ use Doctrine\Persistence\ManagerRegistry;
 /**
  * @extends ServiceEntityRepository<Utilisateur>
  */
+#[ORM\Entity(repositoryClass: UtilisateurRepository::class)]
 class UtilisateurRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)

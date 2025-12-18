@@ -15,7 +15,6 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method Artiste[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
 class ArtisteRepository extends ServiceEntityRepository
-class ArtisteRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
