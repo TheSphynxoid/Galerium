@@ -90,6 +90,10 @@
           </ul>
         </li>
         <li class="nav-title">Administration</li>
+        <li class="nav-item"><a class="nav-link" href="{{ path('app_admin') }}">
+            <svg class="nav-icon">
+              <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-speedometer"></use>
+            </svg> Dashboard Admin</a></li>
         <li class="nav-item"><a class="nav-link" href="{{ path('app_admin_artiste_list') }}">
             <svg class="nav-icon">
               <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-people"></use>
@@ -98,6 +102,26 @@
             <svg class="nav-icon">
               <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-paint"></use>
             </svg> Gérer Œuvres</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ path('app_concours_index') }}">
+            <svg class="nav-icon">
+              <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-trophy"></use>
+            </svg> Gérer Concours</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ path('app_participation_index') }}">
+            <svg class="nav-icon">
+              <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-check-alt"></use>
+            </svg> Gérer Participations</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ path('app_enchere_index') }}">
+            <svg class="nav-icon">
+              <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-dollar"></use>
+            </svg> Gérer Enchères</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ path('app_offre_index') }}">
+            <svg class="nav-icon">
+              <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-handshake"></use>
+            </svg> Gérer Offres</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ path('admin_reports_list') }}">
+            <svg class="nav-icon">
+              <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-warning"></use>
+            </svg> Signalements</a></li>
         <li class="nav-divider"></li>
         <li class="nav-title">Extras</li>
         <li class="nav-group"><a class="nav-link nav-group-toggle" href="#">

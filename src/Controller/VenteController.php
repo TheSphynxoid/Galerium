@@ -106,7 +106,7 @@ class VenteController extends AbstractController
             }
 
             $email = (new \Symfony\Bridge\Twig\Mime\TemplatedEmail())
-                ->from('no-reply@galerium.com') // Sender should be consistent
+                ->from($customerEmail) // Sender should be consistent
                 ->to($customerEmail) // Send to the actual buyer
                 ->subject('Confirmation d\'achat - ' . $oeuvre->getTitle())
                 ->htmlTemplate('emails/purchase_confirmation.html.twig')

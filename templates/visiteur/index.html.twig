@@ -4,8 +4,82 @@
 
 {% block body %}
 <div class="container py-5">
-    <h1>Bienvenue dans l'espace Visiteur</h1>
-    <p>Vous êtes connecté en tant que visiteur.</p>
-    <a href="{{ path('app_home') }}" class="btn btn-primary">Retour à l'accueil</a>
+    <h1>Bienvenue {{ user_name }}!</h1>
+    <p class="lead">Explorez les derniers concours et oeuvres de notre galerie.</p>
+
+    <!-- Recent Concours Section -->
+    <section class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Concours Récents</h2>
+            <a href="{{ path('app_concours_visiteur_index') }}" class="btn btn-sm btn-outline-primary">Voir tous</a>
+        </div>
+
+        {% if recentConcours|length > 0 %}
+            <div class="row">
+                {% for concours in recentConcours %}
+                    <div class="col-md-4 col-lg-2 mb-3">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ concours.titre }}</h5>
+                                <p class="card-text small text-muted">
+                                    {% if concours.dateDebut %}
+                                        Début: {{ concours.dateDebut|date('d/m/Y') }}
+                                    {% endif %}
+                                </p>
+                                <p class="card-text small">{{ concours.description|slice(0, 100) }}{% if concours.description|length > 100 %}...{% endif %}</p>
+                                <a href="{{ path('app_concours_visiteur_oeuvres', {'id': concours.id}) }}" class="btn btn-sm btn-primary">
+                                    Voir plus
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info">Aucun concours actif pour le moment.</div>
+        {% endif %}
+    </section>
+
+    <!-- Recent Oeuvres Section -->
+    <section>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Oeuvres Récemment Ajoutées</h2>
+            <a href="{{ path('app_oeuvre_gallery') }}" class="btn btn-sm btn-outline-primary">Voir toutes</a>
+        </div>
+
+        {% if recentOeuvres|length > 0 %}
+            <div class="row">
+                {% for oeuvre in recentOeuvres %}
+                    <div class="col-md-4 col-lg-2 mb-3">
+                        <div class="card h-100 shadow-sm">
+                            {% if oeuvre.imagePath %}
+                                <img src="{{ asset('uploads/oeuvres/' ~ oeuvre.imagePath) }}" class="card-img-top" alt="{{ oeuvre.title }}" style="height: 200px; object-fit: cover;">
+                            {% else %}
+                                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                    <span class="text-muted">No Image</span>
+                                </div>
+                            {% endif %}
+                            <div class="card-body">
+                                <h5 class="card-title">{{ oeuvre.title }}</h5>
+                                <p class="card-text small text-muted">
+                                    {% if oeuvre.artiste %}
+                                        par {{ oeuvre.artiste.displayName }}
+                                    {% endif %}
+                                </p>
+                                <a href="{{ path('app_oeuvre_details', {'id': oeuvre.id}) }}" class="btn btn-sm btn-primary">
+                                    Voir l'oeuvre
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info">Aucune oeuvre disponible pour le moment.</div>
+        {% endif %}
+    </section>
+
+    <hr class="my-5">
+    <a href="{{ path('app_home') }}" class="btn btn-secondary">Retour à l'accueil</a>
 </div>
 {% endblock %}
