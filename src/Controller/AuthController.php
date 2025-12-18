@@ -73,6 +73,7 @@ class AuthController extends AbstractController
                 $user->setNom($nom);
                 $user->setPrenom($prenom);
                 $user->setEmail($email);
+                $user->setTelephone(trim($request->request->get('telephone', '')));
                 $user->setPassword($this->passwordHasher->hashPassword($user, $password));
                 $user->setRole($role);
                 $user->setDateInscription(new \DateTime());

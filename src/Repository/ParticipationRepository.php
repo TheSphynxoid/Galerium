@@ -40,4 +40,44 @@ class ParticipationRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
+
+    /**
+     * Récupère toutes les participations d'un artiste
+     * @return Participation[]
+     */
+    public function findByArtiste($artiste): array
+    {
+        // Récupérer toutes les participations avec leur œuvre et concours
+        $qb = $this->createQueryBuilder('p')
+            ->select('p', 'o', 'c')
+            ->innerJoin('p.oeuvre', 'o')
+            ->leftJoin('p.concours', 'c')
+            ->where('o.artiste = :artiste')
+            ->setParameter('artiste', $artiste)
+            ->orderBy('p.dateparticipation', 'DESC');
+        
+        return $qb->getQuery()->getResult();
+    }
+
+    /**
+     * Vérifie si un artiste a déjà une participation pour un concours donné
+     * @param $artiste
+     * @param $concours
+     * @return bool
+     */
+    public function hasArtisteParticipatedInConcours($artiste, $concours): bool
+    {
+        $qb = $this->createQueryBuilder('p')
+            ->select('COUNT(p.id)')
+            ->innerJoin('p.oeuvre', 'o')
+            ->innerJoin('p.concours', 'c')
+            ->where('o.artiste = :artiste')
+            ->andWhere('c.id = :concoursId')
+            ->setParameter('artiste', $artiste)
+            ->setParameter('concoursId', $concours->getId());
+        
+        $count = $qb->getQuery()->getSingleScalarResult();
+        
+        return $count > 0;
+    }
 }

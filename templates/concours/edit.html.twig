@@ -98,20 +98,13 @@
 
 
                     
-                    <!-- Vote Public -->
+                     <!-- Vote Public -->
 <div class="col-md-6 d-flex align-items-center mb-3">
-    <div class="form-check form-switch w-100">
         {{ form_label(form.votePublic, 'Vote public <span class="text-danger">*</span>', {
-            'label_attr': {'class': 'form-check-label'},
+            'label_attr': {'class': 'form-label'},
             'label_html': true
         }) }}
-        
-        {{ form_widget(form.votePublic, {
-            'attr': {'class': 'form-check-input ms-2'},
-            'checked_value': 'oui',
-            'uncheck_value': 'non'
-        }) }}
-
+        {{ form_widget(form.votePublic, {'attr': {'class': 'form-select'}}) }}
         {{ form_errors(form.votePublic) }}
     </div>
 </div>

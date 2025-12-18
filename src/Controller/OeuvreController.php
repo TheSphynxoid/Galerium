@@ -278,11 +278,3 @@ class OeuvreController extends AbstractController
         ]);
     }
 }
-
-
-
-
-
-
-
-

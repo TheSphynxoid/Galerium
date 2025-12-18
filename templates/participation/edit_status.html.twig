@@ -1,0 +1,48 @@
+{% extends 'backoffice.html.twig' %}
+
+{% block title %}Modifier le statut de la participation{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <h1 class="mb-4">Modifier le statut de la participation #{{ participation.oeuvre.artiste.displayName}}</h1>
+
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Informations de la participation</h5>
+                <p><strong>Date de participation :</strong> {{ participation.dateparticipation ? participation.dateparticipation|date('d/m/Y H:i') : '' }}</p>
+                <p><strong>Statut actuel :</strong> 
+                    <span class="badge bg-{{ participation.statut == 'accepte' ? 'success' : (participation.statut == 'refuse' ? 'danger' : (participation.statut == 'termine' ? 'secondary' : 'primary')) }}">
+                        {{ participation.statut }}
+                    </span>
+                </p>
+                <p><strong>Vote public :</strong> {{ participation.votepublic ?? 0 }}</p>
+                {% if participation.oeuvre %}
+                    <p><strong>Œuvre :</strong> {{ participation.oeuvre.title }}</p>
+                {% endif %}
+                <p><strong>Description :</strong> {{ participation.description }}</p>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Modifier le statut</h5>
+                {{ form_start(form) }}
+                    <div class="mb-3">
+                        {{ form_label(form.statut, 'Nouveau statut', {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_widget(form.statut, {'attr': {'class': 'form-select'}}) }}
+                        {{ form_errors(form.statut) }}
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">Enregistrer</button>
+                        <a href="{{ path('app_participation_index') }}" class="btn btn-secondary">Annuler</a>
+                    </div>
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+
+
+
+

@@ -4,6 +4,7 @@
 
 {% block body %}
 <section class="py-5 my-5">
+
     <div class="container">
 
         <h1 class="h3 text-danger mb-4 text-center">Les concours disponibles</h1>
@@ -66,7 +67,7 @@
                                     {{ concoursItem.dateFinVote ? concoursItem.dateFinVote|date('d/m/Y') : '—' }}
                                 </p> 
                                 <div class="text-center mt-3">
-                                    <a class="btn btn-primary w-100">
+                                    <a href="{{ path('app_concours_visiteur_oeuvres', {'id': concoursItem.id}) }}" class="btn btn-primary w-100">
                                         Visiter le concours
                                     </a>
                                 </div>

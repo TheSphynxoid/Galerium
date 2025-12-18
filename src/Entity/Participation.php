@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\ParticipationRepository;
+use App\Validator\Constraints\BadWords as BadWordsConstraint;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -34,6 +35,7 @@ class Participation
         max: 1000,
         maxMessage: "La description ne peut pas dépasser {{ limit }} caractères."
     )]
+    #[BadWordsConstraint]
     private ?string $description = null;
 
     /**
@@ -41,6 +43,9 @@ class Participation
      */
     #[ORM\ManyToMany(targetEntity: Concours::class, inversedBy: 'participations')]
     private Collection $concours;
+
+    #[ORM\ManyToOne(inversedBy: 'participations')]
+    private ?Oeuvre $oeuvre = null;
 
     public function __construct()
     {
@@ -115,6 +120,18 @@ class Participation
     public function removeConcour(Concours $concour): static
     {
         $this->concours->removeElement($concour);
+        return $this;
+    }
+
+    public function getOeuvre(): ?Oeuvre
+    {
+        return $this->oeuvre;
+    }
+
+    public function setOeuvre(?Oeuvre $oeuvre): static
+    {
+        $this->oeuvre = $oeuvre;
+
         return $this;
     }
 }

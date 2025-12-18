@@ -80,6 +80,9 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToOne(mappedBy: 'user', targetEntity: Artiste::class, cascade: ['persist', 'remove'])]
     private ?Artiste $artiste = null;
 
+    #[ORM\Column(length: 20)]
+    private ?string $telephone = null;
+
     #[ORM\OneToMany(mappedBy: 'owner', targetEntity: Commentaire::class, orphanRemoval: true)]
     private Collection $commentaires;
 
@@ -223,6 +226,18 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
         }
 
         $this->artiste = $artiste;
+
+        return $this;
+    }
+
+    public function getTelephone(): ?string
+    {
+        return $this->telephone;
+    }
+
+    public function setTelephone(string $telephone): static
+    {
+        $this->telephone = $telephone;
 
         return $this;
     }

@@ -51,10 +51,6 @@ class Concours
 
     #[ORM\Column(type: Types::STRING, length: 50)]
     #[Assert\NotBlank(message: "Le statut est obligatoire.")]
-    #[Assert\Choice(
-        choices: ['Actif', 'cloturé'],
-        message: "Le statut doit être Actif ou cloturé "
-    )]
     private ?string $statut = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -68,16 +64,19 @@ class Concours
     private ?string $regles = null;
 
     #[ORM\Column(type: Types::BOOLEAN)]
-    private bool $votePublic = false;
+    #[Assert\NotNull(message: "Le vote public est obligatoire.")]
+    private ?bool $votePublic = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    #[Assert\NotBlank(message: "La date de début de vote est obligatoire.")]
     #[Assert\Type(\DateTime::class, message: "La date de début de vote doit être une date valide.")]
     private ?\DateTime $dateDebutVote = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    #[Assert\NotBlank(message: "La date de fin de vote est obligatoire.")]
     #[Assert\Type(\DateTime::class, message: "La date de fin de vote doit être une date valide.")]
     #[Assert\Expression(
-       // this.getDateDebutVote() === null or this.getDateFinVote() === null or
+       
         " this.getDateFinVote() > this.getDateDebutVote()",
         message: "La date de fin de vote doit être après la date de début de vote."
     )]
@@ -140,9 +139,14 @@ class Concours
         return $this->regles;
     }
 
-    public function isVotePublic(): bool
+    public function getVotePublic(): ?bool
     {
         return $this->votePublic;
+    }
+
+    public function isVotePublic(): bool
+    {
+        return $this->votePublic === true;
     }
 
     public function getDateDebutVote(): ?\DateTime
@@ -192,7 +196,7 @@ class Concours
         return $this;
     }
 
-    public function setVotePublic(bool $votePublic): self
+    public function setVotePublic(?bool $votePublic): self
     {
         $this->votePublic = $votePublic;
         return $this;

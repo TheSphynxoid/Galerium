@@ -1,4 +1,4 @@
-{% extends 'base.html.twig' %}
+{% extends 'backoffice.html.twig' %}
 
 {% block title %}Participation index{% endblock %}
 
@@ -8,10 +8,12 @@
     <table class="table">
         <thead>
             <tr>
-                <th>Id</th>
-                <th>Dateparticipation</th>
+               <th>Artiste</th>
+               <th>Dateparticipation</th>
                 <th>Statut</th>
-                <th>Votepublic</th>
+                
+                <th>Oeuvre</th>
+                <th>Votes</th>
                 <th>Description</th>
                 <th>Actions</th>
             </tr>
@@ -19,19 +21,42 @@
         <tbody>
         {% for participation in participations %}
             <tr>
-                <td>{{ participation.id }}</td>
+                <td>
+                    {% if participation.oeuvre and participation.oeuvre.artiste %}
+                        {{ participation.oeuvre.artiste.displayName }}
+                        
+                    {% else %}
+                        <span class="text-muted">Aucun artiste</span>
+                    {% endif %}
+                </td>
                 <td>{{ participation.dateparticipation ? participation.dateparticipation|date('Y-m-d H:i:s') : '' }}</td>
                 <td>{{ participation.statut }}</td>
-                <td>{{ participation.votepublic }}</td>
+                
+                <td>
+                    {% if participation.oeuvre %}
+                        {{ participation.oeuvre.title }}
+                         <img src="{{ vich_uploader_asset(participation.oeuvre, 'imageFile') }}" 
+                                     alt="{{ participation.oeuvre.title }}" 
+                                     class="img-thumbnail me-2" 
+                                     style="max-width: 100px; max-height: 100px; object-fit: cover;">
+                    {% else %}
+                        <span class="text-muted">Aucune œuvre</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <span class="badge bg-success">
+                        <i class="bi bi-heart-fill"></i> {{ votesCount[participation.id] ?? 0 }} vote(s)
+                    </span>
+                </td>
                 <td>{{ participation.description }}</td>
                 <td>
-                    <a href="{{ path('app_participation_show', {'id': participation.id}) }}">show</a>
-                    <a href="{{ path('app_participation_edit', {'id': participation.id}) }}">edit</a>
+                    <a href="{{ path('app_participation_show', {'id': participation.id}) }}" class="btn btn-sm btn-info">Voir</a>
+                    <a href="{{ path('app_participation_edit_status', {'id': participation.id}) }}" class="btn btn-sm btn-warning">Modifier statut</a>
                 </td>
             </tr>
         {% else %}
             <tr>
-                <td colspan="6">no records found</td>
+                <td colspan="8">no records found</td>
             </tr>
         {% endfor %}
         </tbody>

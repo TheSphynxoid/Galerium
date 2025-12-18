@@ -57,6 +57,11 @@ class UtilisateurType extends AbstractType
                     'placeholder' => 'Prénom (max 20)'
                 ]
             ])
+
+            ->add('telephone', TextType::class, [
+                'label' => 'Téléphone'
+            ]) 
+
             ->add('role', ChoiceType::class, [
                 'label' => 'Rôle',
                 'choices' => [

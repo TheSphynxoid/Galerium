@@ -1,0 +1,95 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes Participations{% endblock %}
+
+{% block body %}
+
+<h2 class="text-center mb-4">Mes Participations aux Concours</h2>
+
+{% if participations is empty %}
+    <div class="alert alert-info text-center">
+        Vous n'avez encore participé à aucun concours.
+    </div>
+{% else %}
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Concours</th>
+                <th>Date participation</th>
+                <th>Statut</th>
+                <th>Oeuvre présentée</th>
+                <th>Votes</th>
+                <th>Description</th>
+                <th>QR Code</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for p in participations %}
+            <tr>
+                <td>
+                    {% for c in p.concours %}
+                        {{ c.titre }}
+                    {% endfor %}
+                </td>
+                <td>{{ p.dateparticipation|date('d/m/Y H:i') }}</td>
+                <td>{{ p.statut }}</td>
+                <td>
+                    {% if p.oeuvre %}
+                        <div class="d-flex align-items-center">
+                            {% if p.oeuvre.imagePath %}
+                                <img src="{{ vich_uploader_asset(p.oeuvre, 'imageFile') }}" 
+                                     alt="{{ p.oeuvre.title }}" 
+                                     class="img-thumbnail me-2" 
+                                     style="max-width: 100px; max-height: 100px; object-fit: cover;">
+                            {% else %}
+                                <div class="bg-secondary text-white d-flex align-items-center justify-content-center me-2" 
+                                     style="width: 100px; height: 100px;">
+                                    <small>Pas d'image</small>
+                                </div>
+                            {% endif %}
+                            <div>
+                                <strong>{{ p.oeuvre.title }}</strong>
+                            </div>
+                        </div>
+                    {% else %}
+                        Non renseignée
+                    {% endif %}
+                </td>
+                <td>
+                    <span class="badge bg-success">
+                        <i class="bi bi-heart-fill"></i> {{ votesCount[p.id] ?? 0 }} vote(s)
+                    </span>
+                </td>
+                <td>
+                    <div style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+                        {{ p.description|slice(0, 100) }}{% if p.description|length > 100 %}...{% endif %}
+                    </div>
+                </td>
+                <td class="text-center">
+                    <img src="{{ path('app_participation_qrcode_generate', {'id': p.id}) }}?t={{ 'now'|date('U') }}" 
+                         alt="QR Code" 
+                         style="max-width: 120px; max-height: 120px; display: block; margin: 0 auto; border: 1px solid #ddd;"
+                         title="Scannez ce QR code pour voir les détails de cette participation"
+                         loading="lazy">
+                </td>
+                <td>
+                    <div class="btn-group" role="group">
+                        <a href="{{ path('app_participation_edit', {'id': p.id}) }}" class="btn btn-sm btn-warning">
+                            <i class="bi bi-pencil"></i> Modifier
+                        </a>
+                        <form method="post" action="{{ path('app_participation_delete', {'id': p.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette participation ?');" style="display: inline;">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ p.id) }}">
+                            <button type="submit" class="btn btn-sm btn-danger">
+                                <i class="bi bi-trash"></i> Supprimer
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+
+{% endblock %}
