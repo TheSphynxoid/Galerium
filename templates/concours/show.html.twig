@@ -33,6 +33,20 @@
                 <td>{{ concour.regles }}</td>
             </tr>
             <tr>
+                <th>Jurys</th>
+                <td>
+                    {% if concour.jurys|length > 0 %}
+                        <ul class="mb-0">
+                            {% for jury in concour.jurys %}
+                                <li>{{ jury.fullName }} ({{ jury.email }})</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <span class="text-muted">Aucun jury sélectionné</span>
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
                 <th>VotePublic</th>
                 <td>{{ concour.votePublic ? 'Yes' : 'No' }}</td>
             </tr>
@@ -65,6 +79,13 @@
             <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-pencil"></use>
         </svg>
         Modifier
+    </a>
+
+    <a href="{{ path('admin_concours_jurys', {'id': concour.id}) }}" class="btn btn-info">
+        <svg class="icon me-1">
+            <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg') }}#cil-people"></use>
+        </svg>
+        Associer des jurys
     </a>
 
 </div>

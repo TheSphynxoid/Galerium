@@ -1,0 +1,40 @@
+{% if utilisateurs is not empty %}
+    {% for utilisateur in utilisateurs %}
+        <tr>
+            <td>{{ utilisateur.id }}</td>
+            <td>{{ utilisateur.email }}</td>
+            <td>{{ utilisateur.nom }}</td>
+            <td>{{ utilisateur.prenom }}</td>
+            <td>{{ utilisateur.role }}</td>
+            <td>{{ utilisateur.dateInscription ? utilisateur.dateInscription|date('Y-m-d H:i:s') : '' }}</td>
+            <td>
+                <span class="badge bg-success">Actif</span>
+            </td>
+            <td>
+                <a href="{{ path('app_utilisateur_show', {'id': utilisateur.id}) }}" class="btn btn-sm btn-info">Voir</a>
+                <a href="{{ path('app_utilisateur_edit', {'id': utilisateur.id}) }}" class="btn btn-sm btn-warning">Modifier</a>
+            </td>
+        </tr>
+    {% endfor %}
+{% else %}
+    <tr>
+        <td colspan="8" style="text-align:center;">Aucun utilisateur trouvé</td>
+    </tr>
+{% endif %}
+
+{# Pagination controls for AJAX responses #}
+{% if totalPages is defined and totalPages > 1 %}
+    <tr>
+        <td colspan="8">
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center" id="users-pagination">
+                    <li class="page-item {{ currentPage == 1 ? 'disabled' : '' }}"><a class="page-link" data-page="{{ currentPage - 1 }}">Préc</a></li>
+                    {% for p in 1..totalPages %}
+                        <li class="page-item {{ p == currentPage ? 'active' : '' }}"><a class="page-link" data-page="{{ p }}">{{ p }}</a></li>
+                    {% endfor %}
+                    <li class="page-item {{ currentPage == totalPages ? 'disabled' : '' }}"><a class="page-link" data-page="{{ currentPage + 1 }}">Suiv</a></li>
+                </ul>
+            </nav>
+        </td>
+    </tr>
+{% endif %}

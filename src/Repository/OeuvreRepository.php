@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Artiste;
 use App\Entity\Oeuvre;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -17,32 +18,62 @@ class OeuvreRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return Oeuvre[] Returns an array of Oeuvre objects
+     * @return Oeuvre[]
      */
-    public function findByArtiste($artiste): array
+    public function search(?string $term = null, ?string $categorySlug = null, ?string $status = null, int $limit = 20): array
     {
-        return $this->createQueryBuilder('o')
-            ->andWhere('o.artiste = :artiste')
-            ->setParameter('artiste', $artiste)
+        $qb = $this->createQueryBuilder('o')
+            ->addSelect('a')
+            ->leftJoin('o.artiste', 'a')
             ->orderBy('o.createdAt', 'DESC')
-            ->getQuery()
-            ->getResult();
+            ->setMaxResults($limit);
+
+        if ($term) {
+            $qb->andWhere('LOWER(o.title) LIKE :term OR LOWER(o.description) LIKE :term')
+                ->setParameter('term', '%'.mb_strtolower($term).'%');
+        }
+
+        if ($categorySlug) {
+            $qb->leftJoin('o.categories', 'c')
+                ->andWhere('c.slug = :slug')
+                ->setParameter('slug', $categorySlug);
+        }
+
+        if ($status) {
+            $qb->andWhere('o.status = :status')
+                ->setParameter('status', $status);
+        }
+
+        return $qb->getQuery()->getResult();
     }
 
     /**
-     * Get statistics for an artist
+     * @return Oeuvre[]
      */
-    public function getStatisticsForArtiste($artiste): array
+    public function findByArtiste(Artiste $artiste, ?string $status = null, ?string $term = null, ?string $categorySlug = null): array
     {
         $qb = $this->createQueryBuilder('o')
-            ->select('COUNT(o.id) as totalOeuvres')
-            ->addSelect('SUM(o.nbVotes) as totalVotes')
-            ->addSelect('SUM(o.nbCommentaires) as totalCommentaires')
-            ->addSelect('AVG(o.nbVotes) as moyenneVotes')
             ->andWhere('o.artiste = :artiste')
-            ->setParameter('artiste', $artiste);
+            ->setParameter('artiste', $artiste)
+            ->orderBy('o.createdAt', 'DESC');
 
-        return $qb->getQuery()->getSingleResult();
+        if ($status) {
+            $qb->andWhere('o.status = :status')
+                ->setParameter('status', $status);
+        }
+
+        if ($term) {
+            $qb->andWhere('LOWER(o.title) LIKE :term OR LOWER(o.description) LIKE :term')
+                ->setParameter('term', '%'.mb_strtolower($term).'%');
+        }
+
+        if ($categorySlug) {
+            $qb->leftJoin('o.categories', 'c')
+                ->andWhere('c.slug = :slug')
+                ->setParameter('slug', $categorySlug);
+        }
+
+        return $qb->getQuery()->getResult();
     }
 
     /**
@@ -64,10 +95,4 @@ class OeuvreRepository extends ServiceEntityRepository
         return $qb->getQuery()->getResult();
     }
 }
-
-
-
-
-
-
 

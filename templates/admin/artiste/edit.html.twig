@@ -1,0 +1,18 @@
+{% extends 'backoffice.html.twig' %}
+
+{% block title %}Modifier l'artiste{% endblock %}
+
+{% block body %}
+<div class="body flex-grow-1">
+    <div class="container-lg px-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <strong>Modifier l'artiste : {{ artiste.displayName }}</strong>
+            </div>
+            <div class="card-body">
+                {{ include('artiste/profile.html.twig', {'form': form, 'cancel_path': path('admin_artiste_index')}) }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

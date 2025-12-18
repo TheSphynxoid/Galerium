@@ -10,9 +10,12 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\HttpFoundation\File\File;
 use Vich\UploaderBundle\Mapping\Annotation as Vich;
+use Symfony\Component\HttpFoundation\File\File;
+use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
 #[ORM\Entity(repositoryClass: OeuvreRepository::class)]
 #[ORM\HasLifecycleCallbacks]
+#[Vich\Uploadable]
 #[Vich\Uploadable]
 class Oeuvre
 {
@@ -55,7 +58,7 @@ class Oeuvre
     )]
     private ?string $description = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $imagePath = null;
 
     #[Vich\UploadableField(mapping: 'oeuvres_images', fileNameProperty: 'imagePath', size: 'imageSize')]
@@ -182,6 +185,7 @@ class Oeuvre
         return $this->imagePath;
     }
 
+    public function setImagePath(?string $imagePath): static
     public function setImagePath(?string $imagePath): static
     {
         $this->imagePath = $imagePath;

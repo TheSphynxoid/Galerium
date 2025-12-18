@@ -2,13 +2,14 @@
 
 namespace App\Controller;
 
+use App\Entity\Artiste;
 use App\Entity\Oeuvre;
-use App\Form\OeuvreFormType;
+use App\Form\OeuvreType;
+use App\Repository\CategorieRepository;
 use App\Repository\OeuvreRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\UtilisateurRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -16,6 +17,7 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 use Knp\Snappy\Pdf;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
+#[Route('/oeuvres')]
 class OeuvreController extends AbstractController
 {
     #[Route('/oeuvre/{id}/download', name: 'app_oeuvre_download', requirements: ['id' => '\d+'])]
@@ -69,10 +71,11 @@ class OeuvreController extends AbstractController
 
         return $this->render('oeuvre/index.html.twig', [
             'oeuvres' => $oeuvres,
+            'categories' => $categorieRepository->findAll(),
         ]);
     }
 
-    #[Route('/artiste/oeuvres/nouvelle', name: 'app_oeuvre_new')]
+    #[Route('/nouvelle', name: 'app_oeuvre_new', methods: ['GET', 'POST'])]
     public function new(
         Request $request,
         EntityManagerInterface $entityManager,
@@ -137,8 +140,9 @@ class OeuvreController extends AbstractController
         ]);
     }
 
-    #[Route('/artiste/oeuvres/{id}/modifier', name: 'app_oeuvre_edit', requirements: ['id' => '\d+'])]
+    #[Route('/{slug}/modifier', name: 'app_oeuvre_edit', methods: ['GET', 'POST'])]
     public function edit(
+        #[MapEntity(mapping: ['slug' => 'slug'])] Oeuvre $oeuvre,
         Request $request,
         Oeuvre $oeuvre,
         EntityManagerInterface $entityManager, //sauvgarder les mod
@@ -155,7 +159,7 @@ class OeuvreController extends AbstractController
             throw $this->createAccessDeniedException('Vous n\'avez pas accès à cette œuvre.');
         }
 
-        $form = $this->createForm(OeuvreFormType::class, $oeuvre);
+        $form = $this->createForm(OeuvreType::class, $oeuvre);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -166,13 +170,16 @@ class OeuvreController extends AbstractController
             return $this->redirectToRoute('app_oeuvre_index');
         }
 
-        return $this->render('oeuvre/edit.html.twig', [
+        $oeuvre->incrementViews();
+        $entityManager->flush();
+
+        return $this->render('oeuvre/show.html.twig', [
             'oeuvre' => $oeuvre,
             'form' => $form->createView(),
         ]);
     }
 
-    #[Route('/artiste/oeuvres/{id}/supprimer', name: 'app_oeuvre_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
+    #[Route('/{id}', name: 'app_oeuvre_delete', methods: ['POST'])]
     public function delete(
         Request $request,
         Oeuvre $oeuvre,

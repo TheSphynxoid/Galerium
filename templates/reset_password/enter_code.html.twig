@@ -1,0 +1,20 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Entrer le code{% endblock %}
+
+{% block body %}
+    <h1>Entrer le code de réinitialisation</h1>
+
+    {% for type in ['error','warning','info','success'] %}
+        {% for flash in app.flashes(type) %}
+            <div class="alert alert-{{ type == 'error' ? 'danger' : (type == 'warning' ? 'warning' : (type == 'info' ? 'info' : 'success')) }}">{{ flash }}</div>
+        {% endfor %}
+    {% endfor %}
+
+    {{ form_start(enterCodeForm) }}
+        {{ form_row(enterCodeForm.email) }}
+        {{ form_row(enterCodeForm.code) }}
+        <small class="form-text text-muted">Entrez le code à 5 chiffres reçu par email.</small>
+        <button class="btn btn-primary">Valider le code</button>
+    {{ form_end(enterCodeForm) }}
+{% endblock %}

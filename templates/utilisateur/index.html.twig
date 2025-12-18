@@ -56,50 +56,18 @@
 <table border="1" cellpadding="5" cellspacing="0" style="width:100%; border-collapse: collapse; margin-top:10px;" class="table table-striped table-bordered">
     <thead>
         <tr style="background:#2c3e50; color:white;">
-            <th>
-                <a href="{{ path('app_utilisateur_index', {'search': search, 'role': roleFilter, 'sort': 'id', 'order': sortBy == 'id' and sortOrder == 'ASC' ? 'DESC' : 'ASC'}) }}" style="color: white; text-decoration: none;">
-                    Id {% if sortBy == 'id' %}{{ sortOrder == 'ASC' ? '↑' : '↓' }}{% endif %}
-                </a>
-            </th>
-            <th>
-                <a href="{{ path('app_utilisateur_index', {'search': search, 'role': roleFilter, 'sort': 'email', 'order': sortBy == 'email' and sortOrder == 'ASC' ? 'DESC' : 'ASC'}) }}" style="color: white; text-decoration: none;">
-                    Email {% if sortBy == 'email' %}{{ sortOrder == 'ASC' ? '↑' : '↓' }}{% endif %}
-                </a>
-            </th>
+            <th>ID</th>
+            <th>Email</th>
             <th>Nom</th>
             <th>Prénom</th>
-            <th>
-                <a href="{{ path('app_utilisateur_index', {'search': search, 'role': roleFilter, 'sort': 'role', 'order': sortBy == 'role' and sortOrder == 'ASC' ? 'DESC' : 'ASC'}) }}" style="color: white; text-decoration: none;">
-                    Rôle {% if sortBy == 'role' %}{{ sortOrder == 'ASC' ? '↑' : '↓' }}{% endif %}
-                </a>
-            </th>
-            <th>
-                <a href="{{ path('app_utilisateur_index', {'search': search, 'role': roleFilter, 'sort': 'dateInscription', 'order': sortBy == 'dateInscription' and sortOrder == 'ASC' ? 'DESC' : 'ASC'}) }}" style="color: white; text-decoration: none;">
-                    Date d'inscription {% if sortBy == 'dateInscription' %}{{ sortOrder == 'ASC' ? '↑' : '↓' }}{% endif %}
-                </a>
-            </th>
+            <th>Rôle</th>
+            <th>Date d'inscription</th>
+            <th>Statut</th>
             <th>Actions</th>
         </tr>
     </thead>
-    <tbody>
-        {% for utilisateur in utilisateurs %}
-            <tr>
-                <td>{{ utilisateur.id }}</td>
-                <td>{{ utilisateur.email }}</td>
-                <td>{{ utilisateur.nom }}</td>
-                <td>{{ utilisateur.prenom }}</td>
-                <td>{{ utilisateur.role }}</td>
-                <td>{{ utilisateur.dateInscription ? utilisateur.dateInscription|date('Y-m-d H:i:s') : '' }}</td>
-                <td>
-                    <a href="{{ path('app_utilisateur_show', {'id': utilisateur.id}) }}" class="btn btn-sm btn-info">Voir</a>
-                    <a href="{{ path('app_utilisateur_edit', {'id': utilisateur.id}) }}" class="btn btn-sm btn-warning">Modifier</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="7" style="text-align:center;">Aucun utilisateur trouvé</td>
-            </tr>
-        {% endfor %}
+    <tbody id="users-table-body">
+        {{ include('utilisateur/_users_table.html.twig') }}
     </tbody>
 </table>
 
@@ -132,4 +100,64 @@
         </ul>
     </nav>
 {% endif %}
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        (function(){
+            const searchInput = document.getElementById('search');
+            const roleSelect = document.getElementById('role');
+            const sortSelect = document.getElementById('sort');
+            const usersBody = document.getElementById('users-table-body');
+            let timeout = null;
+
+            function fetchResults(page = 1, limit = 10){
+                const params = new URLSearchParams();
+                if (searchInput && searchInput.value) params.set('search', searchInput.value);
+                if (roleSelect && roleSelect.value) params.set('role', roleSelect.value);
+                if (sortSelect && sortSelect.value) params.set('sort', sortSelect.value);
+                params.set('page', page);
+                params.set('limit', limit);
+
+                fetch("{{ path('app_utilisateur_search_ajax') }}?" + params.toString(), {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(r => r.text())
+                .then(html => {
+                    usersBody.innerHTML = html;
+                    attachPaginationHandlers();
+                })
+                .catch(err => console.error('Ajax search error', err));
+            }
+
+            function debounceFetch(){
+                clearTimeout(timeout);
+                timeout = setTimeout(fetchResults, 300);
+            }
+
+            if (searchInput) searchInput.addEventListener('input', debounceFetch);
+            if (roleSelect) roleSelect.addEventListener('change', fetchResults);
+            if (sortSelect) sortSelect.addEventListener('change', fetchResults);
+
+            // Pagination click handling (delegated)
+            function attachPaginationHandlers(){
+                const pagination = document.getElementById('users-pagination');
+                if (!pagination) return;
+                pagination.querySelectorAll('a.page-link').forEach(a => {
+                    a.addEventListener('click', function(e){
+                        e.preventDefault();
+                        const p = parseInt(this.getAttribute('data-page')) || 1;
+                        fetchResults(p);
+                    });
+                });
+            }
+
+            // Attach on initial load
+            attachPaginationHandlers();
+
+            // Prevent original form submit to keep AJAX behavior
+            const form = document.querySelector('form[method="GET"][action="{{ path('app_utilisateur_index') }}"]');
+            if (form) form.addEventListener('submit', function(e){ e.preventDefault(); fetchResults(); });
+        })();
+    </script>
 {% endblock %}

@@ -1,0 +1,56 @@
+{% extends 'base.html.twig' %}
+{% block title %}Artistes{% endblock %}
+
+{% block body %}
+<section id="artistes" class="py-5">
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col-12 text-center">
+                <h2 class="section-title">Nos Artistes</h2>
+                <p class="text-muted">Découvrez les talents de notre communauté</p>
+            </div>
+        </div>
+
+        {% if artistes|length > 0 %}
+            <div class="row g-4">
+                {% for artiste in artistes %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body text-center p-4">
+                                {% if artiste.avatarPath %}
+                                    <img src="{{ vich_uploader_asset(artiste, 'imageFile') }}" 
+                                         alt="{{ artiste.displayName }}" 
+                                         class="rounded-circle mb-3" 
+                                         style="width: 120px; height: 120px; object-fit: cover;">
+                                {% else %}
+                                    <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
+                                         style="width: 120px; height: 120px;">
+                                        <i class="icon icon-user" style="font-size: 3rem; color: #999;"></i>
+                                    </div>
+                                {% endif %}
+                                <h5 class="card-title mb-2">
+                                    <a href="{{ path('app_artiste_show', {id: artiste.id}) }}" 
+                                       class="text-decoration-none text-dark">
+                                        {{ artiste.displayName }}
+                                    </a>
+                                </h5>
+                                <p class="text-muted small mb-3">
+                                    {{ artiste.specialty ?? 'Artiste' }}
+                                </p>
+                                <a href="{{ path('app_artiste_show', {id: artiste.id}) }}" 
+                                   class="btn btn-outline-dark btn-sm">
+                                    Voir le profil
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <p class="text-muted">Aucun artiste pour le moment.</p>
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

@@ -64,9 +64,15 @@
                       </svg></span>
                     <input class="form-control" type="password" placeholder="Password">
                   </div>
+                  <!-- Ajout du reCAPTCHA -->
+                  <div class="mb-3">
+                    <div class="g-recaptcha" data-sitekey="VOTRE_CLE_SITE"></div>
+                    <div class="text-muted small mt-2">Veuillez confirmer que vous n'êtes pas un robot pour sécuriser la connexion.</div>
+                    <div id="recaptcha-error" class="text-danger small mt-2 d-none">Veuvez valider le CAPTCHA pour continuer.</div>
+                  </div>
                   <div class="row">
                     <div class="col-6">
-                      <button class="btn btn-primary px-4" type="button">Login</button>
+                      <button class="btn btn-primary px-4" type="submit" id="login-button">Login</button>
                     </div>
                     <div class="col-6 text-end">
                       <button class="btn btn-link px-0" type="button">Forgot password?</button>
@@ -91,17 +97,28 @@
     <!-- CoreUI and necessary plugins-->
     <script src="vendors/@coreui/coreui/js/coreui.bundle.min.js"></script>
     <script src="vendors/simplebar/js/simplebar.min.js"></script>
+    <!-- reCAPTCHA API -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <script>
-      const header = document.querySelector('header.header');
-
-      document.addEventListener('scroll', () => {
-        if (header) {
-          header.classList.toggle('shadow-sm', document.documentElement.scrollTop > 0);
+      // Vérification du reCAPTCHA avant soumission du formulaire
+      document.getElementById('login-button').addEventListener('click', function(e) {
+        const recaptchaResponse = grecaptcha.getResponse();
+        if(recaptchaResponse.length === 0) {
+          e.preventDefault();
+          document.getElementById('recaptcha-error').classList.remove('d-none');
+          return false;
         }
+        document.getElementById('recaptcha-error').classList.add('d-none');
+        // Si le CAPTCHA est valide, le formulaire sera soumis normalement
       });
-    </script>
-    <script>
-    </script>
 
+      // Gestion du header (code existant)
+      const header = document.querySelector('header.header');
+      if (header) {
+        document.addEventListener('scroll', () => {
+          header.classList.toggle('shadow-sm', document.documentElement.scrollTop > 0);
+        });
+      }
+    </script>
   </body>
 </html>

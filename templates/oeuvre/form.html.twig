@@ -1,0 +1,105 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block body %}
+<section id="oeuvre-form" class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <h2 class="mb-4">{{ title }}</h2>
+                
+                {# Flash Messages #}
+                {% for type, messages in app.flashes %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ type == 'error' ? 'danger' : type }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+                
+                {{ form_start(form, {'attr': {'class': 'needs-validation', 'enctype': 'multipart/form-data', 'novalidate': 'novalidate'}}) }}
+                    <div class="row g-3">
+                        <div class="col-12">
+                            {{ form_label(form.title, 'Titre *', {'label_attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(form.title, {'attr': {'class': 'form-control'}}) }}
+                            <div class="invalid-feedback d-block">
+                                {{ form_errors(form.title) }}
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            {{ form_label(form.description, 'Description *', {'label_attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': 5}}) }}
+                            <div class="invalid-feedback d-block">
+                                {{ form_errors(form.description) }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            {{ form_label(form.categories, 'Catégories *', {'label_attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(form.categories, {'attr': {'class': 'form-select', 'multiple': true}}) }}
+                            <div class="form-text">Maintenez Ctrl pour sélectionner plusieurs catégories</div>
+                            <div class="invalid-feedback d-block">
+                                {{ form_errors(form.categories) }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            {{ form_label(form.status, 'Statut *', {'label_attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(form.status, {'attr': {'class': 'form-select'}}) }}
+                            <div class="invalid-feedback d-block">
+                                {{ form_errors(form.status) }}
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            {{ form_label(form.imageFile, 'Image *', {'label_attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(form.imageFile, {'attr': {'class': 'form-control'}}) }}
+                            <div class="form-text">Formats acceptés : JPG, PNG. Taille max : 10MB</div>
+                            <div class="invalid-feedback d-block">
+                                {{ form_errors(form.imageFile) }}
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check">
+                                {{ form_widget(form.isCommentable, {'attr': {'class': 'form-check-input'}}) }}
+                                {{ form_label(form.isCommentable, 'Autoriser les commentaires', {'label_attr': {'class': 'form-check-label'}}) }}
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary form-action-btn">Enregistrer</button>
+                                <a href="{{ cancel_path|default(path('app_oeuvre_index')) }}" class="btn btn-outline-secondary form-action-btn">Annuler</a>
+                            </div>
+                        </div>
+                    </div>
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+/* Boutons d'action du formulaire avec la même taille */
+.form-action-btn {
+    height: 44px;
+    min-height: 44px;
+    max-height: 44px;
+    padding: 0.5rem 1.5rem;
+    box-sizing: border-box;
+    border-width: 1px;
+    border-style: solid;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    transition: all 0.3s ease;
+}
+
+.form-action-btn:hover {
+    transform: translateY(-2px);
+}
+
+/* Conteneur des boutons */
+.d-flex.gap-2 {
+    gap: 0.5rem;
+}
+</style>
+{% endblock %}
