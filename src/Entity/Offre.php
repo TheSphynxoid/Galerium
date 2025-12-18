@@ -17,6 +17,10 @@ class Offre
     #[ORM\Column]
     #[Assert\NotBlank(message: "Le montant de l'offre ne peut pas être vide.")]
     #[Assert\Positive(message: "Le montant de l'offre doit être supérieur à zéro.")]
+    #[Assert\Expression(
+        expression: "this.getEchere().getPrixActuel() < this.getMontant()",
+        message: "Le montant de l'offre doit etre superieur aux Prix Actuel."
+    )]
     private ?float $montant = null;
 
     #[ORM\Column]
@@ -27,6 +31,10 @@ class Offre
     #[ORM\JoinColumn(nullable: false)]
     #[Assert\NotNull(message: "L'enchère associée ne peut pas être nulle.")]
     private ?Enchere $echere = null;
+
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Utilisateur $User = null;
 
     public function getId(): ?int
     {
@@ -65,6 +73,18 @@ class Offre
     public function setEchere(?Enchere $echere): static
     {
         $this->echere = $echere;
+
+        return $this;
+    }
+
+    public function getUser(): ?Utilisateur
+    {
+        return $this->User;
+    }
+
+    public function setUser(?Utilisateur $User): static
+    {
+        $this->User = $User;
 
         return $this;
     }

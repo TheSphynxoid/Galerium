@@ -1,4 +1,4 @@
-{% extends 'backoffice.html.twig' %}
+{% extends 'base.html.twig' %}
 
 {% block title %}Enchere{% endblock %}
 
@@ -11,8 +11,8 @@
             <table class="table">
         <tbody>
             <tr>
-                <th>Id</th>
-                <td>{{ enchere.id }}</td>
+                <th>Titre de l'oeuvre</th>
+                <td>{{ enchere.oeuvre.title }}</td>
             </tr>
             <tr>
                 <th>PrixDeBase</th>
@@ -38,7 +38,6 @@
             </table>
             <div class="mt-3">
                 <a class="btn btn-secondary" href="{{ path('app_enchere_index') }}">Back to list</a>
-                <a class="btn btn-primary" href="{{ path('app_enchere_edit', {'id': enchere.id}) }}">Edit</a>
                 <span class="ml-2">{{ include('enchere/_delete_form.html.twig') }}</span>
             </div>
         </div>

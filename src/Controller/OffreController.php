@@ -2,15 +2,21 @@
 
 namespace App\Controller;
 
+use App\Entity\Enchere;
 use App\Entity\Offre;
+use App\Entity\Utilisateur;
+use App\Enum\EnchereStatut;
 use App\Form\OffreType;
 use App\Repository\OffreRepository;
+use App\Repository\UtilisateurRepository;
 use App\Service\RedisService;
 use App\Service\AuctionUtils;
+use App\Service\BiddingService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormError;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -19,35 +25,93 @@ use Symfony\Component\Routing\Attribute\Route;
 final class OffreController extends AbstractController
 {
     #[Route(name: 'app_offre_index', methods: ['GET'])]
-    public function index(OffreRepository $offreRepository): Response
+    public function index(Request $request, OffreRepository $offreRepository, UtilisateurRepository $userRepo): Response
     {
+
+        $user = $userRepo->find($request->getSession()->get('user_id'));
+
+
+        if (!$user instanceof Utilisateur) {
+            // not logged in
+            return new JsonResponse(['message' => 'Not logged in'], Response::HTTP_FORBIDDEN);
+        }
+
         return $this->render('offre/index.html.twig', [
-            'offres' => $offreRepository->findAll(),
+            'offres' => $offreRepository->findBy(["User" => $user]),
         ]);
     }
 
-
-    #[Route('/testoffer', name: 'app_offre_test', methods: ['GET'])]
-    public function testoffer(RedisService $redisService)
+    #[Route('/search', name: 'app_offre_search', methods: ['GET'])]
+    public function search(Request $request, OffreRepository $offreRepository): JsonResponse
     {
-        $client = RedisService::GetClient();
-        $client->set('test_offer', 'This is a test offer value', 'EX', 60); // Expires in 1 min
-        
-        return new Response($client->get('test_offer'));
+        try {
+            $query = $request->query->get('q', '');
+
+            // Get all offers and filter by artwork title
+            $allOffres = $offreRepository->findAll();
+            $filteredOffres = [];
+
+            foreach ($allOffres as $offre) {
+                // Check if all relationships exist
+                if (!$offre->getEchere() || !$offre->getEchere()->getOeuvre()) {
+                    continue;
+                }
+
+                $oeuvre = $offre->getEchere()->getOeuvre();
+                $title = strtolower($oeuvre->getTitle());
+
+                // Only add if matches search query
+                if (empty($query) || strpos($title, strtolower($query)) !== false) {
+                    // Get image path - imagePath is the property that stores filename
+                    $imagePath = $oeuvre->getImagePath();
+                    $imageUrl = $imagePath ? '/uploads/oeuvres/' . $imagePath : '/assets/img/placeholder.jpg';
+
+                    $filteredOffres[] = [
+                        'id' => $offre->getId(),
+                        'montant' => $offre->getMontant(),
+                        'dateOffre' => $offre->getDateOffre()?->format('d/m/Y H:i'),
+                        'oeuvreTitle' => $oeuvre->getTitle(),
+                        'prixActuel' => $offre->getEchere()->getPrixActuel(),
+                        'statut' => $offre->getEchere()->getStatut(),
+                        'dateFin' => $offre->getEchere()->getDateFin()?->format('d/m/Y H:i'),
+                        'imageUrl' => $imageUrl,
+                        'showUrl' => $this->generateUrl('app_offre_show', ['id' => $offre->getId()]),
+                        'editUrl' => $this->generateUrl('app_offre_edit', ['id' => $offre->getId()]),
+                    ];
+                }
+            }
+
+            return new JsonResponse($filteredOffres);
+        } catch (\Exception $e) {
+            return new JsonResponse(['error' => $e->getMessage()], 500);
+        }
     }
 
+    #[Route('/new/{id<\d+>}', name: 'app_offre_new', methods: ['GET', 'POST'])]
+    public function new(
+        Request $request,
+        Enchere $enchere,
+        UtilisateurRepository $userRepo,
+        EntityManagerInterface $entityManager
+    ): Response {
+        $user = $userRepo->find($request->getSession()->get('user_id'));
 
-    #[Route('/push', name: 'app_offre_push', methods: ['POST'])]
-    public function PushOffer(Offre $offre)
-    {
-        $enchere = $offre->getEchere();
-        
-    }
 
-    #[Route('/new', name: 'app_offre_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
-    {
+        if (!$user instanceof Utilisateur) {
+            // not logged in
+            return new JsonResponse(['message' => 'Not logged in'], Response::HTTP_FORBIDDEN);
+        }
+
+        if ($enchere->getStatut() !== EnchereStatut::ACTIVE->value) {
+            return new Response('Cette enchère est terminée.', Response::HTTP_FORBIDDEN);
+        }
+
         $offre = new Offre();
+
+        $offre->setDateOffre(new \DateTime());
+        $offre->setEchere($enchere);
+        $offre->setUser($user);
+
         $form = $this->createForm(OffreType::class, $offre);
         $form->handleRequest($request);
 
@@ -55,13 +119,16 @@ final class OffreController extends AbstractController
             $entityManager->persist($offre);
             $this->ValidateOffer($form, $offre);
             if ($form->isValid()) {
+                $enchere->setPrixActuel($offre->getMontant());
                 $entityManager->flush();
-                return $this->redirectToRoute('app_offre_index', [], Response::HTTP_SEE_OTHER);
+
+                return $this->redirectToRoute('app_enchere_index', [], Response::HTTP_SEE_OTHER);
             }
         }
 
         return $this->render('offre/new.html.twig', [
             'offre' => $offre,
+            'enchere' => $enchere,
             'form' => $form->createView(),
         ]);
     }
@@ -107,16 +174,8 @@ final class OffreController extends AbstractController
 
     private function ValidateOffer(FormInterface $form, Offre $offre)
     {
-        if ($offre->getMontant() <= $offre->getEchere()->getPrixActuel()) {
-            $form->get('montant')->addError(new FormError('Le montant de l\'offre doit être supérieur au prix actuel de l\'enchère.'));
-            return false;
-        }
-        if ($offre->getEchere()->getStatut() !== \App\Enum\EnchereStatut::ACTIVE) {
+        if ($offre->getEchere()->getStatut() !== EnchereStatut::ACTIVE->value) {
             $form->addError(new FormError('Vous ne pouvez pas faire une offre sur une enchère qui n\'est pas en cours.'));
-            return false;
-        }
-        if ($offre->getEchere()->getDateFin() < new \DateTime()) {
-            $form->addError(new FormError('Vous ne pouvez pas faire une offre sur une enchère terminée.'));
             return false;
         }
         return true;

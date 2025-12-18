@@ -3,41 +3,195 @@
 {% block title %}Offre index{% endblock %}
 
 {% block body %}
-    <article class="mx-auto my-4" style="max-width:860px;">
+    <article class="mx-auto my-4" style="max-width:1200px;">
         <header class="mb-4 text-center">
-            <h2 style="font-family: Georgia, 'Times New Roman', serif;">Offres</h2>
+            <h2 style="font-family: Georgia, 'Times New Roman', serif;">Mes Offres</h2>
             <p class="text-muted small">Liste des offres récentes</p>
         </header>
 
-        <div class="bg-white rounded shadow-sm p-3">
-            <div class="d-flex justify-content-end mb-3">
-                <a class="btn btn-outline-dark btn-sm" href="{{ path('app_offre_new') }}">Create new</a>
+        <div class="mb-4">
+            <div class="input-group" style="max-width: 500px;">
+                <span class="input-group-text bg-white border-0">
+                    <i class="bi bi-search text-secondary" style="font-size: 1.25rem;"></i>
+                </span>
+                <input type="text" 
+                       class="form-control border-0 ps-2" 
+                       id="searchOffers" 
+                       placeholder="Rechercher par nom d'oeuvre..."
+                       style="box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-radius: 0.5rem; font-size: 1rem;">
+                <button class="btn btn-sm btn-light border-0" 
+                        type="button" 
+                        id="clearSearch" 
+                        style="display: none; color: #6c757d; border-radius: 0 0.5rem 0.5rem 0;">
+                    <i class="bi bi-x-circle" style="font-size: 1.1rem;"></i>
+                </button>
             </div>
-            <table class="table table-sm mb-0">
-        <thead>
-            <tr>
-                <th>Montant</th>
-                <th>DateOffre</th>
-                <th>actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for offre in offres %}
-            <tr>
-                <td>{{ offre.montant }}</td>
-                <td>{{ offre.dateOffre ? offre.dateOffre|date('Y-m-d H:i:s') : '' }}</td>
-                <td>
-                    <a class="btn btn-sm btn-outline-secondary" href="{{ path('app_offre_show', {'id': offre.id}) }}">Show</a>
-                    <a class="btn btn-sm btn-outline-primary" href="{{ path('app_offre_edit', {'id': offre.id}) }}">Edit</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="4">no records found</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
         </div>
+
+        {% if offres|length > 0 %}
+            <div class="row g-4">
+                {% for offre in offres %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 shadow-sm" style="transition: transform 0.3s ease, box-shadow 0.3s ease;">
+                            <div class="position-relative overflow-hidden" style="height: 300px;">
+                                <img src="{{ vich_uploader_asset(offre.echere.oeuvre, 'imageFile') }}" alt="{{ offre.echere.oeuvre.title }}" class="card-img-top" style="width:100%;height:100%;object-fit:cover;">
+                                <div class="position-absolute top-0 end-0 m-2">
+                                    <span class="badge bg-{% if offre.echere.Statut == 'En cours' %}warning{% elseif offre.echere.Statut == 'Terminée' %}danger{% else %}success{% endif %}">
+                                        {{ offre.echere.Statut }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title">{{ offre.echere.oeuvre.title }}</h5>
+                                <div class="mb-3">
+                                    <div class="mb-2">
+                                        <small class="text-muted">Mon offre</small>
+                                        <div class="fs-5 fw-bold text-success">{{ offre.montant }} TND</div>
+                                    </div>
+                                    <div class="mb-2">
+                                        <small class="text-muted">Prix actuel de l'enchère</small>
+                                        <div class="text-muted">{{ offre.echere.prixActuel }} TND</div>
+                                    </div>
+                                </div>
+                                <div class="mb-3 small">
+                                    <div class="mb-1">
+                                        <strong>Offre du:</strong> {{ offre.dateOffre ? offre.dateOffre|date('d/m/Y H:i') : 'N/A' }}
+                                    </div>
+                                    <div>
+                                        <strong>Fin enchère:</strong> {{ offre.echere.dateFin ? offre.echere.dateFin|date('d/m/Y H:i') : 'N/A' }}
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <a class="btn btn-sm btn-outline-secondary flex-grow-1" href="{{ path('app_offre_show', {'id': offre.id}) }}">View</a>
+                                    <a class="btn btn-sm btn-outline-primary flex-grow-1" href="{{ path('app_offre_edit', {'id': offre.id}) }}">Edit</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info text-center" role="alert">
+                <strong>Aucune offre trouvée</strong><br>
+                Vous n'avez pas encore d'offres en cours.
+            </div>
+        {% endif %}
     </article>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchOffers');
+            const clearBtn = document.getElementById('clearSearch');
+            const offersGrid = document.querySelector('.row.g-4');
+            
+            if (!searchInput || !offersGrid) return;
+
+            let searchTimeout;
+
+            searchInput.addEventListener('input', function() {
+                const searchValue = this.value.trim();
+                clearBtn.style.display = searchValue ? 'block' : 'none';
+
+                // Clear previous timeout
+                clearTimeout(searchTimeout);
+
+                // Debounce the search (wait 300ms before making request)
+                searchTimeout = setTimeout(() => {
+                    performSearch(searchValue);
+                }, 300);
+            });
+
+            clearBtn.addEventListener('click', function() {
+                searchInput.value = '';
+                clearBtn.style.display = 'none';
+                performSearch('');
+                searchInput.focus();
+            });
+
+            function performSearch(query) {
+                // Show loading state
+                offersGrid.style.opacity = '0.6';
+
+                fetch(`{{ path('app_offre_search') }}?q=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        renderOffers(data);
+                        offersGrid.style.opacity = '1';
+                    })
+                    .catch(error => {
+                        console.error('Search error:', error);
+                        offersGrid.style.opacity = '1';
+                    });
+            }
+
+            function renderOffers(offres) {
+                // Clear existing cards and messages
+                const existingCards = offersGrid.querySelectorAll('.col-md-6');
+                existingCards.forEach(card => card.remove());
+                
+                // Remove any "no results" message
+                const noResultsMsg = offersGrid.querySelector('.col-12');
+                if (noResultsMsg) {
+                    noResultsMsg.remove();
+                }
+
+                if (offres.length === 0) {
+                    const newNoResultsMsg = document.createElement('div');
+                    newNoResultsMsg.className = 'col-12';
+                    newNoResultsMsg.innerHTML = '<div class="alert alert-warning text-center">Aucune offre ne correspond à votre recherche.</div>';
+                    offersGrid.appendChild(newNoResultsMsg);
+                    return;
+                }
+
+                offres.forEach(offre => {
+                    const statusColor = offre.statut === 'En cours' ? 'warning' : 
+                                       offre.statut === 'Terminée' ? 'danger' : 'success';
+
+                    const cardHTML = `
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card h-100 shadow-sm" style="transition: transform 0.3s ease, box-shadow 0.3s ease;">
+                                <div class="position-relative overflow-hidden" style="height: 300px;">
+                                    <img src="${offre.imageUrl}" alt="${offre.oeuvreTitle}" class="card-img-top" style="width:100%;height:100%;object-fit:cover;">
+                                    <div class="position-absolute top-0 end-0 m-2">
+                                        <span class="badge bg-${statusColor}">
+                                            ${offre.statut}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <h5 class="card-title">${offre.oeuvreTitle}</h5>
+                                    <div class="mb-3">
+                                        <div class="mb-2">
+                                            <small class="text-muted">Mon offre</small>
+                                            <div class="fs-5 fw-bold text-success">${offre.montant} TND</div>
+                                        </div>
+                                        <div class="mb-2">
+                                            <small class="text-muted">Prix actuel de l'enchère</small>
+                                            <div class="text-muted">${offre.prixActuel} TND</div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3 small">
+                                        <div class="mb-1">
+                                            <strong>Offre du:</strong> ${offre.dateOffre || 'N/A'}
+                                        </div>
+                                        <div>
+                                            <strong>Fin enchère:</strong> ${offre.dateFin || 'N/A'}
+                                        </div>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <a class="btn btn-sm btn-outline-secondary flex-grow-1" href="${offre.showUrl}">View</a>
+                                        <a class="btn btn-sm btn-outline-primary flex-grow-1" href="${offre.editUrl}">Edit</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = cardHTML;
+                    offersGrid.appendChild(tempDiv.firstElementChild);
+                });
+            }
+        });
+    </script>
 {% endblock %}
