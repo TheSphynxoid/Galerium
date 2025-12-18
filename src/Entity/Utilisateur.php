@@ -209,4 +209,21 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     {
         return $this->prenom . ' ' . $this->nom;
     }
+
+        public function getArtiste(): ?Artiste
+    {
+        return $this->artiste;
+    }
+
+    public function setArtiste(Artiste $artiste): self
+    {
+        // set the owning side of the relation if necessary
+        if ($artiste->getUser() !== $this) {
+            $artiste->setUser($this);
+        }
+
+        $this->artiste = $artiste;
+
+        return $this;
+    }
 }

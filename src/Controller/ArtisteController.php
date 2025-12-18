@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Artiste;
 use App\Entity\Oeuvre;
+use App\Entity\Utilisateur;
 use App\Form\ArtisteProfileFormType;
 use App\Repository\ArtisteRepository;
 use App\Repository\OeuvreRepository;
@@ -41,10 +42,11 @@ class ArtisteController extends AbstractController
 
         $user = $userRepository->find($session->get('user_id'));
 
-        if (!$user) {
+         if (!$user instanceof Utilisateur) {
+            // not logged in
             return $this->redirectToRoute('app_login');
         }
-
+        
         // Récupération ou création de l'artiste lié
         $artiste = $user->getArtiste();
         if (!$artiste) {

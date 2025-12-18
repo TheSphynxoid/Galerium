@@ -16,6 +16,22 @@ class DiscussionRepository extends ServiceEntityRepository
         parent::__construct($registry, Discussion::class);
     }
 
+
+    // src/Repository/DiscussionRepository.php
+
+public function searchByForumAndTitle(int $forumId, string $term): array
+{
+    return $this->createQueryBuilder('d')
+        ->andWhere('d.forum = :forum')
+        ->andWhere('d.titre LIKE :term')
+        ->setParameter('forum', $forumId)
+        ->setParameter('term', '%' . $term . '%')
+        ->orderBy('d.dateCreation', 'DESC')
+        ->getQuery()
+        ->getResult();
+}
+
+
     //    /**
     //     * @return Discussion[] Returns an array of Discussion objects
     //     */

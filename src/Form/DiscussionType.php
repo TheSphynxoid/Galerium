@@ -16,19 +16,16 @@ class DiscussionType extends AbstractType
         $builder
             ->add('titre')
             ->add('contenu')
-            ->add('dateCreation')
-            ->add('statut')
-            ->add('forum', EntityType::class, [
-                'class' => Forum::class,
-                'choice_label' => 'id',
-            ])
+       
         ;
     }
+
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
             'data_class' => Discussion::class,
+            'attr'=>array('novalidate'=>'novalidate')
         ]);
     }
 }

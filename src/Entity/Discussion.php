@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: DiscussionRepository::class)]
 class Discussion
@@ -17,15 +18,31 @@ class Discussion
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "Le titre est obligatoire.")]
+    #[Assert\Length(
+        min: 2,
+        max: 255,
+        minMessage: "Le titre doit avoir au moins {{ limit }} caractères.",
+        maxMessage: "Le titre est trop long (max {{ limit }})."
+    )]
     private ?string $titre = null;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Assert\NotBlank(message: "Le contenu est obligatoire.")]
+    #[Assert\Length(
+        min: 5,
+        max: 10000,
+        minMessage: "Le contenu doit faire au moins {{ limit }} caractères.",
+        maxMessage: "Le contenu est trop long."
+    )]
     private ?string $contenu = null;
 
     #[ORM\Column]
     private ?\DateTime $dateCreation = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank]
+    #[Assert\Choice(choices: ['active', 'fermé'], message: "Statut de discussion invalide.")]
     private ?string $statut = null;
 
     #[ORM\ManyToOne(inversedBy: 'discussions')]

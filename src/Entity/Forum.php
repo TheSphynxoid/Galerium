@@ -6,6 +6,7 @@ use App\Repository\ForumRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ForumRepository::class)]
 class Forum
@@ -16,18 +17,39 @@ class Forum
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "Le titre du forum est obligatoire.")]
+    #[Assert\Length(
+        min: 3,
+        max: 255,
+        minMessage: "Le titre ns {{ limit }} caractères.",
+        maxMessage: "Titre trop long."
+    )]
     private ?string $titre = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "La description est obligatoire.")]
+    #[Assert\Length(
+        min: 10,
+        max: 500,
+        minMessage: "La description doit faire au moins {{ limit }} caractères.",
+        maxMessage: "Description trop longue."
+    )]
     private ?string $description = null;
 
     #[ORM\Column]
     private ?\DateTime $dateCreation = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank]
+    #[Assert\Choice(choices: ['active'], message: "Un forum doit être actif.")]
     private ?string $statut = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "Veuillez choisir une catégorie.")]
+    #[Assert\Choice(
+        choices: ['art_general', 'peinture', 'photographie', 'sculpture', 'graphisme', 'concours', 'autre'],
+        message: "Catégorie invalide."
+    )]
     private ?string $categorie = null;
 
     /**
@@ -39,6 +61,8 @@ class Forum
     public function __construct()
     {
         $this->discussions = new ArrayCollection();
+        $this->dateCreation = new \DateTime(); // Auto
+        $this->statut = 'active';              // Auto
     }
 
     public function getId(): ?int
@@ -127,7 +151,6 @@ class Forum
     public function removeDiscussion(Discussion $discussion): static
     {
         if ($this->discussions->removeElement($discussion)) {
-            // set the owning side to null (unless already changed)
             if ($discussion->getForum() === $this) {
                 $discussion->setForum(null);
             }

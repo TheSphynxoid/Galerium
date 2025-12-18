@@ -3,36 +3,177 @@
 {% block title %}Discussion{% endblock %}
 
 {% block body %}
-    <h1>Discussion</h1>
+    <h1>{{ discussion.titre }}</h1>
 
-    <table class="table">
-        <tbody>
-            <tr>
-                <th>Id</th>
-                <td>{{ discussion.id }}</td>
-            </tr>
-            <tr>
-                <th>Titre</th>
-                <td>{{ discussion.titre }}</td>
-            </tr>
-            <tr>
-                <th>Contenu</th>
-                <td>{{ discussion.contenu }}</td>
-            </tr>
-            <tr>
-                <th>DateCreation</th>
-                <td>{{ discussion.dateCreation ? discussion.dateCreation|date('Y-m-d H:i:s') : '' }}</td>
-            </tr>
-            <tr>
-                <th>Statut</th>
-                <td>{{ discussion.statut }}</td>
-            </tr>
-        </tbody>
-    </table>
+    <a href="{{ path('app_discussion_index') }}" class="btn btn-secondary mb-3">← Back to list</a>
 
-    <a href="{{ path('app_discussion_index') }}">back to list</a>
+    <hr>
 
-    <a href="{{ path('app_discussion_edit', {'id': discussion.id}) }}">edit</a>
+    <h2>Comments</h2>
 
-    {{ include('discussion/_delete_form.html.twig') }}
+    {% if comments is defined and comments|length > 0 %}
+        <ul class="list-group mb-4">
+            {% for c in comments %}
+                <li class="list-group-item" id="comment-{{ c.id }}">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <strong>#{{ c.id }}</strong>
+                        <small class="text-muted">{{ c.dateCreation ? c.dateCreation|date('Y-m-d H:i') : '' }}</small>
+                    </div>
+                    <div class="comment-content mb-2">{{ c.contenu|e('html') }}</div>
+
+                    <button class="btn btn-sm btn-outline-secondary translate-btn" 
+                            data-comment-id="{{ c.id }}" 
+                            data-text="{{ c.contenu|e('js') }}">
+                        Translate
+                    </button>
+<button class="btn btn-sm btn-danger report-btn" 
+        data-comment-id="{{ c.id }}">
+    Report
+</button>
+
+                    <div class="translated-text mt-2" style="display:none; font-style: italic; color: gray;"></div>
+                </li>
+            {% endfor %}
+        </ul>
+
+        {% if cpages is defined and cpages > 1 %}
+            <nav aria-label="Comments pagination" class="mb-4">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item {{ cpage <= 1 ? 'disabled' }}">
+                        <a class="page-link" href="{{ path('app_discussion_show', {'id': discussion.id, 'cpage': cpage-1}) }}">Previous</a>
+                    </li>
+                    {% for p in 1..cpages %}
+                        <li class="page-item {{ p == cpage ? 'active' }}">
+                            <a class="page-link" href="{{ path('app_discussion_show', {'id': discussion.id, 'cpage': p}) }}">{{ p }}</a>
+                        </li>
+                    {% endfor %}
+                    <li class="page-item {{ cpage >= cpages ? 'disabled' }}">
+                        <a class="page-link" href="{{ path('app_discussion_show', {'id': discussion.id, 'cpage': cpage+1}) }}">Next</a>
+                    </li>
+                </ul>
+            </nav>
+        {% endif %}
+    {% else %}
+        <p>No comments yet. Be the first to comment!</p>
+    {% endif %}
+
+    <h3>Add a comment</h3>
+
+    {% if discussion.statut == 'active' %}
+        {{ form_start(commentForm) }}
+            {{ form_row(commentForm.contenu) }}
+            <button class="btn btn-primary mt-2">Post</button>
+        {{ form_end(commentForm) }}
+    {% else %}
+        <div class="alert alert-warning">Comments are disabled for this discussion.</div>
+    {% endif %}
+<!-- Report Modal -->
+<div class="modal fade" id="reportModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="reportForm">
+        <div class="modal-header">
+          <h5 class="modal-title">Report Comment</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" name="commentId" id="reportCommentId">
+          <div class="mb-3">
+            <label for="reason" class="form-label">Reason</label>
+            <textarea class="form-control" id="reason" name="reason" rows="3" required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-danger">Report</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+    <script>
+    document.querySelectorAll('.translate-btn').forEach(button => {
+        button.addEventListener('click', async function () {
+            const commentId = this.dataset.commentId;
+            const originalText = this.dataset.text;
+            const listItem = document.getElementById('comment-' + commentId);
+            const translatedDiv = listItem.querySelector('.translated-text');
+
+            if (translatedDiv.style.display === 'block') {
+                translatedDiv.style.display = 'none';
+                this.textContent = 'Translate';
+                return;
+            }
+
+            this.textContent = 'Translating...';
+
+            try {
+                const response = await fetch('{{ path('app_translate_comment') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text: originalText,
+                        target: 'en' // or get target language dynamically
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.translatedText) {
+                    translatedDiv.textContent = data.translatedText;
+                    translatedDiv.style.display = 'block';
+                    this.textContent = 'Hide translation';
+                } else {
+                    translatedDiv.textContent = data.error || 'Translation failed.';
+                    translatedDiv.style.display = 'block';
+                    this.textContent = 'Translate';
+                }
+            } catch (e) {
+                translatedDiv.textContent = 'Error contacting translation service.';
+                translatedDiv.style.display = 'block';
+                this.textContent = 'Translate';
+            }
+        });
+    });
+
+    document.querySelectorAll('.report-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const commentId = this.dataset.commentId;
+        document.getElementById('reportCommentId').value = commentId;
+        const reportModal = new bootstrap.Modal(document.getElementById('reportModal'));
+        reportModal.show();
+    });
+});
+
+document.getElementById('reportForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const commentId = document.getElementById('reportCommentId').value;
+    const reason = document.getElementById('reason').value;
+
+    const response = await fetch('{{ path('app_comment_report') }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': '{{ csrf_token('report') }}'
+        },
+        body: JSON.stringify({ commentId, reason })
+    });
+
+    const data = await response.json();
+    if (data.success) {
+        alert('Report sent to admin!');
+        const modalEl = document.getElementById('reportModal');
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        modal.hide();
+    } else {
+        alert('Failed to send report.');
+    }
+});
+
+    </script>
+
 {% endblock %}

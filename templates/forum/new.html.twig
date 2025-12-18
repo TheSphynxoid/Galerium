@@ -1,11 +1,45 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}New Forum{% endblock %}
+{% block title %}Créer un forum - Galerium{% endblock %}
 
 {% block body %}
-    <h1>Create new Forum</h1>
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">Créer un nouveau forum</h1>
+        <a href="{{ path('app_forum_index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Retour à la liste
+        </a>
+    </div>
 
-    {{ include('forum/_form.html.twig') }}
+    <div class="card shadow-sm">
+        <div class="card-body">
+            {{ form_start(form, {'attr': {'class': 'row g-3'}}) }}
+                <div class="col-12">
+                    {{ form_label(form.titre) }}
+                    {{ form_widget(form.titre, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Discussions sur la peinture'}}) }}
+                    {{ form_errors(form.titre) }}
+                </div>
 
-    <a href="{{ path('app_forum_index') }}">back to list</a>
+                <div class="col-12">
+                    {{ form_label(form.description) }}
+                    {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': 3, 'placeholder': 'Décrivez l’objectif de ce forum...'}}) }}
+                    {{ form_errors(form.description) }}
+                </div>
+
+                <div class="col-12">
+                    {{ form_label(form.categorie) }}
+                    {{ form_widget(form.categorie, {'attr': {'class': 'form-select'}}) }}
+                    {{ form_errors(form.categorie) }}
+                </div>
+
+                <div class="col-12 d-flex justify-content-between">
+                    <a href="{{ path('app_forum_index') }}" class="btn btn-secondary">Annuler</a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Créer le forum
+                    </button>
+                </div>
+            {{ form_end(form) }}
+        </div>
+    </div>
+</div>
 {% endblock %}

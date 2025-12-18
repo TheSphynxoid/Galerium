@@ -16,6 +16,21 @@ class ForumRepository extends ServiceEntityRepository
         parent::__construct($registry, Forum::class);
     }
 
+
+
+
+
+
+    public function searchByTitleOrDescription(string $term): array
+{
+    return $this->createQueryBuilder('f')
+        ->where('f.titre LIKE :term OR f.description LIKE :term')
+        ->setParameter('term', '%' . $term . '%')
+        ->orderBy('f.dateCreation', 'DESC')
+        ->getQuery()
+        ->getResult();
+}
+
     //    /**
     //     * @return Forum[] Returns an array of Forum objects
     //     */

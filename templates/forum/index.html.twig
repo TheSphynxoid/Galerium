@@ -1,43 +1,189 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Forum index{% endblock %}
+{% block title %}Forums - Galerium{% endblock %}
 
 {% block body %}
-    <h1>Forum index</h1>
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">Forums</h1>
+        <a href="{{ path('app_forum_new') }}" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> Créer un forum
+        </a>
+    </div>
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Titre</th>
-                <th>Description</th>
-                <th>DateCreation</th>
-                <th>Statut</th>
-                <th>Categorie</th>
-                <th>actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for forum in forums %}
-            <tr>
-                <td>{{ forum.id }}</td>
-                <td>{{ forum.titre }}</td>
-                <td>{{ forum.description }}</td>
-                <td>{{ forum.dateCreation ? forum.dateCreation|date('Y-m-d H:i:s') : '' }}</td>
-                <td>{{ forum.statut }}</td>
-                <td>{{ forum.categorie }}</td>
-                <td>
-                    <a href="{{ path('app_forum_show', {'id': forum.id}) }}">show</a>
-                    <a href="{{ path('app_forum_edit', {'id': forum.id}) }}">edit</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="7">no records found</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+    <!-- Barre de recherche -->
+    <div class="mb-4">
+        <div class="input-group">
+            <span class="input-group-text">
+                <i class="bi bi-search"></i>
+            </span>
+            <input 
+                type="text" 
+                id="search" 
+                placeholder="Rechercher un forum..." 
+                class="form-control"
+                aria-label="Rechercher un forum"
+            />
+        </div>
+    </div>
 
-    <a href="{{ path('app_forum_new') }}">Create new</a>
+    <!-- Tableau des forums -->
+    <div class="table-responsive">
+        <table class="table table-hover align-middle" id="forums-table">
+            <thead class="table-light">
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Titre</th>
+                    <th scope="col">Description</th>
+                    <th scope="col">Créé le</th>
+                    <th scope="col">Statut</th>
+                    <th scope="col">Catégorie</th>
+                    <th scope="col" class="text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for forum in forums %}
+                    <tr>
+                        <td>{{ forum.id }}</td>
+                        <td>
+                            <a href="{{ path('app_forum_show', {'id': forum.id}) }}" class="fw-bold text-decoration-none">
+                                {{ forum.titre }}
+                            </a>
+                        </td>
+                        <td>{{ forum.description|length > 60 ? forum.description|slice(0, 60) ~ '…' : forum.description }}</td>
+                        <td>{{ forum.dateCreation ? forum.dateCreation|date('d/m/Y à H:i') : '' }}</td>
+                        <td>
+                            {% if forum.statut == 'active' %}
+                                <span class="badge bg-success">Actif</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ forum.statut }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-info text-dark">{{ forum.categorie|title }}</span>
+                        </td>
+                        <td class="text-center">
+                            <a href="{{ path('app_forum_show', {'id': forum.id}) }}" class="btn btn-sm btn-outline-primary me-1" title="Voir">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="{{ path('app_forum_edit', {'id': forum.id}) }}" class="btn btn-sm btn-outline-secondary" title="Modifier">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center py-4 text-muted">
+                            <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                            Aucun forum trouvé
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('search');
+    const tableBody = document.querySelector('#forums-table tbody');
+
+    if (!searchInput || !tableBody) return;
+
+    let timeout;
+    searchInput.addEventListener('input', function () {
+        clearTimeout(timeout);
+        const query = this.value.trim();
+
+        // Afficher résultats locaux si champ vide
+        if (query === '') {
+            location.reload();
+            return;
+        }
+
+        // Délai pour éviter trop de requêtes
+        timeout = setTimeout(() => {
+            fetch('{{ path('app_forum_search') }}?q=' + encodeURIComponent(query))
+                .then(response => response.json())
+                .then(data => {
+                    tableBody.innerHTML = '';
+
+                    if (data.length === 0) {
+                        tableBody.innerHTML = `
+                            <tr>
+                                <td colspan="7" class="text-center py-4 text-muted">
+                                    <i class="bi bi-search fs-2 d-block mb-2"></i>
+                                    Aucun forum ne correspond à votre recherche
+                                </td>
+                            </tr>
+                        `;
+                        return;
+                    }
+
+                    data.forEach(forum => {
+                        // Formatage de la date
+                        const date = forum.dateCreation 
+                            ? new Date(forum.dateCreation).toLocaleDateString('fr-FR', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            })
+                            : '';
+
+                        // Statut badge
+                        const statutBadge = forum.statut === 'active' 
+                            ? '<span class="badge bg-success">Actif</span>'
+                            : `<span class="badge bg-secondary">${forum.statut}</span>`;
+
+                        // Catégorie badge
+                        const categorieBadge = `<span class="badge bg-info text-dark">${forum.categorie}</span>`;
+
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${forum.id}</td>
+                            <td>
+                                <a href="/forum/${forum.id}" class="fw-bold text-decoration-none">
+                                    ${forum.titre}
+                                </a>
+                            </td>
+                            <td>${forum.description?.length > 60 ? forum.description.substring(0, 60) + '…' : forum.description || ''}</td>
+                            <td>${date}</td>
+                            <td>${statutBadge}</td>
+                            <td>${categorieBadge}</td>
+                            <td class="text-center">
+                                <a href="/forum/${forum.id}" class="btn btn-sm btn-outline-primary me-1" title="Voir">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="/forum/${forum.id}/edit" class="btn btn-sm btn-outline-secondary" title="Modifier">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                            </td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                })
+                .catch(err => {
+                    console.error('Erreur lors de la recherche :', err);
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-danger">
+                                Erreur lors de la recherche. Veuillez réessayer.
+                            </td>
+                        </tr>
+                    `;
+                });
+        }, 300); // Délai de 300ms
+    });
+});
+</script>
+
+<style>
+/* Optionnel : améliore l’icône de recherche */
+.input-group-text {
+    background-color: #f8f9fa;
+}
+</style>
 {% endblock %}
