@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Finalisez votre achat - Galerium</title>
+    <style>
+        .btn{display:inline-block;padding:12px 20px;background:#2c7be5;color:#fff;text-decoration:none;border-radius:6px}
+        .card{background:#f8f9fa;padding:16px;border-radius:8px}
+    </style>
+    </head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <div style="max-width:600px;margin:0 auto;padding:20px;border:1px solid #ddd;border-radius:5px;">
+        <h2 style="margin-top:0;">Félicitations {{ user.prenom }} !</h2>
+        <p>Vous avez remporté l'enchère pour l'œuvre <strong>{{ oeuvre.title }}</strong>.</p>
+
+        <div class="card">
+            <p><strong>Montant gagnant :</strong> {{ amount|number_format(2, ',', ' ') }} EUR</p>
+            {% if oeuvre.artiste %}
+                <p><strong>Artiste :</strong> {{ oeuvre.artiste.displayName }}</p>
+            {% endif %}
+            {% if enchere.dateFin %}
+                <p><strong>Terminée le :</strong> {{ enchere.dateFin|date('d/m/Y H:i') }}</p>
+            {% endif %}
+        </div>
+
+        <p>Pour finaliser votre achat en toute sécurité, cliquez sur le bouton ci-dessous :</p>
+        <p style="text-align:center;margin:24px 0;">
+            <a href="{{ purchaseUrl }}" class="btn">Payer maintenant</a>
+        </p>
+
+        <p style="font-size: 12px;color:#666;">
+            Ce lien est unique et signé pour sécuriser votre achat. Ne le partagez pas.
+        </p>
+
+        <p>Cordialement,<br>L'équipe Galerium</p>
+    </div>
+</body>
+</html>

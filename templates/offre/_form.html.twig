@@ -1,6 +1,29 @@
-{{ form_start(form) }}
-    {{ form_widget(form) }}
-    <div class="mt-3 text-right">
-        <button class="btn btn-dark">{{ button_label|default('Save') }}</button>
+{{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
+    <div class="form-group mb-3">
+        {% if form.montant is defined %}
+            {{ form_label(form.montant, null, {'label_attr': {'class': 'form-label fw-bold'}}) }}
+            {{ form_widget(form.montant, {'attr': {'class': form.montant.vars.errors|length > 0 ? 'form-control form-control-lg is-invalid' : 'form-control form-control-lg'}}) }}
+            {% if form.montant.vars.errors|length > 0 %}
+                <div class="invalid-feedback d-block">
+                    {% for error in form.montant.vars.errors %}
+                        {{ error.message }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endif %}
+    </div>
+
+    {% if form.vars.errors|length > 0 %}
+        <div class="alert alert-danger" role="alert">
+            {% for error in form.vars.errors %}
+                <p class="mb-0">{{ error.message }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="d-grid gap-2">
+        <button type="submit" class="btn btn-primary btn-lg">
+            <i class="fas fa-gavel me-2"></i>{{ button_label|default('Enchérir') }}
+        </button>
     </div>
 {{ form_end(form) }}

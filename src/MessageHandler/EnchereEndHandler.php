@@ -9,6 +9,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Workflow\Registry;
 use Symfony\Component\Workflow\WorkflowInterface;
+use App\Service\EncherePurchaseMailer;
 
 
 class EnchereEndHandler
@@ -19,6 +20,7 @@ class EnchereEndHandler
         private EntityManagerInterface $em,
         private EnchereRepository $repository,
         private LoggerInterface $logger,
+        private EncherePurchaseMailer $purchaseMailer,
         Registry $registry
     ) {
         $this->workflow = $registry->get(new \App\Entity\Enchere(), 'enchere');
@@ -51,9 +53,28 @@ class EnchereEndHandler
 
         $this->em->flush();
 
-        $this->logger->info(
-            'EnchereEndHandler: enchere finished via workflow',
-            ['id' => $enchere->getId()]
-        );
+        $this->logger->info('EnchereEndHandler: enchere finished via workflow', [
+            'id' => $enchere->getId()
+        ]);
+        
+            $reserve = $enchere->getReservePrice();
+            if ($reserve !== null && ($enchere->getPrixActuel() ?? 0) < $reserve) {
+                $this->logger->info('Reserve not met, skipping purchase link', [
+                    'id' => $enchere->getId(),
+                    'current' => $enchere->getPrixActuel(),
+                    'reserve' => $reserve,
+                ]);
+                return;
+            }
+
+        // Send purchase link to the winner
+        try {
+            $this->purchaseMailer->sendPurchaseLink($enchere);
+        } catch (\Throwable $e) {
+            $this->logger->error('Failed sending purchase link after enchere finish', [
+                'id' => $enchere->getId(),
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }

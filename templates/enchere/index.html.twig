@@ -3,46 +3,115 @@
 {% block title %}Enchere index{% endblock %}
 
 {% block body %}
-{{ include('_search_section.html.twig') }}
     <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h3 class="mb-0">Enchères</h3>
-            <a class="btn btn-sm btn-primary" href="{{ path('app_enchere_new') }}">Create new</a>
+        <div class="card-header d-flex flex-column flex-md-row gap-2 justify-content-between align-items-md-center">
+            <div>
+                <p class="text-uppercase text-muted small mb-1">Administration</p>
+                <h3 class="mb-0">Enchères</h3>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <div class="input-group input-group-sm" style="min-width: 260px;">
+                    <span class="input-group-text bg-light border-end-0"><i class="bi bi-search"></i></span>
+                    <input id="enchereSearch" type="search" class="form-control" placeholder="Rechercher une oeuvre..." aria-label="Rechercher">
+                    <button class="btn btn-outline-secondary d-none" id="enchereSearchClear" type="button">Effacer</button>
+                </div>
+                <a class="btn btn-sm btn-primary" href="{{ path('app_enchere_new') }}">Create new</a>
+            </div>
         </div>
         <div class="card-body p-0">
-            <table class="table mb-0">
-        <thead>
-            <tr>
-                <th>Nom d'oeuvre</th>
-                <th>PrixDeBase</th>
-                <th>PrixActuel</th>
-                <th>DateDebut</th>
-                <th>DateFin</th>
-                <th>Statut</th>
-                <th>actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for enchere in encheres %}
-            <tr>
-                <td>{{ enchere.oeuvre.title }}</td>
-                <td>{{ enchere.prixDeBase }}</td>
-                <td>{{ enchere.prixActuel }}</td>
-                <td>{{ enchere.dateDebut ? enchere.dateDebut|date('Y-m-d H:i:s') : '' }}</td>
-                <td>{{ enchere.dateFin ? enchere.dateFin|date('Y-m-d H:i:s') : '' }}</td>
-                <td>{{ enchere.Statut }}</td>
-                <td>
-                    <a class="btn btn-sm btn-outline-secondary" href="{{ path('app_enchere_show', {'id': enchere.id}) }}">Show</a>
-                    <a class="btn btn-sm btn-outline-primary" href="{{ path('app_enchere_edit', {'id': enchere.id}) }}">Edit</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="7">no records found</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+            <table class="table mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nom d'oeuvre</th>
+                        <th>Prix de base</th>
+                        <th>Prix actuel</th>
+                        <th>Date début</th>
+                        <th>Date fin</th>
+                        <th>Statut</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="enchereTableBody">
+                {% for enchere in encheres %}
+                    <tr>
+                        <td>{{ enchere.oeuvre.title }}</td>
+                        <td>{{ enchere.prixDeBase }}</td>
+                        <td>{{ enchere.prixActuel }}</td>
+                        <td>{{ enchere.dateDebut ? enchere.dateDebut|date('Y-m-d H:i') : '' }}</td>
+                        <td>{{ enchere.dateFin ? enchere.dateFin|date('Y-m-d H:i') : '' }}</td>
+                        <td>{{ enchere.Statut }}</td>
+                        <td class="text-end">
+                            <a class="btn btn-sm btn-outline-secondary" href="{{ path('app_enchere_show', {'id': enchere.id}) }}">Show</a>
+                            <a class="btn btn-sm btn-outline-primary" href="{{ path('app_enchere_edit', {'id': enchere.id}) }}">Edit</a>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">Aucune enchère trouvée</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const input = document.getElementById('enchereSearch');
+            const clearBtn = document.getElementById('enchereSearchClear');
+            const tbody = document.getElementById('enchereTableBody');
+            if (!input || !tbody) return;
+
+            let debounceId;
+            let controller;
+
+            const renderRows = (items) => {
+                tbody.innerHTML = '';
+                if (!items.length) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">Aucune enchère trouvée</td></tr>';
+                    return;
+                }
+
+                const rows = items.map(item => {
+                    const statut = item.statut ?? '';
+                    return `
+                        <tr>
+                            <td>${item.oeuvreTitle ?? ''}</td>
+                            <td>${item.prixDeBase ?? ''}</td>
+                            <td>${item.prixActuel ?? ''}</td>
+                            <td>${item.dateDebut ?? ''}</td>
+                            <td>${item.dateFin ?? ''}</td>
+                            <td>${statut}</td>
+                            <td class="text-end">
+                                <a class="btn btn-sm btn-outline-secondary" href="${item.showUrl}">Show</a>
+                            </td>
+                        </tr>`;
+                });
+                tbody.innerHTML = rows.join('');
+            };
+
+            const doSearch = (value) => {
+                if (controller) controller.abort();
+                controller = new AbortController();
+                fetch(`{{ path('app_enchere_search') }}?q=${encodeURIComponent(value)}`, { signal: controller.signal })
+                    .then(res => res.ok ? res.json() : [])
+                    .then(renderRows)
+                    .catch(() => {});
+            };
+
+            input.addEventListener('input', (e) => {
+                const value = e.target.value.trim();
+                clearBtn.classList.toggle('d-none', value === '');
+                clearTimeout(debounceId);
+                debounceId = setTimeout(() => doSearch(value), 250);
+            });
+
+            clearBtn.addEventListener('click', () => {
+                input.value = '';
+                clearBtn.classList.add('d-none');
+                doSearch('');
+                input.focus();
+            });
+        });
+    </script>
 {% endblock %}

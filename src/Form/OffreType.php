@@ -14,7 +14,17 @@ class OffreType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('montant')
+            ->add('montant', \Symfony\Component\Form\Extension\Core\Type\MoneyType::class, [
+                'currency' => 'TND',
+                'divisor' => 1,
+                'label' => 'Votre offre',
+                'attr' => [
+                    'class' => 'form-control form-control-lg',
+                    'placeholder' => 'Entrez le montant',
+                    'step' => '0.01',
+                    'min' => '0.01',
+                ]
+            ])
         ;
     }
 

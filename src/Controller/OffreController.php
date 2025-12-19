@@ -92,7 +92,8 @@ final class OffreController extends AbstractController
         Request $request,
         Enchere $enchere,
         UtilisateurRepository $userRepo,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        BiddingService $biddingService
     ): Response {
         $user = $userRepo->find($request->getSession()->get('user_id'));
 
@@ -107,7 +108,6 @@ final class OffreController extends AbstractController
         }
 
         $offre = new Offre();
-
         $offre->setDateOffre(new \DateTime());
         $offre->setEchere($enchere);
         $offre->setUser($user);
@@ -116,13 +116,14 @@ final class OffreController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted()) {
-            $entityManager->persist($offre);
-            $this->ValidateOffer($form, $offre);
-            if ($form->isValid()) {
-                $enchere->setPrixActuel($offre->getMontant());
-                $entityManager->flush();
-
-                return $this->redirectToRoute('app_enchere_index', [], Response::HTTP_SEE_OTHER);
+            try {
+                $this->ValidateOffer($form, $offre);
+                if ($form->isValid()) {
+                    $biddingService->placeBid($enchere, $user, (float)$offre->getMontant());
+                    return $this->redirectToRoute('app_enchere_index', [], Response::HTTP_SEE_OTHER);
+                }
+            } catch (\Throwable $e) {
+                $form->addError(new FormError($e->getMessage()));
             }
         }
 

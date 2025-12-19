@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Vous avez été surenchéri - Galerium</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 5px;">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <h2 style="color: #dc3545;">⚠️ Vous avez été surenchéri</h2>
+        </div>
+
+        <p>Bonjour {{ user.prenom }},</p>
+
+        <p>Malheureusement, quelqu'un a surenchéri sur l'enchère pour laquelle vous aviez placé une offre.</p>
+
+        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <h3 style="margin-top: 0;">Détails de l'enchère :</h3>
+            <ul style="list-style: none; padding: 0;">
+                <li><strong>Œuvre :</strong> {{ oeuvre.title }}</li>
+                {% if oeuvre.artiste %}
+                    <li><strong>Artiste :</strong> {{ oeuvre.artiste.displayName }}</li>
+                {% endif %}
+                <li><strong>Votre offre :</strong> {{ previousBid|number_format(2, ',', ' ') }} TND</li>
+                <li><strong>Nouvelle meilleure offre :</strong> {{ newBid|number_format(2, ',', ' ') }} TND</li>
+                <li><strong>Montant surenchéri :</strong> +{{ (newBid - previousBid)|number_format(2, ',', ' ') }} TND</li>
+            </ul>
+        </div>
+
+        <p>Vous pouvez toujours enchérir à nouveau pour reprendre la tête ! Cliquez sur le lien ci-dessous pour retourner à l'enchère :</p>
+
+        <p style="text-align: center; margin: 20px 0;">
+            <a href="{{ auctionUrl }}" style="display: inline-block; padding: 12px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">Enchérir à nouveau</a>
+        </p>
+
+        <p style="font-size: 12px; color: #666; margin-top: 20px;">
+            Ne manquez pas cette opportunité — les enchères peuvent se terminer bientôt !
+        </p>
+
+        <p>Cordialement,<br>L'équipe Galerium</p>
+    </div>
+</body>
+</html>

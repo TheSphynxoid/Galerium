@@ -1,0 +1,15 @@
+{% extends 'backoffice.html.twig' %}
+
+{% block title %}Nouvelle enchère{% endblock %}
+
+{% block body %}
+    <div class="card">
+        <div class="card-header">
+            <h3 class="mb-0">Créer une nouvelle enchère</h3>
+        </div>
+        <div class="card-body">
+            {{ include('enchere/_form.html.twig', { button_label: "Enregistrer", preview_enabled: false }) }}
+            <a class="btn btn-link mt-3" href="{{ path('app_enchere_index') }}">Retour à la liste</a>
+        </div>
+    </div>
+{% endblock %}

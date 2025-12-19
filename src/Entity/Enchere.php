@@ -49,6 +49,21 @@ class Enchere
     #[ORM\JoinColumn(nullable: false)]
     private ?Oeuvre $oeuvre = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?float $reservePrice = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?float $minIncrement = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?float $buyNowPrice = null;
+
+    #[ORM\Column(type: 'integer', options: ['default' => 2])]
+    private int $antiSnipingThresholdMinutes = 2;
+
+    #[ORM\Column(type: 'integer', options: ['default' => 2])]
+    private int $antiSnipingExtensionMinutes = 2;
+
     public function __construct()
     {
         $this->offre = new ArrayCollection();
@@ -158,6 +173,61 @@ class Enchere
     {
         $this->oeuvre = $oeuvre;
 
+        return $this;
+    }
+
+    public function getReservePrice(): ?float
+    {
+        return $this->reservePrice;
+    }
+
+    public function setReservePrice(?float $reservePrice): static
+    {
+        $this->reservePrice = $reservePrice;
+        return $this;
+    }
+
+    public function getMinIncrement(): ?float
+    {
+        return $this->minIncrement;
+    }
+
+    public function setMinIncrement(?float $minIncrement): static
+    {
+        $this->minIncrement = $minIncrement;
+        return $this;
+    }
+
+    public function getBuyNowPrice(): ?float
+    {
+        return $this->buyNowPrice;
+    }
+
+    public function setBuyNowPrice(?float $buyNowPrice): static
+    {
+        $this->buyNowPrice = $buyNowPrice;
+        return $this;
+    }
+
+    public function getAntiSnipingThresholdMinutes(): int
+    {
+        return $this->antiSnipingThresholdMinutes;
+    }
+
+    public function setAntiSnipingThresholdMinutes(int $minutes): static
+    {
+        $this->antiSnipingThresholdMinutes = $minutes;
+        return $this;
+    }
+
+    public function getAntiSnipingExtensionMinutes(): int
+    {
+        return $this->antiSnipingExtensionMinutes;
+    }
+
+    public function setAntiSnipingExtensionMinutes(int $minutes): static
+    {
+        $this->antiSnipingExtensionMinutes = $minutes;
         return $this;
     }
 }

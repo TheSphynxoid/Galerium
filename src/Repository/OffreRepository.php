@@ -16,6 +16,18 @@ class OffreRepository extends ServiceEntityRepository
         parent::__construct($registry, Offre::class);
     }
 
+    public function findHighestByEchere(\App\Entity\Enchere $enchere): ?Offre
+    {
+        return $this->createQueryBuilder('o')
+            ->andWhere('o.echere = :enchere')
+            ->setParameter('enchere', $enchere)
+            ->orderBy('o.montant', 'DESC')
+            ->addOrderBy('o.dateOffre', 'ASC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
 //    /**
 //     * @return Offre[] Returns an array of Offre objects
 //     */

@@ -80,10 +80,11 @@ final class EnchereController extends AbstractController
     public function search(Request $request, EnchereRepository $enchereRepository): JsonResponse
     {
         try {
+            $query = $request->query->get('q', '');
 
             // Get all encheres and filter by artwork title
             $allEncheres = $this->searchByOeuvreTitle(
-                $request->query->get('q', ''),
+                $query,
                 $enchereRepository
             );
             $filteredEncheres = [];
@@ -97,24 +98,21 @@ final class EnchereController extends AbstractController
                 $oeuvre = $enchere->getOeuvre();
                 $title = strtolower($oeuvre->getTitle());
 
-                // Only add if matches search query
-                if (empty($query) || strpos($title, strtolower($query)) !== false) {
-                    // Get image path
-                    $imagePath = $oeuvre->getImagePath();
-                    $imageUrl = $imagePath ? '/uploads/oeuvres/' . $imagePath : '/assets/img/placeholder.jpg';
+                // Get image path
+                $imagePath = $oeuvre->getImagePath();
+                $imageUrl = $imagePath ? '/uploads/oeuvres/' . $imagePath : '/assets/img/placeholder.jpg';
 
-                    $filteredEncheres[] = [
-                        'id' => $enchere->getId(),
-                        'prixDeBase' => $enchere->getPrixDeBase(),
-                        'prixActuel' => $enchere->getPrixActuel(),
-                        'dateDebut' => $enchere->getDateDebut()?->format('d/m/Y H:i'),
-                        'dateFin' => $enchere->getDateFin()?->format('d/m/Y H:i'),
-                        'oeuvreTitle' => $oeuvre->getTitle(),
-                        'statut' => $enchere->getStatut(),
-                        'imageUrl' => $imageUrl,
-                        'showUrl' => $this->generateUrl('app_enchere_show', ['id' => $enchere->getId()]),
-                    ];
-                }
+                $filteredEncheres[] = [
+                    'id' => $enchere->getId(),
+                    'prixDeBase' => $enchere->getPrixDeBase(),
+                    'prixActuel' => $enchere->getPrixActuel(),
+                    'dateDebut' => $enchere->getDateDebut()?->format('d/m/Y H:i'),
+                    'dateFin' => $enchere->getDateFin()?->format('d/m/Y H:i'),
+                    'oeuvreTitle' => $oeuvre->getTitle(),
+                    'statut' => $enchere->getStatut(),
+                    'imageUrl' => $imageUrl,
+                    'showUrl' => $this->generateUrl('app_enchere_show', ['id' => $enchere->getId()]),
+                ];
             }
 
             return new JsonResponse($filteredEncheres);
@@ -142,7 +140,12 @@ final class EnchereController extends AbstractController
     }
 
     #[Route('/new', name: 'app_enchere_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, Registry $registry, EntityManagerInterface $entityManager): Response
+    public function new(
+        Request $request,
+        Registry $registry,
+        EntityManagerInterface $entityManager,
+        UtilisateurRepository $userRepo
+    ): Response
     {
         $enchere = new Enchere();
 
@@ -151,6 +154,13 @@ final class EnchereController extends AbstractController
         $form = $this->createForm(EnchereType::class, $enchere);
         $enchere->setDateDebut(new \DateTime());
         $form->handleRequest($request);
+
+        $user = $userRepo->find($request->getSession()->get('user_id'));
+        if (!$user instanceof Utilisateur) {
+            return new JsonResponse(['message' => 'Not logged in'], Response::HTTP_FORBIDDEN);
+        }
+
+        $template = $user->getRole() === 'ADMIN' ? 'enchere/new_admin.html.twig' : 'enchere/new.html.twig';
 
         if ($form->isSubmitted()) {
             $entityManager->persist($enchere);
@@ -166,7 +176,7 @@ final class EnchereController extends AbstractController
             }
         }
 
-        return $this->render('enchere/new.html.twig', [
+        return $this->render($template, [
             'enchere' => $enchere,
             'form' => $form->createView(),
         ]);

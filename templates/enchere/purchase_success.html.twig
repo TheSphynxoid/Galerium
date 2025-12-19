@@ -1,0 +1,32 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Paiement confirmé{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="alert alert-success" role="alert">
+        <h4 class="alert-heading">Paiement confirmé !</h4>
+        <p>Votre paiement pour l'enchère <strong>#{{ enchere.id }}</strong> a été validé.</p>
+        {% if emailSentTo %}
+            <p>Un email de confirmation a été envoyé à <strong>{{ emailSentTo }}</strong>.</p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Détails</h5>
+            <p class="card-text">Montant payé : <strong>{{ offer.montant|number_format(2, ',', ' ') }} EUR</strong></p>
+            {% if enchere.oeuvre %}
+                <p class="card-text">Œuvre : <strong>{{ enchere.oeuvre.title }}</strong></p>
+            {% endif %}
+            {% if enchere.oeuvre and enchere.oeuvre.artiste %}
+                <p class="card-text">Artiste : <strong>{{ enchere.oeuvre.artiste.displayName }}</strong></p>
+            {% endif %}
+            {% if sessionId %}
+                <p class="card-text"><small>Session Stripe : {{ sessionId }}</small></p>
+            {% endif %}
+            <a class="btn btn-primary" href="{{ path('app_enchere_show', {id: enchere.id}) }}">Retour à l'enchère</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
